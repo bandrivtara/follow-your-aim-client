@@ -1,12 +1,19 @@
 import { Form, InputNumber } from "antd";
 import { IDayCellEditor } from "../DayCellEditor";
+import { FormInstance } from "antd/lib";
 
 interface IProps {
   data: IDayCellEditor;
-  handleKeyUp: (event: React.KeyboardEvent<HTMLInputElement>) => void;
+  form: FormInstance;
 }
 
-const MeasureActivity = ({ handleKeyUp, data }: IProps) => {
+const MeasureActivity = ({ data, form }: IProps) => {
+  const handleKeyUp = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Alt") {
+      form.submit();
+    }
+  };
+
   return (
     <>
       {data.calendarMode === "tracking" ? (

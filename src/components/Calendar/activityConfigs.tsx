@@ -21,8 +21,7 @@ type TActivityConfig = {
     cellEditor: (
       data: IDayCellEditor,
       form: FormInstance<any>,
-      colDef: ColDef<IDayCellEditor>,
-      handleKeyUp: (event: React.KeyboardEvent<HTMLInputElement>) => void
+      colDef: ColDef<IDayCellEditor>
     ) => ReactNode;
     cellRenderer: (
       cell: IValue,
@@ -37,9 +36,7 @@ type TActivityConfig = {
 
 export const activityConfigs: TActivityConfig = {
   number: {
-    cellEditor: (data, _form, _colDef, handleKeyUp) => (
-      <MeasureActivity data={data} handleKeyUp={handleKeyUp} />
-    ),
+    cellEditor: (data, form) => <MeasureActivity data={data} form={form} />,
     cellRenderer: (cell, data) => ({
       component: <>{cell.value || cell.plannedValue}</>,
       progress:
@@ -49,7 +46,7 @@ export const activityConfigs: TActivityConfig = {
     }),
   },
   boolean: {
-    cellEditor: (data, form, colDef, _handleKeyUp) => (
+    cellEditor: (data, form, colDef) => (
       <BooleanActivity form={form} data={data} colDef={colDef} />
     ),
     cellRenderer: (cell) => {
@@ -61,9 +58,7 @@ export const activityConfigs: TActivityConfig = {
     },
   },
   array: {
-    cellEditor: (data, form, colDef, _handleKeyUp) => (
-      <ListActivity data={data} colDef={colDef} form={form} />
-    ),
+    cellEditor: (_data, form) => <ListActivity form={form} />,
     cellRenderer: (cell) => {
       const activityStatus = cell.value.split("/");
       const progress = +activityStatus[0] / +activityStatus[1];
@@ -76,7 +71,7 @@ export const activityConfigs: TActivityConfig = {
     },
   },
   meals: {
-    cellEditor: (data, form, colDef, _handleKeyUp) => (
+    cellEditor: (data, form, colDef) => (
       <DietaryActivity data={data} colDef={colDef} form={form} />
     ),
     cellRenderer: (cell) => {
@@ -88,7 +83,7 @@ export const activityConfigs: TActivityConfig = {
     },
   },
   time: {
-    cellEditor: (data, _form, _colDef, _handleKeyUp) => <Time data={data} />,
+    cellEditor: (data, _form, _colDef) => <Time data={data} />,
     cellRenderer: (cell) => {
       return {
         component: <>{cell.value && `${cell.value[0]}:${cell.value[1]}`}</>,

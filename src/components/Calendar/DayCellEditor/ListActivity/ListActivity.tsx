@@ -11,7 +11,6 @@ import {
   Row,
   Space,
 } from "antd";
-import { IDayCellEditor } from "../DayCellEditor";
 import {
   BorderOutlined,
   CheckSquareOutlined,
@@ -21,13 +20,10 @@ import {
   LinkOutlined,
   MoreOutlined,
 } from "@ant-design/icons";
-import { ColDef } from "ag-grid-community";
 import { useWatch } from "antd/es/form/Form";
 
 interface IProps {
-  data?: IDayCellEditor;
-  colDef: ColDef<IDayCellEditor>;
-  form: FormInstance;
+  form: FormInstance<any>;
 }
 
 interface ITask {
@@ -39,16 +35,7 @@ interface ITask {
   isEditOn?: boolean;
 }
 
-const initTask: ITask = {
-  title: "",
-  status: "pending",
-  time: [],
-  description: "",
-  link: "",
-  isEditOn: false,
-};
-
-const ListActivity = ({ data, form, colDef }: IProps) => {
+const ListActivity = ({ form }: IProps) => {
   const formTasks: ITask[] = useWatch("tasks", form);
   const [editFiledIndex, setEditFiledIndex] = useState<null | number>(null);
 
@@ -114,7 +101,7 @@ const ListActivity = ({ data, form, colDef }: IProps) => {
     >
       <Form.Item hidden name="value" noStyle></Form.Item>
 
-      <Form.List name="tasks" initialValue={[initTask]}>
+      <Form.List name="tasks">
         {(fields, { add, remove }) => (
           <>
             {fields.map((task, index) => (
@@ -129,17 +116,12 @@ const ListActivity = ({ data, form, colDef }: IProps) => {
                       name={[index, "title"]}
                       noStyle
                       rules={[{ required: true }]}
-                      initialValue={initTask.title}
                     >
                       <Input placeholder="Назва завдання" />
                     </Form.Item>
                   </Col>
                   <Col flex="auto">
-                    <Form.Item
-                      name={[index, "status"]}
-                      initialValue={initTask.status}
-                      noStyle
-                    >
+                    <Form.Item name={[index, "status"]} noStyle>
                       <Radio.Group>
                         <Radio.Button value={"failed"}>
                           <CloseSquareOutlined rev={"value"} />
@@ -179,7 +161,6 @@ const ListActivity = ({ data, form, colDef }: IProps) => {
                   <Col style={{ marginRight: "10px" }}>
                     <Form.Item
                       name={[index, "time"]}
-                      initialValue={initTask.time}
                       hidden={!isTaskFieldVisible(index, "time")}
                       noStyle
                     >
@@ -194,7 +175,6 @@ const ListActivity = ({ data, form, colDef }: IProps) => {
                     <Form.Item
                       required={false}
                       name={[index, "link"]}
-                      initialValue={initTask.link}
                       hidden={!isTaskFieldVisible(index, "link")}
                       noStyle
                     >
@@ -209,7 +189,6 @@ const ListActivity = ({ data, form, colDef }: IProps) => {
                   <Col span={24}>
                     <Form.Item
                       required={false}
-                      initialValue={initTask.description}
                       name={[index, "description"]}
                       hidden={!isTaskFieldVisible(index, "description")}
                       noStyle

@@ -56,12 +56,6 @@ const DayCellEditor = memo(
         stopEditing();
       };
 
-      const handleKeyUp = (event: React.KeyboardEvent<HTMLInputElement>) => {
-        if (event.key === "Alt") {
-          form.submit();
-        }
-      };
-
       const handleDelete = async () => {
         if (colDef.field && activityData.data && activityData.data.history) {
           const currentDayStatus = {
@@ -88,8 +82,7 @@ const DayCellEditor = memo(
         activityConfigs[data.activityData.valueType].cellEditor(
           data,
           form,
-          colDef,
-          handleKeyUp
+          colDef
         );
 
       return (
