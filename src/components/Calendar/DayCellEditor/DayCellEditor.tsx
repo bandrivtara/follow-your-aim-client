@@ -32,47 +32,22 @@ const DayCellEditor = memo(
       const [form] = Form.useForm();
       const [updateActivity] = useUpdateActivityMutation();
       const activityData = useGetActivityQuery(data?.id);
-
-      useEffect(() => {
-        if (activityData.data && activityData.data.history && colDef.field) {
-          const dayStatus =
-            activityData.data?.history?.[data.currentDate.year]?.[
-              data.currentDate.month
-            ]?.[+colDef.field];
-
-          if (dayStatus) {
-            form.setFieldsValue({
-              value: activityData.data.details.minToComplete,
-              plannedValue: activityData.data.details.minToComplete,
-              ...dayStatus,
-            });
-          } else {
-            form.setFieldsValue({
-              value: activityData.data.details.minToComplete,
-              plannedValue: activityData.data.details.minToComplete,
-            });
-          }
-        }
-      }, [colDef.field, data, form, activityData]);
+      // @ts-ignore
+      const cellData = colDef.field && data?.[+colDef.field];
 
       const handleConfirm = async (formValues: any) => {
         if (colDef.field) {
-          const dayStatus =
-            activityData.data?.history?.[data.currentDate.year]?.[
-              data.currentDate.month
-            ]?.[+colDef.field];
           const newDayStatus: IActivityStatus = {
-            ...dayStatus,
+            ...cellData,
             ...formValues,
           };
-          console.log(formValues, 123);
           const activityToUpdate = {
             id: data.id,
             data: { ...newDayStatus },
             path: `history.${data.currentDate.year}.${data.currentDate.month}.${colDef.field}`,
           };
-          await updateActivity(activityToUpdate).unwrap();
 
+          await updateActivity(activityToUpdate).unwrap();
           stopEditing();
         }
       };
@@ -119,50 +94,53 @@ const DayCellEditor = memo(
 
       return (
         <div tabIndex={1}>
-          <Form
-            labelCol={{ span: 8 }}
-            wrapperCol={{ span: 14 }}
-            layout="horizontal"
-            style={{ minWidth: 300, margin: 20 }}
-            form={form}
-            name="dayCellEditor"
-            onFinish={handleConfirm}
-            hidden={data.activityData.valueType === "boolean"}
-          >
-            <Form.Item
-              noStyle
-              shouldUpdate={(prevValues, currentValues) =>
-                prevValues !== currentValues
-              }
+          {cellData && (
+            <Form
+              labelCol={{ span: 8 }}
+              wrapperCol={{ span: 14 }}
+              layout="horizontal"
+              style={{ minWidth: 300, margin: 20 }}
+              form={form}
+              name="dayCellEditor"
+              onFinish={handleConfirm}
+              hidden={data.activityData.valueType === "boolean"}
+              initialValues={cellData}
             >
-              {currentCellEditorData}
-            </Form.Item>
+              <Form.Item
+                noStyle
+                shouldUpdate={(prevValues, currentValues) =>
+                  prevValues !== currentValues
+                }
+              >
+                {currentCellEditorData}
+              </Form.Item>
 
-            <Form.Item>
-              <Button
-                htmlType="submit"
-                type="primary"
-                icon={<CheckOutlined rev={"value"} />}
-                size={"large"}
-              />
-              <Button
-                style={{ marginLeft: 20 }}
-                danger
-                type="primary"
-                icon={<CloseOutlined rev={"value"} />}
-                size={"large"}
-                onClick={handleDecline}
-              />
-              <Button
-                style={{ marginLeft: 20 }}
-                danger
-                type="primary"
-                icon={<DeleteOutlined rev="value" />}
-                size={"large"}
-                onClick={handleDelete}
-              />
-            </Form.Item>
-          </Form>
+              <Form.Item>
+                <Button
+                  htmlType="submit"
+                  type="primary"
+                  icon={<CheckOutlined rev={"value"} />}
+                  size={"large"}
+                />
+                <Button
+                  style={{ marginLeft: 20 }}
+                  danger
+                  type="primary"
+                  icon={<CloseOutlined rev={"value"} />}
+                  size={"large"}
+                  onClick={handleDecline}
+                />
+                <Button
+                  style={{ marginLeft: 20 }}
+                  danger
+                  type="primary"
+                  icon={<DeleteOutlined rev="value" />}
+                  size={"large"}
+                  onClick={handleDelete}
+                />
+              </Form.Item>
+            </Form>
+          )}
         </div>
       );
     }

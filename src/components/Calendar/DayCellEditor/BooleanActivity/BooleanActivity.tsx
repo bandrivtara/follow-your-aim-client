@@ -1,4 +1,4 @@
-import { Form, FormInstance, Switch } from "antd";
+import { Form, FormInstance } from "antd";
 import { IDayCellEditor } from "../DayCellEditor";
 import { useEffect } from "react";
 import { ColDef } from "ag-grid-community";
@@ -11,34 +11,27 @@ interface IProps {
 
 const BooleanActivity = ({ data, form, colDef }: IProps) => {
   useEffect(() => {
-    // if (!colDef.field) return;
+    if (!colDef.field) return;
+    // @ts-ignore
+    const currentValue = data?.[+colDef.field];
+
     if (data.calendarMode === "tracking") {
-      const newIsComplete = !form.getFieldValue("isComplete");
-      console.log(newIsComplete);
+      const newIsComplete = !currentValue.isComplete;
+
       form.setFieldValue("isComplete", newIsComplete);
+    } else if (data.calendarMode === "planning") {
+      const newIsPlanned = !currentValue.isPlanned;
+
+      form.setFieldValue("isPlanned", newIsPlanned);
     }
     form && form.submit();
   }, [colDef.field, data, form]);
   return (
     <>
       {data.calendarMode === "tracking" ? (
-        <Form.Item
-          name="isComplete"
-          label="Виконано"
-          initialValue={true}
-          valuePropName="checked"
-        >
-          <Switch />
-        </Form.Item>
+        <Form.Item name="isComplete"></Form.Item>
       ) : (
-        <Form.Item
-          name="isPlanned"
-          label="Запланувати"
-          initialValue={true}
-          valuePropName="checked"
-        >
-          <Switch />
-        </Form.Item>
+        <Form.Item name="isPlanned"></Form.Item>
       )}
     </>
   );

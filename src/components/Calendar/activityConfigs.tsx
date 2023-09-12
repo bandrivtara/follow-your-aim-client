@@ -93,7 +93,7 @@ export const activityConfigs: TActivityConfig = {
       return {
         component: <>{cell.value && `${cell.value[0]}:${cell.value[1]}`}</>,
         progress: cell.value > 1 && 1,
-        isPlanned: cell.plannedValue[0],
+        isPlanned: cell.plannedValue?.[0] || 0,
       };
     },
   },

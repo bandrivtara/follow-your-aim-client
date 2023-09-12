@@ -14,12 +14,21 @@ import {
   Radio,
   Row,
   Select,
-  Switch,
   TimeRangePickerProps,
 } from "antd";
 import dayjs, { Dayjs } from "dayjs";
+import uk from "dayjs/locale/uk";
 
 export type ICalendarState = "tracking" | "planning";
+
+const getFirstDayOfWeek = () => {
+  dayjs.locale({
+    ...uk,
+  });
+  return dayjs().get("D") < 7
+    ? dayjs().startOf("month")
+    : dayjs().startOf("week");
+};
 
 const Calendar = () => {
   const { data } = useGetActivityListQuery();
@@ -30,8 +39,8 @@ const Calendar = () => {
   const [columnDefs, setColumnDefs] = useState<ColDef[]>([]);
 
   const [currentDate, setCurrentDate] = useState<(Dayjs | null)[]>([
-    dayjs(),
-    dayjs(),
+    getFirstDayOfWeek(),
+    dayjs().endOf("week"),
   ]);
   const [filteredCategory, setFilteredCategory] = useState("only-planned");
   const [calendarMode, setCurrentMode] = useState<ICalendarState>("tracking");
@@ -215,19 +224,11 @@ const Calendar = () => {
 
   const handleTrackingMode = () => {
     setCurrentMode("tracking");
-    setCurrentDate([dayjs(), dayjs()]);
-    setFilteredCategory("only-planned");
   };
 
   const handlePlanningMode = () => {
     setCurrentMode("planning");
     setFilteredCategory("all");
-  };
-
-  const getFirstDayOfWeek = () => {
-    return dayjs().get("D") < 7
-      ? dayjs().startOf("month")
-      : dayjs().startOf("week");
   };
 
   const rangePresets: TimeRangePickerProps["presets"] = [
