@@ -4,7 +4,7 @@ export interface IActivityData {
   history?: IActivityHistory[];
 }
 
-export type IValueTypes = "number" | "boolean" | "array" | "time" | "meals";
+export type IValueTypes = "number" | "boolean" | "array" | "time";
 
 export interface IActivityDetails {
   id: string;

@@ -57,10 +57,10 @@ export const activityFirestoreApi = api.injectEndpoints({
     }),
 
     addActivity: builder.mutation({
-      async queryFn(activityData: IActivityDetails) {
+      async queryFn(activityDetails: IActivityDetails) {
         try {
           await addDoc(collection(db, "activity"), {
-            details: activityData,
+            details: activityDetails,
           });
           return { data: null };
         } catch (error: any) {
@@ -71,10 +71,10 @@ export const activityFirestoreApi = api.injectEndpoints({
       invalidatesTags: ["Activity"],
     }),
     updateActivity: builder.mutation({
-      async queryFn(activityData) {
+      async queryFn(activityDetails) {
         try {
-          await updateDoc(doc(db, "activity", activityData.id), {
-            [activityData.path]: activityData.data,
+          await updateDoc(doc(db, "activity", activityDetails.id), {
+            [activityDetails.path]: activityDetails.data,
           });
           return { data: null };
         } catch (error: any) {

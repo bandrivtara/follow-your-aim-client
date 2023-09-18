@@ -1,47 +1,41 @@
-import { Form, FormInstance, Switch } from "antd";
 import { IDayCellEditor } from "../DayCellEditor";
 import { useEffect } from "react";
 import { ColDef } from "ag-grid-community";
+import { IStopEditing } from "../../activityConfigs";
+import { useUpdateActivityMutation } from "../../../../store/services/activity";
 
 interface IProps {
-  data: IDayCellEditor;
-  form: FormInstance;
   colDef: ColDef<IDayCellEditor>;
+  stopEditing: IStopEditing;
+  data: IDayCellEditor;
 }
 
-const BooleanActivity = ({ data, form, colDef }: IProps) => {
+const BooleanActivity = ({ data, colDef }: IProps) => {
+  const [updateActivity] = useUpdateActivityMutation();
+  const cellData = colDef.field && data[+colDef.field];
+
   useEffect(() => {
-    // if (!colDef.field) return;
-    if (data.calendarMode === "tracking") {
-      const newIsComplete = !form.getFieldValue("isComplete");
-      console.log(newIsComplete);
-      form.setFieldValue("isComplete", newIsComplete);
-    }
-    form && form.submit();
-  }, [colDef.field, data, form]);
-  return (
-    <>
-      {data.calendarMode === "tracking" ? (
-        <Form.Item
-          name="isComplete"
-          label="Виконано"
-          initialValue={true}
-          valuePropName="checked"
-        >
-          <Switch />
-        </Form.Item>
-      ) : (
-        <Form.Item
-          name="isPlanned"
-          label="Запланувати"
-          initialValue={true}
-          valuePropName="checked"
-        >
-          <Switch />
-        </Form.Item>
-      )}
-    </>
-  );
+    const changeStatus = async () => {
+      if (colDef.field) {
+        const isComplete = cellData?.isComplete || false;
+        const isPlanned = cellData?.isPlanned || false;
+
+        const activityToUpdate = {
+          id: data.id,
+          data: {
+            isPlanned:
+              data.calendarMode === "planning" ? !isPlanned : isPlanned,
+            isComplete:
+              data.calendarMode === "tracking" ? !isComplete : isComplete,
+          },
+          path: `history.${data.currentDate.year}.${data.currentDate.month}.${colDef.field}`,
+        };
+        await updateActivity(activityToUpdate).unwrap();
+      }
+    };
+    changeStatus();
+  }, [cellData, colDef.field, data, updateActivity]);
+  return <></>;
 };
 
 export default BooleanActivity;

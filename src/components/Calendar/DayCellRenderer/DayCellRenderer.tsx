@@ -10,7 +10,10 @@ const DayCellRenderer = ({
   const currentCellRendererData =
     value &&
     data &&
-    activityConfigs?.[data.activityData.valueType]?.cellRenderer(value, data);
+    activityConfigs?.[data.activityDetails.valueType]?.cellRenderer(
+      value,
+      data
+    );
 
   const getProgressColor = () => {
     if (!currentCellRendererData) return "transparent";
