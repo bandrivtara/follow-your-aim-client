@@ -1,12 +1,10 @@
 import { ReactNode } from "react";
 import { IValueTypes } from "../../types/activity.types";
 import { IDayCellEditor } from "./DayCellEditor/DayCellEditor";
-import { FormInstance } from "antd";
 import { ColDef } from "ag-grid-community";
 import MeasureActivity from "./DayCellEditor/MeasureActivity/MeasureActivity";
 import BooleanActivity from "./DayCellEditor/BooleanActivity/BooleanActivity";
 import ListActivity from "./DayCellEditor/ListActivity/ListActivity";
-import DietaryActivity from "./DayCellEditor/SpecificActivity/DietaryActivity(TODO)";
 import Time from "./DayCellEditor/SpecificActivity/Time";
 
 interface IValue {
@@ -16,13 +14,17 @@ interface IValue {
   plannedValue: any;
 }
 
+export type IStopEditing = (
+  suppressNavigateAfterEdit?: boolean | undefined
+) => void;
+
 type TActivityConfig = {
   [activityType in IValueTypes]: {
-    cellEditor: (
-      data: IDayCellEditor,
-      form: FormInstance<any>,
-      colDef: ColDef<IDayCellEditor>
-    ) => ReactNode;
+    cellEditor: (cellEditorData: {
+      data: IDayCellEditor;
+      colDef: ColDef<IDayCellEditor>;
+      stopEditing: IStopEditing;
+    }) => ReactNode;
     cellRenderer: (
       cell: IValue,
       data?: any
@@ -36,18 +38,20 @@ type TActivityConfig = {
 
 export const activityConfigs: TActivityConfig = {
   number: {
-    cellEditor: (data, form) => <MeasureActivity data={data} form={form} />,
+    cellEditor: ({ colDef, stopEditing, data }) => (
+      <MeasureActivity colDef={colDef} stopEditing={stopEditing} data={data} />
+    ),
     cellRenderer: (cell, data) => ({
       component: <>{cell.value || cell.plannedValue}</>,
       progress:
         cell.value /
-        (cell.plannedValue || data.activityData.minToComplete || ""),
+        (cell.plannedValue || data.activityDetails.minToComplete || ""),
       isPlanned: !!cell.plannedValue,
     }),
   },
   boolean: {
-    cellEditor: (data, form, colDef) => (
-      <BooleanActivity form={form} data={data} colDef={colDef} />
+    cellEditor: ({ colDef, stopEditing, data }) => (
+      <BooleanActivity colDef={colDef} stopEditing={stopEditing} data={data} />
     ),
     cellRenderer: (cell) => {
       return {
@@ -58,7 +62,9 @@ export const activityConfigs: TActivityConfig = {
     },
   },
   array: {
-    cellEditor: (_data, form) => <ListActivity form={form} />,
+    cellEditor: ({ colDef, stopEditing, data }) => (
+      <ListActivity colDef={colDef} stopEditing={stopEditing} data={data} />
+    ),
     cellRenderer: (cell) => {
       const activityStatus = cell.value.split("/");
       const progress = +activityStatus[0] / +activityStatus[1];
@@ -70,20 +76,22 @@ export const activityConfigs: TActivityConfig = {
       };
     },
   },
-  meals: {
-    cellEditor: (data, form, colDef) => (
-      <DietaryActivity data={data} colDef={colDef} form={form} />
-    ),
-    cellRenderer: (cell) => {
-      return {
-        component: <>{cell.value}</>,
-        progress: cell.value > 1 && 1,
-        isPlanned: true,
-      };
-    },
-  },
+  // meals: {
+  //   cellEditor: ({ data, form, colDef }) => (
+  //     <DietaryActivity data={data} colDef={colDef} form={form} />
+  //   ),
+  //   cellRenderer: (cell) => {
+  //     return {
+  //       component: <>{cell.value}</>,
+  //       progress: cell.value > 1 && 1,
+  //       isPlanned: true,
+  //     };
+  //   },
+  // },
   time: {
-    cellEditor: (data, _form, _colDef) => <Time data={data} />,
+    cellEditor: ({ data, colDef, stopEditing }) => (
+      <Time colDef={colDef} stopEditing={stopEditing} data={data} />
+    ),
     cellRenderer: (cell) => {
       return {
         component: <>{cell.value && `${cell.value[0]}:${cell.value[1]}`}</>,

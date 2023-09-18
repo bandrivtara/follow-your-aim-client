@@ -109,7 +109,7 @@ const Calendar = () => {
 
     const newColumnDefs: ColDef[] = [
       {
-        field: "activityData",
+        field: "activityDetails",
         headerName: "Назва",
         cellRenderer: ActivityCellRenderer,
         pinned: "left",
@@ -120,10 +120,10 @@ const Calendar = () => {
     setColumnDefs([...newColumnDefs, ...dayCols]);
 
     const newRows = data
-      ?.map((activityData, index) => {
+      ?.map((activityData) => {
         const activityRows = {
           id: activityData.id,
-          activityData: activityData.details,
+          activityDetails: activityData.details,
           scheduleTime: activityData.details.scheduleTime,
           currentDate: {
             year: currentDate[0] && currentDate[0].year(),
@@ -149,8 +149,8 @@ const Calendar = () => {
         return activityRows;
       })
       .sort((a, b) => {
-        const timeA = a.activityData.scheduleTime;
-        const timeB = b.activityData.scheduleTime;
+        const timeA = a.activityDetails.scheduleTime;
+        const timeB = b.activityDetails.scheduleTime;
 
         if (!timeA && !timeB) {
           return 0; // No scheduleTime for both, maintain order
@@ -185,6 +185,9 @@ const Calendar = () => {
               currentActivityData.plannedValue ||
               currentActivityData.isComplete)
           );
+        } else if (filteredCategory === "grouped") {
+          console.log(activity);
+          return activity.category === filteredCategory;
         } else {
           return activity.category === filteredCategory;
         }
@@ -265,14 +268,13 @@ const Calendar = () => {
             onChange={handleCategoryChange}
             value={filteredCategory}
           >
-            <Select.Option value="all">Усі категорії</Select.Option>
+            <Select.Option value="all">Усі активності</Select.Option>
             <Select.Option value="only-planned">
               Тільки заплановані
             </Select.Option>
-            <Select.Option value="morning">Ранкові</Select.Option>
+            <Select.Option value="grouped">Погруповані</Select.Option>
             <Select.Option value="daily">Денні</Select.Option>
             <Select.Option value="sport">Спорт</Select.Option>
-            <Select.Option value="meal">Харчування</Select.Option>
           </Select>
         </Col>
         <Col>

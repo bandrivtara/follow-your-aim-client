@@ -39,19 +39,19 @@ const AddEditActivity = () => {
   let { activityId } = useParams();
   const [addActivity] = useAddActivityMutation();
   const [updateActivity] = useUpdateActivityMutation();
-  const activityData = useGetActivityQuery(activityId);
+  const activityDetails = useGetActivityQuery(activityId);
 
   useEffect(() => {
-    if (activityData) {
-      if (activityData.data && activityData.data.details) {
-        form.setFieldsValue(activityData.data.details);
+    if (activityDetails) {
+      if (activityDetails.data && activityDetails.data.details) {
+        form.setFieldsValue(activityDetails.data.details);
       }
     }
-  }, [activityData, form]);
+  }, [activityDetails, form]);
 
   const onFinish = async (newActivityData: IActivityDetails) => {
     if (activityId) {
-      console.log(activityData);
+      console.log(activityDetails);
       const activityToUpdate = {
         id: activityId,
         data: newActivityData,
