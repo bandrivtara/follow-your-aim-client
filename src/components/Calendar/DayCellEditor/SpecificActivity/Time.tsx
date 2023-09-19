@@ -4,7 +4,7 @@ import { ClockCircleOutlined } from "@ant-design/icons";
 import { getTimeOptions } from "../../../../share/functions/getTimeOptions";
 import FormButtons from "../../../../share/components/Form/FormButtons";
 import { useUpdateActivityMutation } from "../../../../store/services/activity";
-import { IStopEditing } from "../../activityConfigs";
+import { IStopEditing } from "../../Activities/activityConfigs";
 import { ColDef } from "ag-grid-community";
 import { useEffect, useState } from "react";
 import _ from "lodash";
