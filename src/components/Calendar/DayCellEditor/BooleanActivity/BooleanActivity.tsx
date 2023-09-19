@@ -1,7 +1,7 @@
 import { IDayCellEditor } from "../DayCellEditor";
 import { useEffect } from "react";
 import { ColDef } from "ag-grid-community";
-import { IStopEditing } from "../../activityConfigs";
+import { IStopEditing } from "../../Activities/activityConfigs";
 import { useUpdateActivityMutation } from "../../../../store/services/activity";
 
 interface IProps {

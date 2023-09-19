@@ -1,6 +1,6 @@
 import { Form, InputNumber } from "antd";
 import { IDayCellEditor } from "../DayCellEditor";
-import { IStopEditing } from "../../activityConfigs";
+import { IStopEditing } from "../../Activities/activityConfigs";
 import { ColDef } from "ag-grid-community";
 import { useUpdateActivityMutation } from "../../../../store/services/activity";
 import { useEffect, useState } from "react";

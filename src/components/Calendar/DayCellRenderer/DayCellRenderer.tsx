@@ -1,6 +1,6 @@
 import { ICellRendererParams } from "ag-grid-community";
 import StyledDayCellRenderer from "./DayCellRenderer.styled";
-import { activityConfigs } from "../activityConfigs";
+import { activityConfigs } from "../Activities/activityConfigs";
 import { IDayCellEditor } from "../DayCellEditor/DayCellEditor";
 
 const DayCellRenderer = ({
@@ -10,6 +10,7 @@ const DayCellRenderer = ({
   const currentCellRendererData =
     value &&
     data &&
+    data.activityDetails.valueType &&
     activityConfigs?.[data.activityDetails.valueType]?.cellRenderer(
       value,
       data

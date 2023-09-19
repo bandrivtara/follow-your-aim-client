@@ -8,14 +8,14 @@ export type IValueTypes = "number" | "boolean" | "array" | "time";
 
 export interface IActivityDetails {
   id: string;
-  scheduleTime: string;
+  scheduleTime?: string;
   title: string;
-  valueType: IValueTypes;
-  description: string;
-  complexity: number;
-  category: string;
-  measure: string;
-  active: boolean;
+  valueType?: IValueTypes;
+  description?: string;
+  complexity?: number;
+  category?: string;
+  measure?: string;
+  active?: boolean;
   minToComplete?: number;
   specificId?: string;
 }

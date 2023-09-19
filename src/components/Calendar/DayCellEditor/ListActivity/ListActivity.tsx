@@ -25,7 +25,7 @@ import { ColDef } from "ag-grid-community";
 import { IDayCellEditor } from "../DayCellEditor";
 import { useUpdateActivityMutation } from "../../../../store/services/activity";
 import { getTimeOptions } from "../../../../share/functions/getTimeOptions";
-import { IStopEditing } from "../../activityConfigs";
+import { IStopEditing } from "../../Activities/activityConfigs";
 import _ from "lodash";
 
 interface IProps {

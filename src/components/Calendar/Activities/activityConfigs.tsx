@@ -1,11 +1,11 @@
 import { ReactNode } from "react";
-import { IValueTypes } from "../../types/activity.types";
-import { IDayCellEditor } from "./DayCellEditor/DayCellEditor";
+import { IValueTypes } from "../../../types/activity.types";
+import { IDayCellEditor } from "../DayCellEditor/DayCellEditor";
 import { ColDef } from "ag-grid-community";
-import MeasureActivity from "./DayCellEditor/MeasureActivity/MeasureActivity";
-import BooleanActivity from "./DayCellEditor/BooleanActivity/BooleanActivity";
-import ListActivity from "./DayCellEditor/ListActivity/ListActivity";
-import Time from "./DayCellEditor/SpecificActivity/Time";
+import MeasureActivity from "../DayCellEditor/MeasureActivity/MeasureActivity";
+import BooleanActivity from "../DayCellEditor/BooleanActivity/BooleanActivity";
+import ListActivity from "../DayCellEditor/ListActivity/ListActivity";
+import Time from "../DayCellEditor/SpecificActivity/Time";
 
 interface IValue {
   value: any;

@@ -1,7 +1,7 @@
 import { ICellEditorParams } from "ag-grid-community";
 import { forwardRef, memo } from "react";
 import { IActivityDetails } from "../../../types/activity.types";
-import { activityConfigs } from "../activityConfigs";
+import { activityConfigs } from "../Activities/activityConfigs";
 
 export interface IDayCellEditor {
   id: string;
@@ -19,6 +19,7 @@ const DayCellEditor = memo(
     ({ data, colDef, stopEditing }: ICellEditorParams<IDayCellEditor>) => {
       const currentCellEditorData =
         data &&
+        data.activityDetails.valueType &&
         activityConfigs[data.activityDetails.valueType].cellEditor({
           data,
           colDef,
