@@ -2,7 +2,7 @@ import styled from "@emotion/styled";
 
 const StyledCalendar = styled.div`
   .fyi-ag-theme {
-    height: calc(100vh - 200px);
+    height: 100vh - 200px;
     box-sizing: border-box;
   }
 
@@ -23,7 +23,6 @@ const StyledCalendar = styled.div`
   }
 
   .ag-popup-editor {
-    width: 924px;
     top: 50% !important;
     left: 50% !important;
     transform: translate(-50%, -50%) !important;
@@ -35,14 +34,6 @@ const StyledCalendar = styled.div`
 
   .filters-bar {
     display: flex;
-  }
-
-  @media only screen and (max-width: 768px) {
-    .ag-popup-editor {
-      top: -1px !important;
-      transform: translate(-50%, 0) !important;
-      width: calc(100vw - 50px);
-    }
   }
 `;
 

@@ -115,6 +115,7 @@ const getRows = (
       }
     })
     .filter((activity) => {
+      console.log(activity);
       if (filteredCategory === "all" || filteredCategory === "grouped") {
         return activity;
       } else if (
@@ -136,7 +137,8 @@ const getRows = (
       } else {
         return activity.category === filteredCategory;
       }
-    });
+    })
+    .filter((activity) => !activity.activityDetails.isHidden);
 
   if (filteredCategory === "grouped" && newRows) {
     const sortedSportActivity: IActivityRow = newRows.reduce(

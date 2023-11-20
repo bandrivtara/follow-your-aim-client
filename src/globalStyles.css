@@ -10,3 +10,9 @@
 body {
     margin: 0;
 }
+
+@media only screen and (max-width: 768px) {
+    .ant-picker-panels {
+      flex-direction: column;
+    }
+}
