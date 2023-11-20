@@ -1,6 +1,8 @@
 import { useState, ReactElement } from "react";
-import { Breadcrumb, Layout, Menu, theme } from "antd";
+import { Layout, Menu, theme } from "antd";
 import useMenuItems from "./useMenuItems";
+import useIsMobile from "../../share/hooks/useIsMobile";
+import StyledLayout from "./AppLayout.styled";
 
 const { Header, Content, Footer, Sider } = Layout;
 
@@ -9,7 +11,8 @@ interface IProps {
 }
 
 const AppLayout = ({ children }: IProps) => {
-  const [collapsed, setCollapsed] = useState(false);
+  const isMobile = useIsMobile();
+  const [collapsed, setCollapsed] = useState(isMobile);
   const menuItems = useMenuItems();
 
   const {
@@ -17,34 +20,43 @@ const AppLayout = ({ children }: IProps) => {
   } = theme.useToken();
 
   return (
-    <Layout style={{ minHeight: "100vh" }}>
-      <Sider
-        collapsible
-        collapsed={collapsed}
-        onCollapse={(value) => setCollapsed(value)}
-      >
-        <div
-          style={{
-            height: 32,
-            margin: 16,
-            background: "rgba(255, 255, 255, 0.2)",
-          }}
-        />
-        <Menu
-          theme="dark"
-          defaultSelectedKeys={["1"]}
-          mode="inline"
-          items={menuItems}
-        />
-      </Sider>
-      <Layout className="site-layout">
-        <Header style={{ padding: 0, background: colorBgContainer }} />
-        <Content style={{ margin: "0 16px" }}>{children}</Content>
-        <Footer style={{ textAlign: "center" }}>
-          Follow Your Aim ©2023 Created by TB.JS.DEV
-        </Footer>
-      </Layout>
-    </Layout>
+    <StyledLayout>
+      {isMobile ? (
+        <Layout className="layout">
+          <Menu
+            theme="dark"
+            defaultSelectedKeys={["1"]}
+            mode="horizontal"
+            items={menuItems}
+          />
+          <Content style={{ margin: "14px 16px" }}>{children}</Content>
+          <Footer style={{ textAlign: "center" }}>
+            Follow Your Aim ©2023 Created by TB.JS.DEV
+          </Footer>
+        </Layout>
+      ) : (
+        <Layout style={{ minHeight: "100vh" }}>
+          <Sider
+            collapsible
+            collapsed={collapsed}
+            onCollapse={(value) => setCollapsed(value)}
+          >
+            <Menu
+              theme="dark"
+              defaultSelectedKeys={["1"]}
+              mode="inline"
+              items={menuItems}
+            />
+          </Sider>
+          <Layout className="site-layout">
+            <Content style={{ margin: "0 16px" }}>{children}</Content>
+            <Footer style={{ textAlign: "center" }}>
+              Follow Your Aim ©2023 Created by TB.JS.DEV
+            </Footer>
+          </Layout>
+        </Layout>
+      )}
+    </StyledLayout>
   );
 };
 

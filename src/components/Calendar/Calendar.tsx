@@ -9,6 +9,7 @@ import dayjs, { Dayjs } from "dayjs";
 import { getFirstDayOfWeek } from "../../share/functions/getFirstDayOfWeek";
 import FiltersBar from "./FiltersBar/FiltersBar";
 import tableConfigs, { IActivityRow } from "./tableConfigs";
+import useIsMobile from "../../share/hooks/useIsMobile";
 
 export type ICalendarState = "tracking" | "planning";
 
@@ -17,6 +18,7 @@ const initConfigs = {
 };
 
 const Calendar = () => {
+  const isMobile = useIsMobile();
   const { data } = useGetActivityListQuery();
   const gridRef = useRef<AgGridReact>(null);
 
@@ -27,6 +29,12 @@ const Calendar = () => {
   );
   const [filteredCategory, setFilteredCategory] = useState("all");
   const [calendarMode, setCurrentMode] = useState<ICalendarState>("tracking");
+
+  useEffect(() => {
+    if (isMobile) {
+      setCurrentDate([dayjs(), dayjs()]);
+    }
+  }, [isMobile]);
 
   useEffect(() => {
     const newColumnDefs = tableConfigs.getColumnDefs(currentDate);
@@ -52,10 +60,7 @@ const Calendar = () => {
         filteredCategory={filteredCategory}
         setFilteredCategory={setFilteredCategory}
       />
-      <div
-        className="ag-theme-alpine fyi-ag-theme"
-        style={{ height: "600px", boxSizing: "border-box" }}
-      >
+      <div className="ag-theme-alpine fyi-ag-theme">
         <AgGridReact
           ref={gridRef}
           rowData={rowData}

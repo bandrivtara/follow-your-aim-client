@@ -6,12 +6,15 @@ import MeasureActivity from "../DayCellEditor/MeasureActivity/MeasureActivity";
 import BooleanActivity from "../DayCellEditor/BooleanActivity/BooleanActivity";
 import ListActivity from "../DayCellEditor/ListActivity/ListActivity";
 import Time from "../DayCellEditor/SpecificActivity/Time";
+import DurationActivity from "../DayCellEditor/DurationActivity/DurationActivity";
 
 interface IValue {
   value: any;
   isComplete: boolean;
   isPlanned: boolean;
   plannedValue: any;
+  from?: number[];
+  to?: number[];
 }
 
 export type IStopEditing = (
@@ -97,6 +100,23 @@ export const activityConfigs: TActivityConfig = {
         component: <>{cell.value && `${cell.value[0]}:${cell.value[1]}`}</>,
         progress: cell.value > 1 && 1,
         isPlanned: cell.plannedValue?.[0] || 0,
+      };
+    },
+  },
+  duration: {
+    cellEditor: ({ data, colDef, stopEditing }) => (
+      <DurationActivity data={data} colDef={colDef} stopEditing={stopEditing} />
+    ),
+    cellRenderer: (cell) => {
+      console.log(cell, 333333);
+      return {
+        component: (
+          <>
+            {`${cell.from?.[0]}:${cell.from?.[1]}-${cell.to?.[0]}:${cell.to?.[1]}`}
+          </>
+        ),
+        progress: false,
+        isPlanned: true,
       };
     },
   },

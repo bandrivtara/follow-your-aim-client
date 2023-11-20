@@ -8,6 +8,7 @@ import {
   InputNumber,
   Cascader,
   AutoComplete,
+  Switch,
 } from "antd";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -18,7 +19,7 @@ import {
 import { IActivityDetails } from "../../../types/activity.types";
 import routes from "../../../config/routes";
 import TextArea from "antd/es/input/TextArea";
-import { useCallback, useEffect } from "react";
+import { useEffect } from "react";
 import { ClockCircleOutlined } from "@ant-design/icons";
 import { getTimeOptions } from "../../../share/functions/getTimeOptions";
 
@@ -31,6 +32,7 @@ const formInitialValues = {
   measure: "хв",
   minToComplete: 0,
   scheduleTime: "",
+  isHidden: false,
 };
 
 const AddEditActivity = () => {
@@ -43,6 +45,7 @@ const AddEditActivity = () => {
 
   useEffect(() => {
     if (activityDetails) {
+      console.log(activityDetails.data);
       if (activityDetails.data && activityDetails.data.details) {
         form.setFieldsValue(activityDetails.data.details);
       }
@@ -160,6 +163,10 @@ const AddEditActivity = () => {
               );
           }
         }}
+      </Form.Item>
+
+      <Form.Item label="Приховати" name="isHidden" valuePropName="checked">
+        <Switch />
       </Form.Item>
 
       <Form.Item>
