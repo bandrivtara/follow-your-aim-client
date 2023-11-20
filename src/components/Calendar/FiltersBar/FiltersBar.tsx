@@ -1,10 +1,18 @@
 import { RefObject, useCallback } from "react";
-import { Col, DatePicker, Radio, Select, TimeRangePickerProps } from "antd";
+import {
+  Col,
+  DatePicker,
+  Radio,
+  Row,
+  Select,
+  TimeRangePickerProps,
+} from "antd";
 import { AgGridReact } from "ag-grid-react";
 import dayjs, { Dayjs } from "dayjs";
 import StyledFiltersBarRow from "./FiltersBar.styled";
 import { ICalendarState } from "../Calendar";
 import { getFirstDayOfWeek } from "../../../share/functions/getFirstDayOfWeek";
+import useIsMobile from "../../../share/hooks/useIsMobile";
 
 interface IProps {
   gridRef: RefObject<AgGridReact<any>>;
@@ -25,6 +33,8 @@ const FiltersBar = ({
   calendarMode,
   gridRef,
 }: IProps) => {
+  const isMobile = useIsMobile();
+
   const onPickerSelect = useCallback(
     (selectedDate: Dayjs) => {
       if (gridRef.current?.api) {
@@ -59,12 +69,6 @@ const FiltersBar = ({
     [currentDate]
   );
 
-  const onOpenChange = (open: boolean) => {
-    if (open) {
-      setCurrentDate([null, null]);
-    }
-  };
-
   const handleTrackingMode = () => {
     setCurrentMode("tracking");
   };
@@ -89,20 +93,16 @@ const FiltersBar = ({
 
   return (
     <StyledFiltersBarRow>
-      <Col>
+      <div className="filters">
         <DatePicker.RangePicker
           disabledDate={disabledDate}
-          presets={rangePresets}
+          presets={isMobile ? [] : rangePresets}
           // @ts-ignore
           value={currentDate}
           onChange={onChange}
           onSelect={onPickerSelect}
-          onOpenChange={onOpenChange}
         />
-      </Col>
-      <Col>
         <Select
-          style={{ width: 200 }}
           defaultValue={"only-planned"}
           onChange={handleCategoryChange}
           value={filteredCategory}
@@ -113,8 +113,8 @@ const FiltersBar = ({
           <Select.Option value="daily">Денні</Select.Option>
           <Select.Option value="sport">Спорт</Select.Option>
         </Select>
-      </Col>
-      <Col>
+      </div>
+      <div className="mods">
         <Radio.Group value={calendarMode}>
           <Radio.Button value="tracking" onClick={handleTrackingMode}>
             Трекінг
@@ -123,7 +123,7 @@ const FiltersBar = ({
             Планування
           </Radio.Button>
         </Radio.Group>
-      </Col>
+      </div>
     </StyledFiltersBarRow>
   );
 };

@@ -17,6 +17,7 @@ export interface IDayCellEditor {
 const DayCellEditor = memo(
   forwardRef(
     ({ data, colDef, stopEditing }: ICellEditorParams<IDayCellEditor>) => {
+      console.log(data.activityDetails.valueType, 123);
       const currentCellEditorData =
         data &&
         data.activityDetails.valueType &&

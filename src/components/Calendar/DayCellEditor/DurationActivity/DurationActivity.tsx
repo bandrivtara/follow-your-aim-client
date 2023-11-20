@@ -1,58 +1,110 @@
-import { Cascader, Form, FormInstance } from "antd";
+import { Cascader, Col, Form, Row } from "antd";
 import { IDayCellEditor } from "../DayCellEditor";
 import { getTimeOptions } from "../../../../share/functions/getTimeOptions";
 import { ClockCircleOutlined } from "@ant-design/icons";
-import { useEffect } from "react";
-import { useWatch } from "antd/es/form/Form";
+import { useEffect, useState } from "react";
+import { ColDef } from "ag-grid-community";
+import { IStopEditing } from "../../Activities/activityConfigs";
+import { useUpdateActivityMutation } from "../../../../store/services/activity";
+import FormButtons from "../../../../share/components/Form/FormButtons";
+import _ from "lodash";
 
 interface IProps {
   data: IDayCellEditor;
-  form: FormInstance;
+  colDef: ColDef<IDayCellEditor>;
+  stopEditing: IStopEditing;
 }
 
-const DurationActivity = ({ data, form }: IProps) => {
-  const timeFrom = useWatch(["from"], form);
-  const timeTo = useWatch(["to"], form);
+interface IFormValues {
+  value: string;
+  plannedValue: number;
+}
+
+const DurationActivity = ({ data, colDef, stopEditing }: IProps) => {
+  const [form] = Form.useForm();
+  const [updateActivity] = useUpdateActivityMutation();
+  const cellData = colDef?.field && data[+colDef.field];
+
+  const [initValues, setInitValues] = useState<null | IFormValues>(null);
 
   useEffect(() => {
-    if (timeFrom && timeTo) {
-      form.setFieldsValue({
-        value: `${timeFrom[0]}:${timeFrom[1]}-${timeTo[0]}:${timeTo[1]}`,
-      });
+    console.log("here");
+    setInitValues({ ...cellData, plannedValue: 0 });
+  }, [cellData, data.activityDetails.minToComplete]);
+
+  const handleConfirm = async (formValues: IFormValues) => {
+    if (colDef.field) {
+      console.log({ ...cellData, ...formValues }, 123123);
+      const activityToUpdate = {
+        id: data.id,
+        data: { ...cellData, ...formValues, value: true },
+        path: `history.${data.currentDate.year}.${data.currentDate.month}.${colDef.field}`,
+      };
+      await updateActivity(activityToUpdate).unwrap();
+      stopEditing();
     }
-    console.log(timeFrom);
-  }, [form, timeFrom, timeTo]);
+  };
+
+  const handleDelete = async () => {
+    if (colDef.field) {
+      const newMonthHistory = _.pickBy(data, (_value, key) => !isNaN(+key));
+      delete newMonthHistory[colDef.field];
+      const activityToUpdate = {
+        id: data.id,
+        data: newMonthHistory,
+        path: `history.${data.currentDate.year}.${data.currentDate.month}`,
+      };
+
+      await updateActivity(activityToUpdate).unwrap();
+      stopEditing();
+    }
+  };
+
+  const handleDecline = () => {
+    stopEditing();
+  };
 
   return (
-    <>
-      {data.calendarMode === "tracking" ? (
-        <>
+    initValues && (
+      <Form
+        labelCol={{ span: 8 }}
+        wrapperCol={{ span: 14 }}
+        layout="horizontal"
+        style={{ minWidth: 300, margin: 20 }}
+        form={form}
+        name="dayCellEditor"
+        onFinish={handleConfirm}
+        initialValues={initValues}
+      >
+        <Row>
           <Form.Item name="value" hidden />
-          <Form.Item name="from" label="З" rules={[{ required: true }]}>
-            <Cascader
-              suffixIcon={<ClockCircleOutlined rev={"value"} />}
-              style={{ width: "100px" }}
-              options={getTimeOptions(15)}
-            />
-          </Form.Item>
-          <Form.Item name="to" label="До" rules={[{ required: true }]}>
-            <Cascader
-              suffixIcon={<ClockCircleOutlined rev={"value"} />}
-              style={{ width: "100px" }}
-              options={getTimeOptions(15)}
-            />
-          </Form.Item>
-        </>
-      ) : (
-        <Form.Item name="plannedValue" label="Час" rules={[{ required: true }]}>
-          <Cascader
-            suffixIcon={<ClockCircleOutlined rev={"value"} />}
-            style={{ width: "100px" }}
-            options={getTimeOptions(15)}
+          <Col span={6} xs={12}>
+            <Form.Item name="from" label="З" rules={[{ required: true }]}>
+              <Cascader
+                suffixIcon={<ClockCircleOutlined rev={"value"} />}
+                style={{ width: "100px" }}
+                options={getTimeOptions(15)}
+              />
+            </Form.Item>
+          </Col>
+          <Col span={6} xs={12}>
+            <Form.Item name="to" label="До" rules={[{ required: true }]}>
+              <Cascader
+                suffixIcon={<ClockCircleOutlined rev={"value"} />}
+                style={{ width: "100px" }}
+                options={getTimeOptions(15)}
+              />
+            </Form.Item>
+          </Col>
+        </Row>
+        <Form.Item>
+          <FormButtons
+            handleDecline={handleDecline}
+            handleDelete={handleDelete}
           />
         </Form.Item>
-      )}
-    </>
+      </Form>
+    )
   );
 };
 
