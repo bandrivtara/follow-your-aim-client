@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/follow-your-aim-client/static/css/main.73142380.css",
+    "main.js": "/follow-your-aim-client/static/js/main.c42b103c.js",
+    "index.html": "/follow-your-aim-client/index.html",
+    "main.73142380.css.map": "/follow-your-aim-client/static/css/main.73142380.css.map",
+    "main.c42b103c.js.map": "/follow-your-aim-client/static/js/main.c42b103c.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.73142380.css",
+    "static/js/main.c42b103c.js"
+  ]
+}
