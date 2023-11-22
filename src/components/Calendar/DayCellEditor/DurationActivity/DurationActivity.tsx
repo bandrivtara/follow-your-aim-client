@@ -28,13 +28,11 @@ const DurationActivity = ({ data, colDef, stopEditing }: IProps) => {
   const [initValues, setInitValues] = useState<null | IFormValues>(null);
 
   useEffect(() => {
-    console.log("here");
     setInitValues({ ...cellData, plannedValue: 0 });
   }, [cellData, data.activityDetails.minToComplete]);
 
   const handleConfirm = async (formValues: IFormValues) => {
     if (colDef.field) {
-      console.log({ ...cellData, ...formValues }, 123123);
       const activityToUpdate = {
         id: data.id,
         data: { ...cellData, ...formValues, value: true },

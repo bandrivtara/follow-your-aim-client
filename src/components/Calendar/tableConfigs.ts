@@ -79,6 +79,7 @@ const getRows = (
         },
         category: activityData.details.category,
         calendarMode,
+        store: activityData.store || null,
       };
 
       if (
@@ -115,7 +116,6 @@ const getRows = (
       }
     })
     .filter((activity) => {
-      console.log(activity);
       if (filteredCategory === "all" || filteredCategory === "grouped") {
         return activity;
       } else if (
