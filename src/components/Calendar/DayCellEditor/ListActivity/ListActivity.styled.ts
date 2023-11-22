@@ -9,6 +9,16 @@ const StyledListActivity = styled.div`
     display: flex;
     justify-content: end;
   }
+
+  .form-buttons {
+    margin: 20px;
+    display: flex;
+    justify-content: end;
+  }
+
+  .add-btn {
+    margin: 0;
+  }
 `;
 
 export default StyledListActivity;

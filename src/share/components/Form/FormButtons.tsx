@@ -9,9 +9,14 @@ import {
 interface IProps {
   handleDecline: (event: MouseEvent<HTMLElement>) => void;
   handleDelete: (event: MouseEvent<HTMLElement>) => void;
+  handleConfirm?: (formValues: any) => Promise<void>;
 }
 
-const FormButtons = ({ handleDecline, handleDelete }: IProps) => {
+const FormButtons = ({
+  handleDecline,
+  handleDelete,
+  handleConfirm = async () => {},
+}: IProps) => {
   return (
     <>
       <Button
@@ -19,6 +24,7 @@ const FormButtons = ({ handleDecline, handleDelete }: IProps) => {
         type="primary"
         icon={<CheckOutlined rev={"value"} />}
         size={"large"}
+        onClick={handleConfirm}
       />
       <Button
         style={{ marginLeft: 20 }}

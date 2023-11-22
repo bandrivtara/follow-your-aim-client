@@ -3,7 +3,6 @@ import {
   Input,
   Button,
   Select,
-  DatePicker,
   Slider,
   InputNumber,
   Cascader,
@@ -45,7 +44,6 @@ const AddEditActivity = () => {
 
   useEffect(() => {
     if (activityDetails) {
-      console.log(activityDetails.data);
       if (activityDetails.data && activityDetails.data.details) {
         form.setFieldsValue(activityDetails.data.details);
       }
@@ -54,7 +52,6 @@ const AddEditActivity = () => {
 
   const onFinish = async (newActivityData: IActivityDetails) => {
     if (activityId) {
-      console.log(activityDetails);
       const activityToUpdate = {
         id: activityId,
         data: newActivityData,

@@ -1,10 +1,10 @@
 import { useState, ReactElement } from "react";
-import { Layout, Menu, theme } from "antd";
+import { Layout, Menu } from "antd";
 import useMenuItems from "./useMenuItems";
 import useIsMobile from "../../share/hooks/useIsMobile";
 import StyledLayout from "./AppLayout.styled";
 
-const { Header, Content, Footer, Sider } = Layout;
+const { Content, Footer, Sider } = Layout;
 
 interface IProps {
   children: ReactElement;
@@ -14,10 +14,6 @@ const AppLayout = ({ children }: IProps) => {
   const isMobile = useIsMobile();
   const [collapsed, setCollapsed] = useState(isMobile);
   const menuItems = useMenuItems();
-
-  const {
-    token: { colorBgContainer },
-  } = theme.useToken();
 
   return (
     <StyledLayout>

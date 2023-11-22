@@ -16,21 +16,21 @@ import {
   Divider,
   Form,
   Input,
-  List,
   Radio,
   Row,
   Space,
 } from "antd";
 import { Fragment, useCallback, useState } from "react";
-import { getTimeOptions } from "../../../../../share/functions/getTimeOptions";
 import { ITask } from "../../../../../types/tasks";
-import { useWatch } from "antd/es/form/Form";
+import { FormInstance, useWatch } from "antd/es/form/Form";
 import StyledListActivityStore from "./ListActivitiesStore.styled";
+import { getTimeOptions } from "../../../../../share/functions/getTimeOptions";
 
-interface IProps {}
-
-interface IFormValues {
-  tasks: ITask[];
+interface IProps {
+  dayForm: FormInstance<any>;
+  form: FormInstance<any>;
+  isStoreOpened: boolean;
+  setIsStoreOpened: (isStoreOpened: boolean) => void;
 }
 
 const initValues = {
@@ -42,31 +42,14 @@ const initValues = {
   isEditOn: false,
 };
 
-const ListActivitiesStore = ({}: IProps) => {
-  const [form] = Form.useForm();
+const ListActivitiesStore = ({
+  dayForm,
+  form,
+  isStoreOpened,
+  setIsStoreOpened,
+}: IProps) => {
   const formTasks: ITask[] = useWatch("tasks", form);
-
   const [editFiledIndex, setEditFiledIndex] = useState<null | number>(null);
-
-  const handleConfirm = async (formValues: IFormValues) => {
-    // if (colDef.field) {
-    //   const doneTaskCount = formTasks.filter(
-    //     (task) => task && task.status === "done"
-    //   ).length;
-    //   const newDayStatus = {
-    //     ...formValues,
-    //     value: `${doneTaskCount}/${formValues.tasks.length}`,
-    //   };
-    //   const activityToUpdate = {
-    //     id: data.id,
-    //     data: { ...newDayStatus },
-    //     path: `history.${data.currentDate.year}.${data.currentDate.month}.${colDef.field}`,
-    //   };
-    //   await updateActivity(activityToUpdate).unwrap();
-    //   stopEditing();
-    // }
-    console.log(formValues);
-  };
 
   const isTaskFieldVisible = useCallback(
     (taskIndex: number, name: string) => {
@@ -90,19 +73,26 @@ const ListActivitiesStore = ({}: IProps) => {
     }
   };
 
-  const addToDay = (taskName: any) => {
-    console.log(taskName);
+  const addToDay = (taskIndex: number) => {
+    const dayTasks = [...dayForm.getFieldsValue().tasks, formTasks[taskIndex]];
+    dayForm.setFieldsValue({
+      value: dayForm.getFieldsValue().value,
+      tasks: dayTasks,
+    });
+    formTasks.splice(taskIndex, 1);
   };
 
   return (
     <StyledListActivityStore>
       <Collapse
         collapsible="header"
-        defaultActiveKey={["0"]}
+        activeKey={isStoreOpened ? 1 : 0}
         items={[
           {
             key: "1",
             label: "Сховище завдань",
+            onItemClick: () => setIsStoreOpened(!isStoreOpened),
+            forceRender: true,
             children: (
               <Form
                 labelCol={{ span: 8 }}
@@ -110,7 +100,7 @@ const ListActivitiesStore = ({}: IProps) => {
                 layout="horizontal"
                 form={form}
                 name="dayCellEditor"
-                onFinish={handleConfirm}
+                initialValues={{ value: 0, tasks: [] }}
               >
                 <Form.Item
                   noStyle
@@ -134,7 +124,7 @@ const ListActivitiesStore = ({}: IProps) => {
                           {fields.map((task, index) => (
                             <Fragment key={task.key}>
                               <Row gutter={8} justify="space-between">
-                                <Col flex="3">
+                                <Col md={16} xs={24}>
                                   <Form.Item
                                     name={[index, "title"]}
                                     noStyle
@@ -144,7 +134,25 @@ const ListActivitiesStore = ({}: IProps) => {
                                     <Input placeholder="Назва завдання" />
                                   </Form.Item>
                                 </Col>
-
+                                <Col md={4} xs={14}>
+                                  <Form.Item
+                                    name={[index, "status"]}
+                                    initialValue={initValues.status}
+                                    noStyle
+                                  >
+                                    <Radio.Group>
+                                      <Radio.Button value={"failed"}>
+                                        <CloseSquareOutlined rev={"value"} />
+                                      </Radio.Button>
+                                      <Radio.Button value={"pending"}>
+                                        <BorderOutlined rev={"value"} />
+                                      </Radio.Button>
+                                      <Radio.Button value={"done"}>
+                                        <CheckSquareOutlined rev={"value"} />
+                                      </Radio.Button>
+                                    </Radio.Group>
+                                  </Form.Item>
+                                </Col>
                                 <Col flex="1">
                                   <Form.Item noStyle>
                                     <Space.Compact>
@@ -165,7 +173,6 @@ const ListActivitiesStore = ({}: IProps) => {
                                       </Button>
                                       <Button
                                         danger
-                                        // disabled={fields.length <= 1}
                                         onClick={() => remove(task.name)}
                                       >
                                         <DeleteOutlined rev={"value"} />
@@ -175,22 +182,22 @@ const ListActivitiesStore = ({}: IProps) => {
                                 </Col>
                               </Row>
                               <Row>
-                                {/* <Col style={{ marginRight: "10px" }}>
-                                <Form.Item
-                                  name={[index, "time"]}
-                                  hidden={!isTaskFieldVisible(index, "time")}
-                                  initialValue={initValues.time}
-                                  noStyle
-                                >
-                                  <Cascader
-                                    suffixIcon={
-                                      <ClockCircleOutlined rev={"value"} />
-                                    }
-                                    style={{ width: "100px" }}
-                                    options={getTimeOptions(15)}
-                                  />
-                                </Form.Item>
-                              </Col> */}
+                                <Col style={{ marginRight: "10px" }}>
+                                  <Form.Item
+                                    name={[index, "time"]}
+                                    hidden={!isTaskFieldVisible(index, "time")}
+                                    initialValue={initValues.time}
+                                    noStyle
+                                  >
+                                    <Cascader
+                                      suffixIcon={
+                                        <ClockCircleOutlined rev={"value"} />
+                                      }
+                                      style={{ width: "100px" }}
+                                      options={getTimeOptions(15)}
+                                    />
+                                  </Form.Item>
+                                </Col>
                                 <Col flex="auto">
                                   <Form.Item
                                     required={false}
@@ -219,17 +226,14 @@ const ListActivitiesStore = ({}: IProps) => {
                                     }
                                     noStyle
                                   >
-                                    <Input.TextArea
-                                      style={{ margin: "12px 0" }}
-                                      placeholder="Опис"
-                                    />
+                                    <Input.TextArea placeholder="Опис" />
                                   </Form.Item>
                                 </Col>
                               </Row>
                               <Divider style={{ margin: "12px 0" }} />
                             </Fragment>
                           ))}
-                          <Form.Item>
+                          <Form.Item className="add-btn">
                             <Button onClick={() => add()}>
                               Додати завдання
                             </Button>
