@@ -77,12 +77,8 @@ const ListActivity = ({ data, colDef, stopEditing }: IProps) => {
   const handleConfirm = async () => {
     const formValues = form.getFieldsValue();
     const validatedTasks = formValues.tasks.filter((task: ITask) => task.title);
-    console.log(formValues);
-    if (colDef.field) {
-      if (!validatedTasks[0]) {
-        return stopEditing();
-      }
 
+    if (colDef.field) {
       const doneTaskCount = formTasks.filter(
         (task) => task && task.status === "done"
       ).length;
@@ -96,6 +92,8 @@ const ListActivity = ({ data, colDef, stopEditing }: IProps) => {
         path: `history.${data.currentDate.year}.${data.currentDate.month}.${colDef.field}`,
       };
 
+      console.log(activityToUpdate, 123);
+
       const storeValues = storeForm.getFieldsValue();
       const storeToUpdate = {
         id: data.id,
@@ -103,7 +101,12 @@ const ListActivity = ({ data, colDef, stopEditing }: IProps) => {
         path: "store",
       };
 
-      await updateActivity(activityToUpdate).unwrap();
+      if (!validatedTasks[0]) {
+        await handleDelete();
+      } else {
+        await updateActivity(activityToUpdate).unwrap();
+      }
+
       await updateActivity(storeToUpdate).unwrap();
       return stopEditing();
     }
@@ -140,7 +143,7 @@ const ListActivity = ({ data, colDef, stopEditing }: IProps) => {
         data: newMonthHistory,
         path: `history.${data.currentDate.year}.${data.currentDate.month}`,
       };
-
+      console.log("test");
       await updateActivity(activityToUpdate).unwrap();
       stopEditing();
     }

@@ -1,5 +1,11 @@
+import WaterCounter from "./WaterCounter/WaterCounter";
+
 const Main = () => {
-  return <div>Main</div>;
+  return (
+    <div>
+      <WaterCounter />
+    </div>
+  );
 };
 
 export default Main;
