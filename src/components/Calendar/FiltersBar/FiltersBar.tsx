@@ -1,12 +1,5 @@
 import { RefObject, useCallback } from "react";
-import {
-  Col,
-  DatePicker,
-  Radio,
-  Row,
-  Select,
-  TimeRangePickerProps,
-} from "antd";
+import { DatePicker, Radio, Select, TimeRangePickerProps } from "antd";
 import { AgGridReact } from "ag-grid-react";
 import dayjs, { Dayjs } from "dayjs";
 import StyledFiltersBarRow from "./FiltersBar.styled";
@@ -95,7 +88,6 @@ const FiltersBar = ({
     <StyledFiltersBarRow>
       <div className="filters">
         <DatePicker.RangePicker
-          disabledDate={disabledDate}
           presets={isMobile ? [] : rangePresets}
           // @ts-ignore
           value={currentDate}

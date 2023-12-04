@@ -2,6 +2,7 @@ export interface IActivityData {
   id?: string;
   details: IActivityDetails;
   history?: IActivityHistory[];
+  store?: any[];
 }
 
 export type IValueTypes = "number" | "boolean" | "array" | "time" | "duration";

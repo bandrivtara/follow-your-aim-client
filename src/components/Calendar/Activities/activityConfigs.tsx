@@ -108,7 +108,6 @@ export const activityConfigs: TActivityConfig = {
       <DurationActivity data={data} colDef={colDef} stopEditing={stopEditing} />
     ),
     cellRenderer: (cell) => {
-      console.log(cell, 333333);
       return {
         component: (
           <>

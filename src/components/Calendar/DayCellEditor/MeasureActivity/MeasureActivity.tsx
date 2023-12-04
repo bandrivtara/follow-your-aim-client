@@ -43,6 +43,7 @@ const MeasureActivity = ({ colDef, stopEditing, data }: IProps) => {
         data: { ...cellData, ...formValues },
         path: `history.${data.currentDate.year}.${data.currentDate.month}.${colDef.field}`,
       };
+      console.log(activityToUpdate);
       await updateActivity(activityToUpdate).unwrap();
       stopEditing();
     }

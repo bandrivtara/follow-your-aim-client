@@ -16,6 +16,7 @@ import {
   ClockCircleOutlined,
   CloseSquareOutlined,
   DeleteOutlined,
+  DownCircleOutlined,
   LinkOutlined,
   MoreOutlined,
 } from "@ant-design/icons";
@@ -45,11 +46,7 @@ interface ITask {
   isEditOn?: boolean;
 }
 
-interface IFormValues {
-  tasks: ITask[];
-}
-
-const initValues = {
+const initTask = {
   title: "",
   description: "",
   link: "",
@@ -60,34 +57,58 @@ const initValues = {
 
 const ListActivity = ({ data, colDef, stopEditing }: IProps) => {
   const [form] = Form.useForm();
+  const [storeForm] = Form.useForm();
   const [updateActivity] = useUpdateActivityMutation();
-  const cellData = colDef.field && data[+colDef.field];
-
   const formTasks: ITask[] = useWatch("tasks", form);
   const [editFiledIndex, setEditFiledIndex] = useState<null | number>(null);
+  const [isStoreOpened, setIsStoreOpened] = useState(false);
+
+  const cellData = colDef.field && data[+colDef.field];
 
   useEffect(() => {
+    storeForm.setFieldsValue(data.store);
     if (cellData) {
       form.setFieldsValue(cellData);
+    } else {
+      form.setFieldsValue({ value: 0, tasks: [initTask] });
     }
-  }, [cellData, form]);
+  }, [cellData, data, form, storeForm]);
 
-  const handleConfirm = async (formValues: IFormValues) => {
+  const handleConfirm = async () => {
+    const formValues = form.getFieldsValue();
+    const validatedTasks = formValues.tasks.filter((task: ITask) => task.title);
+
     if (colDef.field) {
       const doneTaskCount = formTasks.filter(
         (task) => task && task.status === "done"
       ).length;
       const newDayStatus = {
-        ...formValues,
-        value: `${doneTaskCount}/${formValues.tasks.length}`,
+        tasks: validatedTasks,
+        value: `${doneTaskCount}/${validatedTasks.length}`,
       };
       const activityToUpdate = {
         id: data.id,
         data: { ...newDayStatus },
         path: `history.${data.currentDate.year}.${data.currentDate.month}.${colDef.field}`,
       };
-      await updateActivity(activityToUpdate).unwrap();
-      stopEditing();
+
+      console.log(activityToUpdate, 123);
+
+      const storeValues = storeForm.getFieldsValue();
+      const storeToUpdate = {
+        id: data.id,
+        data: storeValues,
+        path: "store",
+      };
+
+      if (!validatedTasks[0]) {
+        await handleDelete();
+      } else {
+        await updateActivity(activityToUpdate).unwrap();
+      }
+
+      await updateActivity(storeToUpdate).unwrap();
+      return stopEditing();
     }
   };
 
@@ -122,7 +143,7 @@ const ListActivity = ({ data, colDef, stopEditing }: IProps) => {
         data: newMonthHistory,
         path: `history.${data.currentDate.year}.${data.currentDate.month}`,
       };
-
+      console.log("test");
       await updateActivity(activityToUpdate).unwrap();
       stopEditing();
     }
@@ -132,9 +153,20 @@ const ListActivity = ({ data, colDef, stopEditing }: IProps) => {
     stopEditing();
   };
 
+  const addToStore = (taskIndex: number) => {
+    const storeTasks = [
+      ...storeForm.getFieldsValue().tasks,
+      formTasks[taskIndex],
+    ];
+    storeForm.setFieldsValue({
+      value: storeForm.getFieldsValue().value,
+      tasks: storeTasks,
+    });
+  };
+
   return (
-    initValues && (
-      <StyledListActivity className="test">
+    initTask && (
+      <StyledListActivity>
         <Form
           labelCol={{ md: 8 }}
           wrapperCol={{ md: 14 }}
@@ -142,13 +174,13 @@ const ListActivity = ({ data, colDef, stopEditing }: IProps) => {
           style={{ minWidth: 300, margin: 20 }}
           form={form}
           name="dayCellEditor"
-          onFinish={handleConfirm}
         >
           <Form.Item
             noStyle
-            shouldUpdate={(prevValues, currentValues) =>
-              prevValues !== currentValues
-            }
+            shouldUpdate={(prevValues, currentValues) => {
+              console.log(prevValues, currentValues);
+              return prevValues !== currentValues;
+            }}
           >
             <div
               style={{
@@ -171,7 +203,7 @@ const ListActivity = ({ data, colDef, stopEditing }: IProps) => {
                               name={[index, "title"]}
                               noStyle
                               rules={[{ required: true }]}
-                              initialValue={initValues.title}
+                              initialValue={initTask.title}
                             >
                               <Input placeholder="Назва завдання" />
                             </Form.Item>
@@ -179,7 +211,7 @@ const ListActivity = ({ data, colDef, stopEditing }: IProps) => {
                           <Col md={4} xs={14}>
                             <Form.Item
                               name={[index, "status"]}
-                              initialValue={initValues.status}
+                              initialValue={initTask.status}
                               noStyle
                             >
                               <Radio.Group>
@@ -209,6 +241,15 @@ const ListActivity = ({ data, colDef, stopEditing }: IProps) => {
                                   <MoreOutlined rev={"value"} />
                                 </Button>
                                 <Button
+                                  onClick={() => {
+                                    setIsStoreOpened(true);
+                                    addToStore(task.name);
+                                    remove(task.name);
+                                  }}
+                                >
+                                  <DownCircleOutlined rev={"value"} />
+                                </Button>
+                                <Button
                                   danger
                                   disabled={fields.length <= 1}
                                   onClick={() => remove(task.name)}
@@ -224,7 +265,7 @@ const ListActivity = ({ data, colDef, stopEditing }: IProps) => {
                             <Form.Item
                               name={[index, "time"]}
                               hidden={!isTaskFieldVisible(index, "time")}
-                              initialValue={initValues.time}
+                              initialValue={initTask.time}
                               noStyle
                             >
                               <Cascader
@@ -241,7 +282,7 @@ const ListActivity = ({ data, colDef, stopEditing }: IProps) => {
                               required={false}
                               name={[index, "link"]}
                               hidden={!isTaskFieldVisible(index, "link")}
-                              initialValue={initValues.link}
+                              initialValue={initTask.link}
                               noStyle
                             >
                               <Input
@@ -256,7 +297,7 @@ const ListActivity = ({ data, colDef, stopEditing }: IProps) => {
                             <Form.Item
                               required={false}
                               name={[index, "description"]}
-                              initialValue={initValues.description}
+                              initialValue={initTask.description}
                               hidden={!isTaskFieldVisible(index, "description")}
                               noStyle
                             >
@@ -267,7 +308,7 @@ const ListActivity = ({ data, colDef, stopEditing }: IProps) => {
                         <Divider style={{ margin: "12px 0" }} />
                       </Fragment>
                     ))}
-                    <Form.Item>
+                    <Form.Item className="add-btn">
                       <Button onClick={() => add()}>Додати завдання</Button>
                     </Form.Item>
                   </>
@@ -275,14 +316,20 @@ const ListActivity = ({ data, colDef, stopEditing }: IProps) => {
               </Form.List>
             </div>
           </Form.Item>
-          <Form.Item>
-            <FormButtons
-              handleDecline={handleDecline}
-              handleDelete={handleDelete}
-            />
-          </Form.Item>
         </Form>
-        <ListActivitiesStore />
+        <ListActivitiesStore
+          dayForm={form}
+          form={storeForm}
+          isStoreOpened={isStoreOpened}
+          setIsStoreOpened={setIsStoreOpened}
+        />
+        <div className="form-buttons">
+          <FormButtons
+            handleDecline={handleDecline}
+            handleDelete={handleDelete}
+            handleConfirm={handleConfirm}
+          />
+        </div>
       </StyledListActivity>
     )
   );
