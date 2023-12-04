@@ -88,7 +88,6 @@ const FiltersBar = ({
     <StyledFiltersBarRow>
       <div className="filters">
         <DatePicker.RangePicker
-          disabledDate={disabledDate}
           presets={isMobile ? [] : rangePresets}
           // @ts-ignore
           value={currentDate}
