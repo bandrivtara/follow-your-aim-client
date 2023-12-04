@@ -4,7 +4,7 @@ import { Provider } from "react-redux";
 import { store } from "./store/store";
 import "./globalStyles.css";
 import { ConfigProvider } from "antd";
-import locale from "antd/locale/uk_UA";
+// import locale from "antd/locale/uk_UA";
 import "dayjs/locale/uk";
 
 const root = ReactDOM.createRoot(
@@ -13,8 +13,8 @@ const root = ReactDOM.createRoot(
 
 root.render(
   <Provider store={store}>
-    <ConfigProvider locale={locale}>
-      <App />
-    </ConfigProvider>
+    {/* <ConfigProvider locale={locale}> */}
+    <App />
+    {/* </ConfigProvider> */}
   </Provider>
 );
