@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles/ag-grid.css";
-import "ag-grid-community/styles/ag-theme-alpine.css";
+import "ag-grid-community/styles/ag-theme-material.css";
 import { ColDef } from "ag-grid-community";
 import { useGetActivityListQuery } from "../../store/services/activity";
 import StyledCalendar from "./Calendar.styled";
@@ -60,8 +60,9 @@ const Calendar = () => {
         filteredCategory={filteredCategory}
         setFilteredCategory={setFilteredCategory}
       />
-      <div className="ag-theme-alpine fyi-ag-theme">
+      <div className="ag-theme-material fyi-ag-theme">
         <AgGridReact
+          rowHeight={30}
           ref={gridRef}
           rowData={rowData}
           columnDefs={columnDefs}

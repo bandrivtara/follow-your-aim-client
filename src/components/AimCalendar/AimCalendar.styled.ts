@@ -2,7 +2,7 @@ import styled from "@emotion/styled";
 
 const StyledCalendar = styled.div`
   .fyi-ag-theme {
-    height: 100vh - 200px;
+    height: calc(100vh - 200px);
     box-sizing: border-box;
   }
 
@@ -20,12 +20,6 @@ const StyledCalendar = styled.div`
   .ag-root.ag-layout-normal,
   .ag-root-wrapper {
     overflow: visible;
-  }
-
-  .ag-popup-editor {
-    top: 50% !important;
-    left: 50% !important;
-    transform: translate(-50%, -50%) !important;
   }
 
   .day-cell {

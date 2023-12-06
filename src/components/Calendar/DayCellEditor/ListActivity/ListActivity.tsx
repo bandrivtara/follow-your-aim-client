@@ -198,7 +198,7 @@ const ListActivity = ({ data, colDef, stopEditing }: IProps) => {
                     {fields.map((task, index) => (
                       <Fragment key={task.key}>
                         <Row gutter={8}>
-                          <Col md={16} xs={24}>
+                          <Col md={24} xs={24}>
                             <Form.Item
                               name={[index, "title"]}
                               noStyle
@@ -208,7 +208,7 @@ const ListActivity = ({ data, colDef, stopEditing }: IProps) => {
                               <Input placeholder="Назва завдання" />
                             </Form.Item>
                           </Col>
-                          <Col md={4} xs={14}>
+                          <Col md={12} xs={14}>
                             <Form.Item
                               name={[index, "status"]}
                               initialValue={initTask.status}
@@ -227,7 +227,7 @@ const ListActivity = ({ data, colDef, stopEditing }: IProps) => {
                               </Radio.Group>
                             </Form.Item>
                           </Col>
-                          <Col md={4} xs={10} className="action-buttons">
+                          <Col md={12} xs={10} className="action-buttons">
                             <Form.Item noStyle>
                               <Space.Compact>
                                 <Button

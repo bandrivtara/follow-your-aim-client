@@ -124,7 +124,7 @@ const ListActivitiesStore = ({
                           {fields.map((task, index) => (
                             <Fragment key={task.key}>
                               <Row gutter={8} justify="space-between">
-                                <Col md={16} xs={24}>
+                                <Col md={24} xs={24}>
                                   <Form.Item
                                     name={[index, "title"]}
                                     noStyle
@@ -134,7 +134,7 @@ const ListActivitiesStore = ({
                                     <Input placeholder="Назва завдання" />
                                   </Form.Item>
                                 </Col>
-                                <Col md={4} xs={14}>
+                                <Col md={12} xs={14}>
                                   <Form.Item
                                     name={[index, "status"]}
                                     initialValue={initValues.status}
@@ -153,7 +153,7 @@ const ListActivitiesStore = ({
                                     </Radio.Group>
                                   </Form.Item>
                                 </Col>
-                                <Col flex="1">
+                                <Col md={12} xs={12} className="action-buttons">
                                   <Form.Item noStyle>
                                     <Space.Compact>
                                       <Button
