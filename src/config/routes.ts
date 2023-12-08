@@ -19,6 +19,7 @@ const routes = {
   },
   goals: {
     path: "/goals",
+    calendar: "/goals/calendar",
     list: "/goals/list",
     add: "/goals/add",
     statistic: "/goals/statistic",

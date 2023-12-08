@@ -5,6 +5,7 @@ import Main from "./Main/Main";
 import Calendar from "./Calendar/Calendar";
 import Activity from "./Activities/Activity";
 import AddEditActivity from "./Activities/AddEditActivity/AddEditActivity";
+import AimCalendar from "./AimCalendar/AimCalendar";
 
 const AppRoutes = () => {
   return (
@@ -21,6 +22,8 @@ const AppRoutes = () => {
           />
 
           <Route path={routes.calendar} element={<Calendar />} />
+
+          <Route path={routes.goals.calendar} element={<AimCalendar />} />
         </Routes>
       </AppLayout>
     </Router>

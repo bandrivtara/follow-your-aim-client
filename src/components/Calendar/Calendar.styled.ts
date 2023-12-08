@@ -6,6 +6,10 @@ const StyledCalendar = styled.div`
     box-sizing: border-box;
   }
 
+  .ag-header-cell {
+    padding: 0 10px;
+  }
+
   .ag-header-cell,
   .ag-cell {
     border-left: 1px solid #dde2eb;
@@ -23,7 +27,7 @@ const StyledCalendar = styled.div`
   }
 
   .ag-popup-editor {
-    width: 924px;
+    width: auto;
     top: 50% !important;
     left: 50% !important;
     transform: translate(-50%, -50%) !important;

@@ -60,6 +60,12 @@ const useMenuItems = () => {
       icon: <AimOutlined rev="string" />,
       children: [
         {
+          key: 50,
+          label: "Календар",
+          onClick: () => navigate(routes.goals.calendar),
+          icon: <UnorderedListOutlined rev="string" />,
+        },
+        {
           key: 51,
           label: "Усі цілі",
           onClick: () => navigate(routes.goals.list),
