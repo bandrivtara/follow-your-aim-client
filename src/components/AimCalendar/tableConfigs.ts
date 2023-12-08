@@ -1,8 +1,5 @@
 import { ColDef } from "ag-grid-community";
-import { getDaysOfMonth } from "../../share/functions/getDaysOfMonth";
 import dayjs, { Dayjs } from "dayjs";
-import _ from "lodash";
-import { IActivityData, IActivityDetails } from "../../types/activity.types";
 import aims from "./fakeobject";
 
 const getColumnDefs = (monthsDates: (Dayjs | null)[]): ColDef[] => {
