@@ -17,12 +17,13 @@ const routes = {
     edit: "/activity/edit",
     statistic: "/activity/statistic",
   },
-  goals: {
-    path: "/goals",
-    calendar: "/goals/calendar",
-    list: "/goals/list",
-    add: "/goals/add",
-    statistic: "/goals/statistic",
+  aims: {
+    path: "/aims",
+    calendar: "/aims/calendar",
+    list: "/aims/list",
+    add: "/aims/add",
+    edit: "aims/edit",
+    statistic: "/aims/statistic",
   },
   lifeSpheres: {
     path: "/life-spheres",
