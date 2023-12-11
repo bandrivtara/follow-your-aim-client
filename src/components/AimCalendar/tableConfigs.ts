@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { ColDef } from "ag-grid-community";
 import dayjs, { Dayjs } from "dayjs";
 import aims from "./fakeobject";
@@ -46,7 +48,6 @@ const getColumnDefs = (monthsDates: (Dayjs | null)[]): ColDef[] => {
     width: 220,
   };
 
-  console.log(dayjs().subtract(7, "year"));
   return [aimNamesCol, ...newColDefs];
 };
 

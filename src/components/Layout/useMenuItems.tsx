@@ -85,6 +85,31 @@ const useMenuItems = () => {
         },
       ],
     },
+    {
+      key: 6,
+      label: "Сфери життя",
+      icon: <AimOutlined rev="string" />,
+      children: [
+        {
+          key: 61,
+          label: "Усі сфери життя",
+          onClick: () => navigate(routes.lifeSpheres.list),
+          icon: <UnorderedListOutlined rev="string" />,
+        },
+        {
+          key: 62,
+          label: "Додати сферу життя",
+          onClick: () => navigate(routes.lifeSpheres.add),
+          icon: <PlusSquareOutlined rev="string" />,
+        },
+        {
+          key: 63,
+          label: "Статистика",
+          onClick: () => navigate(routes.lifeSpheres.statistic),
+          icon: <LineChartOutlined rev="string" />,
+        },
+      ],
+    },
   ];
 
   return items;

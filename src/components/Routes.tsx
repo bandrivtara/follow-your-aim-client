@@ -6,6 +6,8 @@ import Calendar from "./Calendar/Calendar";
 import Activity from "./Activities/Activity";
 import AddEditActivity from "./Activities/AddEditActivity/AddEditActivity";
 import AimCalendar from "./AimCalendar/AimCalendar";
+import SpheresList from "./LifeSpheres/SpheresList";
+import AddEditSphere from "./LifeSpheres/AddEditSpheres/AddEditSpheres";
 
 const AppRoutes = () => {
   return (
@@ -24,6 +26,13 @@ const AppRoutes = () => {
           <Route path={routes.calendar} element={<Calendar />} />
 
           <Route path={routes.goals.calendar} element={<AimCalendar />} />
+
+          <Route path={routes.lifeSpheres.list} element={<SpheresList />} />
+          <Route path={routes.lifeSpheres.add} element={<AddEditSphere />} />
+          <Route
+            path={`${routes.lifeSpheres.edit}/:sphereId`}
+            element={<AddEditSphere />}
+          />
         </Routes>
       </AppLayout>
     </Router>
