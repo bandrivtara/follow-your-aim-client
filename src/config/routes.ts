@@ -24,6 +24,13 @@ const routes = {
     add: "/goals/add",
     statistic: "/goals/statistic",
   },
+  lifeSpheres: {
+    path: "/life-spheres",
+    list: "/life-spheres/list",
+    add: "/life-spheres/add",
+    edit: "/life-spheres/edit",
+    statistic: "/life-spheres/statistic",
+  },
 };
 
 export default routes;

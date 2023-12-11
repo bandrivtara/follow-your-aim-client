@@ -11,6 +11,11 @@ body {
     margin: 0;
 }
 
+.fyi-ag-theme {
+  height: calc(100vh - 200px);
+  box-sizing: border-box;
+}
+
 @media only screen and (max-width: 768px) {
     .ant-picker-panels {
       flex-direction: column;

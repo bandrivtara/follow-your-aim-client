@@ -1,11 +1,6 @@
 import styled from "@emotion/styled";
 
 const StyledCalendar = styled.div`
-  .fyi-ag-theme {
-    height: calc(100vh - 200px);
-    box-sizing: border-box;
-  }
-
   .ag-header-cell,
   .ag-cell {
     border-left: 1px solid #dde2eb;
