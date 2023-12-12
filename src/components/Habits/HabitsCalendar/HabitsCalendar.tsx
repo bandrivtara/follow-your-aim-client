@@ -39,13 +39,14 @@ const HabitsCalendar = () => {
 
   useEffect(() => {
     const newColumnDefs = tableConfigs.getColumnDefs(currentDate);
-    console.log(data);
     const newRows = tableConfigs.getRows(
       data,
       currentDate,
       calendarMode,
       filteredCategory
     );
+
+    console.log(data);
 
     setColumnDefs(newColumnDefs);
     setRowData(newRows);
