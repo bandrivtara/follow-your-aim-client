@@ -10,6 +10,7 @@ import routes from "../../../config/routes";
 import TextArea from "antd/es/input/TextArea";
 import { useEffect, useState } from "react";
 import { useGetActivityListQuery } from "../../../store/services/activity";
+import { useGetAimsListQuery } from "../../../store/services/aims";
 
 const formInitialValues = {
   title: "",
@@ -25,26 +26,32 @@ const AddEditSphere = () => {
   const [updateSphere] = useUpdateSphereMutation();
   const sphereDetails = useGetSphereQuery(sphereId);
   const activityData = useGetActivityListQuery();
+  const aimsData = useGetAimsListQuery();
 
+  const [currentActivitiesKeys, setCurrentActivitiesKeys] = useState<string[]>(
+    []
+  );
   const [selectedActivitiesKeys, setSelectedActivitiesKeys] = useState<
     string[]
   >([]);
-  const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
   const [notSelectedActivities, setNotSelectedActivities] = useState<any[]>([]);
+  const [currentAimsKeys, setCurrentAimsKeys] = useState<string[]>([]);
+  const [selectedAimsKeys, setSelectedAimsKeys] = useState<string[]>([]);
+  const [notSelectedAims, setNotSelectedAims] = useState<any[]>([]);
 
   useEffect(() => {
     if (sphereDetails) {
       if (sphereDetails.data && sphereDetails.data) {
         form.setFieldsValue(sphereDetails.data);
-        setSelectedActivitiesKeys(sphereDetails.data.relatedActivities);
-
-        console.log(sphereDetails.data, 222);
+        setCurrentActivitiesKeys(sphereDetails.data.relatedActivities);
+        setCurrentAimsKeys(sphereDetails.data.relatedAims);
       }
     }
   }, [sphereDetails, form]);
 
   useEffect(() => {
     const allActivities = [];
+    const allAims = [];
 
     if (activityData && activityData.data && activityData.data.length) {
       for (let i = 0; i < activityData?.data?.length; i++) {
@@ -58,17 +65,40 @@ const AddEditSphere = () => {
 
       setNotSelectedActivities(allActivities);
     }
-  }, [activityData, activityData.data, form]);
+    if (aimsData && aimsData.data && aimsData.data.length) {
+      for (let i = 0; i < aimsData?.data?.length; i++) {
+        const data = {
+          key: aimsData?.data[i].id,
+          title: aimsData?.data[i].title,
+        };
 
-  const onChange = (nextTargetKeys: string[]) => {
-    setSelectedActivitiesKeys(nextTargetKeys);
+        allAims.push(data);
+      }
+
+      setNotSelectedAims(allAims);
+    }
+  }, [activityData, aimsData, form]);
+
+  const onActivitiesTransferChange = (nextTargetKeys: string[]) => {
+    setCurrentActivitiesKeys(nextTargetKeys);
   };
 
-  const onSelectChange = (
+  const onActivitiesTransferSelectChange = (
     sourceSelectedKeys: string[],
     targetSelectedKeys: string[]
   ) => {
-    setSelectedKeys([...sourceSelectedKeys, ...targetSelectedKeys]);
+    setSelectedActivitiesKeys([...sourceSelectedKeys, ...targetSelectedKeys]);
+  };
+
+  const onAimsTransferChange = (nextTargetKeys: string[]) => {
+    setCurrentAimsKeys(nextTargetKeys);
+  };
+
+  const onAimsTransferSelectChange = (
+    sourceSelectedKeys: string[],
+    targetSelectedKeys: string[]
+  ) => {
+    setSelectedAimsKeys([...sourceSelectedKeys, ...targetSelectedKeys]);
   };
 
   const onFinish = async (newSphereData: ILifeSphere) => {
@@ -111,10 +141,22 @@ const AddEditSphere = () => {
         <Transfer
           dataSource={notSelectedActivities}
           titles={["Source", "Target"]}
-          targetKeys={selectedActivitiesKeys}
-          selectedKeys={selectedKeys}
-          onChange={onChange}
-          onSelectChange={onSelectChange}
+          targetKeys={currentActivitiesKeys}
+          selectedKeys={selectedActivitiesKeys}
+          onChange={onActivitiesTransferChange}
+          onSelectChange={onActivitiesTransferSelectChange}
+          render={(item) => item.title}
+        />
+      </Form.Item>
+
+      <Form.Item name="relatedAims" label="Повязані цілі">
+        <Transfer
+          dataSource={notSelectedAims}
+          titles={["Source", "Target"]}
+          targetKeys={currentAimsKeys}
+          selectedKeys={selectedAimsKeys}
+          onChange={onAimsTransferChange}
+          onSelectChange={onAimsTransferSelectChange}
           render={(item) => item.title}
         />
       </Form.Item>
