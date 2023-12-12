@@ -6,7 +6,7 @@ import {
   addDoc,
   getDoc,
 } from "firebase/firestore";
-import { IAim, IAimData } from "../../types/aim.types";
+import { IAim, IAimData } from "../../types/aims.types";
 import { api, db } from "../api";
 
 export const aimsFirestoreApi = api.injectEndpoints({

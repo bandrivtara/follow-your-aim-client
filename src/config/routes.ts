@@ -10,12 +10,12 @@ const routes = {
     add: "/tasks/add",
     statistic: "/tasks/statistic",
   },
-  activity: {
-    path: "/activity",
-    list: "/activity/list",
-    add: "/activity/add",
-    edit: "/activity/edit",
-    statistic: "/activity/statistic",
+  habit: {
+    path: "/habit",
+    list: "/habit/list",
+    add: "/habit/add",
+    edit: "/habit/edit",
+    statistic: "/habit/statistic",
   },
   aims: {
     path: "/aims",
@@ -25,12 +25,12 @@ const routes = {
     edit: "aims/edit",
     statistic: "/aims/statistic",
   },
-  lifeSpheres: {
-    path: "/life-spheres",
-    list: "/life-spheres/list",
-    add: "/life-spheres/add",
-    edit: "/life-spheres/edit",
-    statistic: "/life-spheres/statistic",
+  lifeCategories: {
+    path: "/categories",
+    list: "/categories/list",
+    add: "/categories/add",
+    edit: "/categories/edit",
+    statistic: "/categories/statistic",
   },
 };
 
