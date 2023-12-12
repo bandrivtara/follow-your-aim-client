@@ -38,6 +38,7 @@ const Calendar = () => {
 
   useEffect(() => {
     const newColumnDefs = tableConfigs.getColumnDefs(currentDate);
+    console.log(data);
     const newRows = tableConfigs.getRows(
       data,
       currentDate,

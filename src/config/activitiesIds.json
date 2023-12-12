@@ -1,5 +1,32 @@
 {
-    "activities": {
-        "water": "8kyTLLC8zDmBchy7ihwz"
+  "activities": {
+    "water": "8kyTLLC8zDmBchy7ihwz"
+  },
+
+  "history": [
+    {
+      "01/2023": {
+        "14": [
+          {
+            "id": "",
+            "type": "todo | habit",
+            "value": "",
+            "description": "",
+            "plannedValue": ""
+          }
+        ]
+      }
     }
+  ],
+
+  "todo": [
+    {
+      "id": "",
+      "title": "",
+      "category": "",
+      "priority": "",
+      "dateTo": "",
+      "plannedDate": ""
+    }
+  ]
 }
