@@ -1,19 +1,19 @@
 import { Form, Input, Button, Slider, DatePicker, Select } from "antd";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import {
   useAddAimMutation,
   useGetAimQuery,
   useUpdateAimMutation,
-} from "../../../store/services/aims";
+} from "store/services/aims";
 import TextArea from "antd/es/input/TextArea";
 import { useEffect, useState } from "react";
-import { IAim } from "../../../types/aim.types";
+import { IAim } from "types/aims.types";
 import dayjs from "dayjs";
 import {
-  useGetSpheresListQuery,
-  useUpdateSphereMutation,
-} from "../../../store/services/lifeSpheres";
-import { ILifeSphere } from "../../../types/lifeSpheres.types";
+  useGetCategoriesListQuery,
+  useUpdateCategoryMutation,
+} from "store/services/categories";
+import { ICategory } from "types/categories.types";
 
 const formInitialValues: IAim = {
   title: "",
@@ -27,14 +27,13 @@ const formInitialValues: IAim = {
 
 const AddEditAim = () => {
   const [form] = Form.useForm();
-  const navigate = useNavigate();
   let { aimId } = useParams();
   const [addAim] = useAddAimMutation();
   const [updateAim] = useUpdateAimMutation();
   const aimDetails = useGetAimQuery(aimId);
-  const spheresData = useGetSpheresListQuery();
-  const [spheres, setSpheres] = useState<ILifeSphere[]>([]);
-  const [updateSphere] = useUpdateSphereMutation();
+  const categoriesData = useGetCategoriesListQuery();
+  const [categories, setCategories] = useState<ICategory[]>([]);
+  const [updateCategory] = useUpdateCategoryMutation();
 
   useEffect(() => {
     if (aimDetails) {
@@ -47,10 +46,10 @@ const AddEditAim = () => {
   }, [aimDetails, form]);
 
   useEffect(() => {
-    if (spheresData && spheresData.data) {
-      setSpheres(spheresData.data);
+    if (categoriesData && categoriesData.data) {
+      setCategories(categoriesData.data);
     }
-  }, [spheresData]);
+  }, [categoriesData]);
 
   const onFinish = async (newAimData: IAim) => {
     if (aimId) {
@@ -73,24 +72,24 @@ const AddEditAim = () => {
       });
     }
 
-    const currentSphereData = spheres.find(
+    const currentCategoryData = categories.find(
       (sphere) => sphere.id === newAimData.category
     );
     if (
       aimId &&
-      currentSphereData?.relatedActivities &&
-      !currentSphereData?.relatedActivities.includes(aimId)
+      currentCategoryData?.relatedHabits &&
+      !currentCategoryData?.relatedHabits.includes(aimId)
     ) {
       const sphereToUpdate = {
         id: newAimData.category,
         data: {
-          ...currentSphereData,
-          relatedActivities: [...currentSphereData?.relatedActivities, aimId],
+          ...currentCategoryData,
+          relatedHabits: [...currentCategoryData?.relatedHabits, aimId],
         },
         path: "",
       };
       console.log(sphereToUpdate);
-      await updateSphere(sphereToUpdate);
+      await updateCategory(sphereToUpdate);
     }
 
     // navigate(routes.aims.list);
@@ -133,7 +132,7 @@ const AddEditAim = () => {
 
       <Form.Item rules={[{ required: true }]} name="category" label="Категорія">
         <Select placeholder="Виберіть категорію">
-          {spheres.map((sphere) => (
+          {categories.map((sphere) => (
             <Select.Option value={sphere.id}>{sphere.title}</Select.Option>
           ))}
         </Select>

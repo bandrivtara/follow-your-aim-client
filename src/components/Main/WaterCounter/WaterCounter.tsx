@@ -3,19 +3,19 @@ import { Liquid } from "@ant-design/charts";
 import { Button, Radio, RadioChangeEvent, Space } from "antd";
 import StyledWaterCounter from "./WaterCounter.styled";
 import {
-  useGetActivityQuery,
-  useUpdateActivityMutation,
-} from "../../../store/services/activity";
-import activitiesConfig from "../../../config/activitiesIds.json";
+  useGetHabitQuery,
+  useUpdateHabitMutation,
+} from "store/services/habits";
+import habitsConfig from "config/habitsIds.json";
 import dayjs from "dayjs";
 import _ from "lodash";
 
 const WaterCounter = () => {
   const today = dayjs().format("YYYY.MM.D");
 
-  const waterActivityId = activitiesConfig.activities.water;
-  const [updateActivity] = useUpdateActivityMutation();
-  const activityDetails = useGetActivityQuery(waterActivityId);
+  const waterHabitId = habitsConfig.habits.water;
+  const [updateHabit] = useUpdateHabitMutation();
+  const habitDetails = useGetHabitQuery(waterHabitId);
 
   const [waterSize, setWaterSize] = useState(500);
   const [waterCount, setWaterCount] = useState(0);
@@ -26,12 +26,12 @@ const WaterCounter = () => {
   const minToComplete = 3000;
 
   useEffect(() => {
-    const currentValue = _.get(activityDetails.data?.history, today);
+    const currentValue = _.get(habitDetails.data?.history, today);
 
     if (currentValue) {
       setWaterCount(currentValue.value);
     }
-  }, [activityDetails, today]);
+  }, [habitDetails, today]);
 
   const liquidConfig = useCallback(
     () => ({
@@ -54,13 +54,13 @@ const WaterCounter = () => {
   );
 
   const onCounterChange = async (newValue: number) => {
-    const activityToUpdate = {
-      id: waterActivityId,
+    const habitToUpdate = {
+      id: waterHabitId,
       data: { value: newValue },
       path: `history.${today}`,
     };
 
-    await updateActivity(activityToUpdate).unwrap();
+    await updateHabit(habitToUpdate).unwrap();
   };
 
   return (
