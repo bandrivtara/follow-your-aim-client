@@ -1,4 +1,4 @@
-import { Form, Input, Button, Slider, DatePicker } from "antd";
+import { Form, Input, Button, Slider, DatePicker, Select } from "antd";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   useAddAimMutation,
@@ -6,9 +6,14 @@ import {
   useUpdateAimMutation,
 } from "../../../store/services/aims";
 import TextArea from "antd/es/input/TextArea";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { IAim } from "../../../types/aim.types";
 import dayjs from "dayjs";
+import {
+  useGetSpheresListQuery,
+  useUpdateSphereMutation,
+} from "../../../store/services/lifeSpheres";
+import { ILifeSphere } from "../../../types/lifeSpheres.types";
 
 const formInitialValues: IAim = {
   title: "",
@@ -27,16 +32,25 @@ const AddEditAim = () => {
   const [addAim] = useAddAimMutation();
   const [updateAim] = useUpdateAimMutation();
   const aimDetails = useGetAimQuery(aimId);
+  const spheresData = useGetSpheresListQuery();
+  const [spheres, setSpheres] = useState<ILifeSphere[]>([]);
+  const [updateSphere] = useUpdateSphereMutation();
 
   useEffect(() => {
     if (aimDetails) {
       if (aimDetails.data && aimDetails.data) {
-        form.setFieldsValue(aimDetails.data);
+        // form.setFieldsValue(aimDetails.data);
 
         console.log(aimDetails.data, 222);
       }
     }
   }, [aimDetails, form]);
+
+  useEffect(() => {
+    if (spheresData && spheresData.data) {
+      setSpheres(spheresData.data);
+    }
+  }, [spheresData]);
 
   const onFinish = async (newAimData: IAim) => {
     if (aimId) {
@@ -50,14 +64,33 @@ const AddEditAim = () => {
         path: "",
       };
       console.log(newAimData, 123);
-      // await updateAim(aimToUpdate).unwrap();
+      await updateAim(aimToUpdate).unwrap();
     } else {
-      console.log(newAimData, 333);
       await addAim({
         ...newAimData,
         dateFrom: dayjs(newAimData.dateFrom).format("YYYY/MM/DD"),
         dateTo: dayjs(newAimData.dateTo).format("YYYY/MM/DD"),
       });
+    }
+
+    const currentSphereData = spheres.find(
+      (sphere) => sphere.id === newAimData.category
+    );
+    if (
+      aimId &&
+      currentSphereData?.relatedActivities &&
+      !currentSphereData?.relatedActivities.includes(aimId)
+    ) {
+      const sphereToUpdate = {
+        id: newAimData.category,
+        data: {
+          ...currentSphereData,
+          relatedActivities: [...currentSphereData?.relatedActivities, aimId],
+        },
+        path: "",
+      };
+      console.log(sphereToUpdate);
+      await updateSphere(sphereToUpdate);
     }
 
     // navigate(routes.aims.list);
@@ -96,6 +129,14 @@ const AddEditAim = () => {
 
       <Form.Item name="dateTo" label="До...">
         <DatePicker />
+      </Form.Item>
+
+      <Form.Item rules={[{ required: true }]} name="category" label="Категорія">
+        <Select placeholder="Виберіть категорію">
+          {spheres.map((sphere) => (
+            <Select.Option value={sphere.id}>{sphere.title}</Select.Option>
+          ))}
+        </Select>
       </Form.Item>
 
       <Form.Item>

@@ -16,6 +16,7 @@ const formInitialValues = {
   title: "",
   description: "",
   relatedActivities: [],
+  relatedAims: [],
 };
 
 const AddEditSphere = () => {
@@ -42,12 +43,17 @@ const AddEditSphere = () => {
   useEffect(() => {
     if (sphereDetails) {
       if (sphereDetails.data && sphereDetails.data) {
+        console.log(sphereDetails.data);
         form.setFieldsValue(sphereDetails.data);
         setCurrentActivitiesKeys(sphereDetails.data.relatedActivities);
         setCurrentAimsKeys(sphereDetails.data.relatedAims);
       }
     }
   }, [sphereDetails, form]);
+
+  useEffect(() => {
+    console.log(selectedActivitiesKeys, notSelectedActivities);
+  }, [notSelectedActivities, selectedActivitiesKeys]);
 
   useEffect(() => {
     const allActivities = [];

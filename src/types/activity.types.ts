@@ -14,7 +14,7 @@ export interface IActivityDetails {
   valueType?: IValueTypes;
   description?: string;
   complexity?: number;
-  category?: string;
+  category?: string[];
   measure?: string;
   active?: boolean;
   minToComplete?: number;

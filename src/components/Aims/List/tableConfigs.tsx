@@ -7,7 +7,7 @@ const tableConfigs: ColDef[] = [
     headerName: "Назва",
     field: "title",
     cellRenderer: ({ data, value }: ICellRendererParams) => (
-      <Link to={`${routes.aims.edit}/${data.id}`}>{value}</Link>
+      <Link to={`/${routes.aims.edit}/${data.id}`}>{value}</Link>
     ),
   },
   {
