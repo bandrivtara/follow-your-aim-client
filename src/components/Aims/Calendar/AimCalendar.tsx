@@ -3,9 +3,9 @@ import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-material.css";
 import StyledAimCalendar from "./AimCalendar.styled";
-import tableConfigs from "./tableConfigs";
+import tableConfigs from "../List/tableConfigs";
 import dayjs, { Dayjs } from "dayjs";
-import { IActivityRow } from "../Calendar/tableConfigs";
+import { IActivityRow } from "../../Calendar/tableConfigs";
 import { ColDef } from "ag-grid-community";
 import { DatePicker } from "antd";
 

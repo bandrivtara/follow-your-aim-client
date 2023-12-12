@@ -16,17 +16,21 @@ import {
   useUpdateActivityMutation,
 } from "../../../store/services/activity";
 import { IActivityDetails } from "../../../types/activity.types";
-import routes from "../../../config/routes";
 import TextArea from "antd/es/input/TextArea";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { ClockCircleOutlined } from "@ant-design/icons";
 import { getTimeOptions } from "../../../share/functions/getTimeOptions";
+import {
+  useGetSpheresListQuery,
+  useUpdateSphereMutation,
+} from "../../../store/services/lifeSpheres";
+import { ILifeSphere } from "../../../types/lifeSpheres.types";
+import routes from "../../../config/routes";
 
 const formInitialValues = {
   title: "",
   description: "",
   complexity: 5,
-  category: "daily",
   valueType: "number",
   measure: "хв",
   minToComplete: 0,
@@ -41,6 +45,9 @@ const AddEditActivity = () => {
   const [addActivity] = useAddActivityMutation();
   const [updateActivity] = useUpdateActivityMutation();
   const activityDetails = useGetActivityQuery(activityId);
+  const spheresData = useGetSpheresListQuery();
+  const [spheres, setSpheres] = useState<ILifeSphere[]>([]);
+  const [updateSphere] = useUpdateSphereMutation();
 
   useEffect(() => {
     if (activityDetails) {
@@ -49,6 +56,12 @@ const AddEditActivity = () => {
       }
     }
   }, [activityDetails, form]);
+
+  useEffect(() => {
+    if (spheresData && spheresData.data) {
+      setSpheres(spheresData.data);
+    }
+  }, [spheresData]);
 
   const onFinish = async (newActivityData: IActivityDetails) => {
     if (activityId) {
@@ -61,8 +74,37 @@ const AddEditActivity = () => {
     } else {
       await addActivity(newActivityData);
     }
-    navigate(routes.activity.list);
-    navigate(0);
+    if (newActivityData.category) {
+      await Promise.all(
+        newActivityData.category.map(async (category) => {
+          const currentSphereData = spheres.find(
+            (sphere) => sphere.id === category
+          );
+          console.log(newActivityData.category);
+          if (
+            activityId &&
+            currentSphereData?.relatedActivities &&
+            !currentSphereData?.relatedActivities.includes(activityId)
+          ) {
+            const sphereToUpdate = {
+              id: newActivityData.category,
+              data: {
+                ...currentSphereData,
+                relatedActivities: [
+                  ...currentSphereData?.relatedActivities,
+                  activityId,
+                ],
+              },
+              path: "",
+            };
+            await updateSphere(sphereToUpdate);
+          }
+        })
+      );
+    }
+
+    // navigate(routes.activity.list);
+    // navigate(0);
   };
 
   return (
@@ -89,12 +131,10 @@ const AddEditActivity = () => {
         <Slider min={1} max={10} />
       </Form.Item>
       <Form.Item rules={[{ required: true }]} name="category" label="Категорія">
-        <Select>
-          <Select.Option value="morning">Ранкові</Select.Option>
-          <Select.Option value="daily">Денні</Select.Option>
-          <Select.Option value="sport">Спорт</Select.Option>
-          <Select.Option value="lists">Списки</Select.Option>
-          <Select.Option value="other">Інше</Select.Option>
+        <Select mode="multiple" placeholder="Виберіть категорію">
+          {spheres.map((sphere) => (
+            <Select.Option value={sphere.id}>{sphere.title}</Select.Option>
+          ))}
         </Select>
       </Form.Item>
       <Form.Item

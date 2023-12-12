@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import routes from "../../config/routes";
 import RelatedActivities from "./cellRenderer/RelatedActivities";
 import { ColDef, ICellRendererParams } from "ag-grid-community";
+import RelatedAims from "./cellRenderer/RelatedAims";
 
 const tableConfigs: ColDef[] = [
   {
@@ -20,6 +21,14 @@ const tableConfigs: ColDef[] = [
     headerName: "Повязані звички",
     field: "relatedActivities",
     cellRenderer: RelatedActivities,
+    flex: 1,
+    wrapText: true,
+    autoHeight: true,
+  },
+  {
+    headerName: "Повязані цілі",
+    field: "relatedAims",
+    cellRenderer: RelatedAims,
     flex: 1,
     wrapText: true,
     autoHeight: true,

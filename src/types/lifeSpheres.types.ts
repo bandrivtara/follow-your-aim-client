@@ -7,4 +7,5 @@ export interface ILifeSphere {
   title: string;
   description: string;
   relatedActivities: string[];
+  relatedAims: string[];
 }
