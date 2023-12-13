@@ -10,6 +10,10 @@ import { getFirstDayOfWeek } from "share/functions/getFirstDayOfWeek";
 import FiltersBar from "./FiltersBar/FiltersBar";
 import tableConfigs, { IHabitRow } from "./tableConfigs";
 import useIsMobile from "share/hooks/useIsMobile";
+import {
+  useGetHistoryListQuery,
+  useGetHistoryQuery,
+} from "store/services/history";
 
 export type IHabitsCalendarState = "tracking" | "planning";
 
@@ -19,7 +23,7 @@ const initConfigs = {
 
 const HabitsCalendar = () => {
   const isMobile = useIsMobile();
-  const { data } = useGetHabitListQuery();
+  const habitsData = useGetHabitListQuery();
   const gridRef = useRef<AgGridReact>(null);
 
   const [rowData, setRowData] = useState<IHabitRow[]>([]);
@@ -27,6 +31,11 @@ const HabitsCalendar = () => {
   const [currentDate, setCurrentDate] = useState<(Dayjs | null)[]>(
     initConfigs.currentDate
   );
+
+  const historyData = useGetHistoryQuery(
+    dayjs(currentDate[0]).format("MM-YYYY")
+  );
+
   const [filteredCategory, setFilteredCategory] = useState("all");
   const [calendarMode, setCurrentMode] =
     useState<IHabitsCalendarState>("tracking");
@@ -40,17 +49,16 @@ const HabitsCalendar = () => {
   useEffect(() => {
     const newColumnDefs = tableConfigs.getColumnDefs(currentDate);
     const newRows = tableConfigs.getRows(
-      data,
+      habitsData.data,
       currentDate,
       calendarMode,
-      filteredCategory
+      filteredCategory,
+      historyData.data
     );
-
-    console.log(data);
 
     setColumnDefs(newColumnDefs);
     setRowData(newRows);
-  }, [currentDate, data, filteredCategory, calendarMode]);
+  }, [currentDate, filteredCategory, calendarMode, habitsData, historyData]);
 
   return (
     <StyledHabitsCalendar>

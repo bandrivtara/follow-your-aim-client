@@ -62,12 +62,14 @@ const getColumnDefs = (currentDate: (Dayjs | null)[]): ColDef[] => {
 };
 
 const getRows = (
-  data: IHabitData[] = [],
+  habitsData: IHabitData[] = [],
   currentDate: (Dayjs | null)[],
   calendarMode: IHabitsCalendarState,
-  filteredCategory: string
+  filteredCategory: string,
+  historyData
 ) => {
-  const newRows = data
+  console.log(historyData, habitsData)
+  const newRows = habitsData
     ?.map((habitData) => {
       const habitRows = {
         id: habitData.id,
@@ -90,7 +92,7 @@ const getRows = (
         return {
           ...habitRows,
           ...habitData.history[currentDate[0].year()][
-            currentDate[0].month() + 1
+          currentDate[0].month() + 1
           ],
         };
       }
@@ -135,54 +137,54 @@ const getRows = (
             currentHabitData.isComplete)
         );
       } else {
-        return habit.category === filteredCategory;
+        // return habitsData.category === filteredCategory;
       }
     })
     .filter((habit) => !habit.habitDetails.isHidden);
 
-  if (filteredCategory === "grouped" && newRows) {
-    const sortedSportHabit: IHabitRow = newRows.reduce(
-      (acc, currentValue) => {
-        let result: any = {};
-        const obj1: any = _.pickBy(currentValue, (_value, key) => !isNaN(+key));
-        const obj2: any = _.pickBy(acc, (_value, key) => !isNaN(+key));
+  // if (filteredCategory === "grouped" && newRows) {
+  //   const sortedSportHabit: IHabitRow = newRows.reduce(
+  //     (acc, currentValue) => {
+  //       let result: any = {};
+  //       const obj1: any = _.pickBy(currentValue, (_value, key) => !isNaN(+key));
+  //       const obj2: any = _.pickBy(acc, (_value, key) => !isNaN(+key));
 
-        if (currentValue.category === "sport") {
-          for (const key in obj1) {
-            if (obj1.hasOwnProperty(key)) {
-              if (obj2.hasOwnProperty(key)) {
-                result[key] = {
-                  value: obj1[key].value + obj2[key].value,
-                  plannedValue: obj1[key].plannedValue + obj2[key].plannedValue,
-                };
-              } else {
-                result[key] = obj1[key];
-              }
-            }
-          }
-        }
-        return { ...acc, ...result };
-      },
-      {
-        id: "some_id",
-        calendarMode: "tracking",
-        currentDate: {
-          year: currentDate[0] && currentDate[0].year(),
-          month: currentDate[0] && currentDate[0].month() + 1,
-        },
-        habitDetails: {
-          id: "some_id",
-          title: "Спорт",
-          valueType: "number",
-        },
-      }
-    );
+  //       if (currentValue.category === "sport") {
+  //         for (const key in obj1) {
+  //           if (obj1.hasOwnProperty(key)) {
+  //             if (obj2.hasOwnProperty(key)) {
+  //               result[key] = {
+  //                 value: obj1[key].value + obj2[key].value,
+  //                 plannedValue: obj1[key].plannedValue + obj2[key].plannedValue,
+  //               };
+  //             } else {
+  //               result[key] = obj1[key];
+  //             }
+  //           }
+  //         }
+  //       }
+  //       return { ...acc, ...result };
+  //     },
+  //     {
+  //       id: "some_id",
+  //       calendarMode: "tracking",
+  //       currentDate: {
+  //         year: currentDate[0] && currentDate[0].year(),
+  //         month: currentDate[0] && currentDate[0].month() + 1,
+  //       },
+  //       habitDetails: {
+  //         id: "some_id",
+  //         title: "Спорт",
+  //         valueType: "number",
+  //       },
+  //     }
+  //   );
 
-    return [
-      ...newRows.filter((habit) => habit.habitDetails.category !== "sport"),
-      sortedSportHabit,
-    ];
-  }
+  //   return [
+  //     ...newRows.filter((habit) => habit.habitDetails.category !== "sport"),
+  //     sortedSportHabit,
+  //   ];
+  // }
 
   return newRows;
 };

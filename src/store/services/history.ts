@@ -6,7 +6,7 @@ import {
   addDoc,
   getDoc,
 } from "firebase/firestore";
-import { IHistoryData, IHistoryDetails } from "../../types/history.types";
+import { IHistoryData, IHistoryDay } from "types/history.types";
 import { api, db } from "../api";
 
 export const historyFirestoreApi = api.injectEndpoints({
@@ -57,7 +57,7 @@ export const historyFirestoreApi = api.injectEndpoints({
     }),
 
     addHistory: builder.mutation({
-      async queryFn(historyDetails: IHistoryDetails) {
+      async queryFn(historyDetails: IHistoryDay) {
         try {
           await addDoc(collection(db, "history"), historyDetails);
 
@@ -93,3 +93,5 @@ export const {
   useAddHistoryMutation,
   useUpdateHistoryMutation,
 } = historyFirestoreApi;
+
+
