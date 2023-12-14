@@ -75,11 +75,10 @@ const getRows = (
   historyData: IHistoryData,
   currentDate: (Dayjs | null)[]
 ) => {
-  console.log(historyData, 123);
   const currentMMYYYY = dayjs(currentDate[0]).format("MM-YYYY");
-  const nameObj: any = {};
+  const habits: any = {};
   habitsData.forEach((item) => {
-    nameObj[item.id] = item;
+    habits[item.id] = item;
   });
 
   // Create an array to hold the transformed objects
@@ -90,15 +89,14 @@ const getRows = (
     // Iterate through each id in the object for the current day
     for (let id in historyData[day]) {
       // Check if there is already an object with the same id in the rows
-      if (nameObj && nameObj[id]) {
-        let existingObject: any = rows.find((obj) => obj.id === id);
+      if (habits && habits[id]) {
+        let existingObject: any = rows.find((row) => row.id === id);
 
         // If the object doesn't exist, create a new one
         if (!existingObject) {
-          console.log(day);
           existingObject = {
             id: id,
-            details: nameObj[id],
+            details: habits[id],
             currentDate: currentMMYYYY,
           };
           rows.push(existingObject);
@@ -112,11 +110,11 @@ const getRows = (
 
   if (historyData) {
     // Include items from habitsData with empty values if they are not present in the historyData
-    habitsData.forEach((item) => {
-      if (!rows.find((obj) => obj.id === item.id)) {
+    habitsData.forEach((habit) => {
+      if (!rows.find((row) => row.id === habit.id)) {
         rows.push({
-          id: item.id,
-          details: nameObj[item.id],
+          id: habit.id,
+          details: habits[habit.id],
           currentDate: currentMMYYYY,
         });
       }

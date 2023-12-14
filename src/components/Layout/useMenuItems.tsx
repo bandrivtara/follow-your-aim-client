@@ -25,15 +25,46 @@ const useMenuItems = () => {
     },
     {
       key: 3,
-      label: "Календар",
-      onClick: () => navigate(routes.calendar),
-      icon: <CalendarOutlined rev="string" />,
+      label: "Завдання",
+      icon: <CheckOutlined rev="string" />,
+      children: [
+        {
+          key: 30,
+          label: "Календар завдань",
+          onClick: () => navigate(routes.taskGroups.calendar),
+          icon: <CalendarOutlined rev="string" />,
+        },
+        {
+          key: 31,
+          label: "Усі групи завдань",
+          onClick: () => navigate(routes.taskGroups.list),
+          icon: <UnorderedListOutlined rev="string" />,
+        },
+        {
+          key: 32,
+          label: "Додати групу завдань",
+          onClick: () => navigate(routes.taskGroups.add),
+          icon: <PlusSquareOutlined rev="string" />,
+        },
+        {
+          key: 33,
+          label: "Статистика",
+          onClick: () => navigate(routes.taskGroups.statistic),
+          icon: <LineChartOutlined rev="string" />,
+        },
+      ],
     },
     {
       key: 4,
       label: "Звички",
       icon: <CheckOutlined rev="string" />,
       children: [
+        {
+          key: 40,
+          label: "Календар",
+          onClick: () => navigate(routes.habit.calendar),
+          icon: <CalendarOutlined rev="string" />,
+        },
         {
           key: 41,
           label: "Усі звички",
@@ -63,7 +94,7 @@ const useMenuItems = () => {
           key: 50,
           label: "Календар",
           onClick: () => navigate(routes.aims.calendar),
-          icon: <UnorderedListOutlined rev="string" />,
+          icon: <CalendarOutlined rev="string" />,
         },
         {
           key: 51,

@@ -21,7 +21,7 @@ import {
   Space,
 } from "antd";
 import { Fragment, useCallback, useState } from "react";
-import { ITask } from "types/tasks";
+import { ITask } from "types/taskGroups";
 import { FormInstance, useWatch } from "antd/es/form/Form";
 import { getTimeOptions } from "share/functions/getTimeOptions";
 import StyledListHabitStore from "./ListStore.styled";
