@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import { IDayCellEditor } from "../DayCellEditor";
 import { ColDef } from "ag-grid-community";
-import { useUpdateHabitMutation } from "store/services/habits";
 import { IStopEditing } from "../../HabitCellRenderer/habitConfigs";
+import { useUpdateHistoryMutation } from "store/services/history";
 
 interface IProps {
   colDef: ColDef<IDayCellEditor>;
@@ -11,30 +11,29 @@ interface IProps {
 }
 
 const BooleanHabit = ({ data, colDef }: IProps) => {
-  const [updateHabit] = useUpdateHabitMutation();
+  const [updateHistory] = useUpdateHistoryMutation();
   const cellData = colDef.field && data[+colDef.field];
+  const { calendarMode } = colDef.cellRendererParams;
 
   useEffect(() => {
     const changeStatus = async () => {
       if (colDef.field) {
         const isComplete = cellData?.isComplete || false;
         const isPlanned = cellData?.isPlanned || false;
-
         const habitToUpdate = {
-          id: data.id,
+          id: data.currentDate,
           data: {
-            isPlanned:
-              data.calendarMode === "planning" ? !isPlanned : isPlanned,
-            isComplete:
-              data.calendarMode === "tracking" ? !isComplete : isComplete,
+            isPlanned: calendarMode === "planning" ? !isPlanned : isPlanned,
+            isComplete: calendarMode === "tracking" ? !isComplete : isComplete,
           },
-          path: `history.${data.currentDate.year}.${data.currentDate.month}.${colDef.field}`,
+          path: `${colDef.field}.${data.id}`,
         };
-        await updateHabit(habitToUpdate).unwrap();
+
+        await updateHistory(habitToUpdate).unwrap();
       }
     };
     changeStatus();
-  }, [cellData, colDef.field, data, updateHabit]);
+  }, [cellData, colDef.field, data, updateHistory]);
   return <></>;
 };
 

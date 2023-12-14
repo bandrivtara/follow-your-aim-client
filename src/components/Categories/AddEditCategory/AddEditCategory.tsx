@@ -59,7 +59,7 @@ const AddEditCategory = () => {
       for (let i = 0; i < habitData?.data?.length; i++) {
         const data = {
           key: habitData?.data[i].id,
-          title: habitData?.data[i].details.title,
+          title: habitData?.data[i].title,
         };
 
         allHabits.push(data);

@@ -26,11 +26,10 @@ const WaterCounter = () => {
   const minToComplete = 3000;
 
   useEffect(() => {
-    const currentValue = _.get(habitDetails.data?.history, today);
-
-    if (currentValue) {
-      setWaterCount(currentValue.value);
-    }
+    // const currentValue = _.get(habitDetails.data?.history, today);
+    // if (currentValue) {
+    //   setWaterCount(currentValue.value);
+    // }
   }, [habitDetails, today]);
 
   const liquidConfig = useCallback(

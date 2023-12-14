@@ -6,7 +6,7 @@ import {
   addDoc,
   getDoc,
 } from "firebase/firestore";
-import { IHistoryData, IHistoryDetails } from "../../types/history.types";
+import { IHistoryData, IHabitDayValues } from "types/history.types";
 import { api, db } from "../api";
 
 export const historyFirestoreApi = api.injectEndpoints({
@@ -19,7 +19,6 @@ export const historyFirestoreApi = api.injectEndpoints({
           let historyList: IHistoryData[] = [];
           querySnapshot?.forEach((doc) => {
             historyList.push({
-              id: doc.id,
               ...doc.data(),
             } as IHistoryData);
           });
@@ -41,7 +40,6 @@ export const historyFirestoreApi = api.injectEndpoints({
           if (historySnapshot.exists()) {
             return {
               data: {
-                id: historySnapshot.id,
                 ...historySnapshot.data(),
               } as IHistoryData,
             };
@@ -57,7 +55,7 @@ export const historyFirestoreApi = api.injectEndpoints({
     }),
 
     addHistory: builder.mutation({
-      async queryFn(historyDetails: IHistoryDetails) {
+      async queryFn(historyDetails: IHabitDayValues) {
         try {
           await addDoc(collection(db, "history"), historyDetails);
 
@@ -70,12 +68,11 @@ export const historyFirestoreApi = api.injectEndpoints({
       invalidatesTags: ["History"],
     }),
     updateHistory: builder.mutation({
-      async queryFn(historyDetails) {
+      async queryFn(history) {
         try {
-          await updateDoc(
-            doc(db, "history", historyDetails.id),
-            historyDetails.data
-          );
+          await updateDoc(doc(db, "history", history.id), {
+            [history.path]: history.data,
+          });
           return { data: null };
         } catch (error: any) {
           console.error(error.message);

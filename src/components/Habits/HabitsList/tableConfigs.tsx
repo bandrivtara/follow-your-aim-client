@@ -1,9 +1,9 @@
 import { ColumnsType } from "antd/es/table";
-import { IHabitDetails } from "types/habits.types";
+import { IHabitData } from "types/habits.types";
 import { Link } from "react-router-dom";
 import routes from "config/routes";
 
-const configs: ColumnsType<IHabitDetails> = [
+const configs: ColumnsType<IHabitData> = [
   {
     title: "Назва",
     dataIndex: "title",

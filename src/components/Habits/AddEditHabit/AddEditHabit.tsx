@@ -15,7 +15,7 @@ import {
   useGetHabitQuery,
   useUpdateHabitMutation,
 } from "store/services/habits";
-import { IHabitDetails } from "types/habits.types";
+import { IHabitData } from "types/habits.types";
 import TextArea from "antd/es/input/TextArea";
 import { useEffect, useState } from "react";
 import { ClockCircleOutlined } from "@ant-design/icons";
@@ -51,8 +51,8 @@ const AddEditHabit = () => {
 
   useEffect(() => {
     if (habitDetails) {
-      if (habitDetails.data && habitDetails.data.details) {
-        form.setFieldsValue(habitDetails.data.details);
+      if (habitDetails.data && habitDetails.data) {
+        form.setFieldsValue(habitDetails.data);
       }
     }
   }, [habitDetails, form]);
@@ -63,7 +63,7 @@ const AddEditHabit = () => {
     }
   }, [categoriesData]);
 
-  const onFinish = async (newHabitData: IHabitDetails) => {
+  const onFinish = async (newHabitData: IHabitData) => {
     if (habitId) {
       const habitToUpdate = {
         id: habitId,

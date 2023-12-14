@@ -47,8 +47,7 @@ export const habitConfigs: THabitConfig = {
     cellRenderer: (cell, data) => ({
       component: <>{cell.value || cell.plannedValue}</>,
       progress:
-        cell.value /
-        (cell.plannedValue || data.habitDetails.minToComplete || ""),
+        cell.value / (cell.plannedValue || data.details.minToComplete || ""),
       isPlanned: !!cell.plannedValue,
     }),
   },
@@ -69,13 +68,19 @@ export const habitConfigs: THabitConfig = {
       <ListHabit colDef={colDef} stopEditing={stopEditing} data={data} />
     ),
     cellRenderer: (cell) => {
-      const habitStatus = cell.value.split("/");
-      const progress = +habitStatus[0] / +habitStatus[1];
+      let progress = 0;
+      let isPlanned = false;
+
+      if (cell.value) {
+        const habitStatus = cell.value.split("/");
+        progress = +habitStatus[0] / +habitStatus[1];
+        isPlanned = true;
+      }
 
       return {
         component: <>{cell.value}</>,
         progress,
-        isPlanned: true,
+        isPlanned,
       };
     },
   },
@@ -91,18 +96,6 @@ export const habitConfigs: THabitConfig = {
   //     };
   //   },
   // },
-  time: {
-    cellEditor: ({ data, colDef, stopEditing }) => (
-      <Time colDef={colDef} stopEditing={stopEditing} data={data} />
-    ),
-    cellRenderer: (cell) => {
-      return {
-        component: <>{cell.value && `${cell.value[0]}:${cell.value[1]}`}</>,
-        progress: cell.value > 1 && 1,
-        isPlanned: cell.plannedValue?.[0] || 0,
-      };
-    },
-  },
   duration: {
     cellEditor: ({ data, colDef, stopEditing }) => (
       <DurationHabit data={data} colDef={colDef} stopEditing={stopEditing} />
@@ -111,11 +104,12 @@ export const habitConfigs: THabitConfig = {
       return {
         component: (
           <>
-            {`${cell.from?.[0]}:${cell.from?.[1]}-${cell.to?.[0]}:${cell.to?.[1]}`}
+            {cell.value &&
+              `${cell.from?.[0]}:${cell.from?.[1]}-${cell.to?.[0]}:${cell.to?.[1]}`}
           </>
         ),
         progress: false,
-        isPlanned: true,
+        isPlanned: cell.value,
       };
     },
   },

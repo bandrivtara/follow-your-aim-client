@@ -8,8 +8,10 @@ import StyledHabitsCalendar from "./HabitsCalendar.styled";
 import dayjs, { Dayjs } from "dayjs";
 import { getFirstDayOfWeek } from "share/functions/getFirstDayOfWeek";
 import FiltersBar from "./FiltersBar/FiltersBar";
-import tableConfigs, { IHabitRow } from "./tableConfigs";
+import tableConfigs from "./tableConfigs";
 import useIsMobile from "share/hooks/useIsMobile";
+import { useGetHistoryQuery } from "store/services/history";
+import { IHistoryDayRow } from "types/history.types";
 
 export type IHabitsCalendarState = "tracking" | "planning";
 
@@ -19,14 +21,19 @@ const initConfigs = {
 
 const HabitsCalendar = () => {
   const isMobile = useIsMobile();
-  const { data } = useGetHabitListQuery();
+  const habitsData = useGetHabitListQuery();
   const gridRef = useRef<AgGridReact>(null);
 
-  const [rowData, setRowData] = useState<IHabitRow[]>([]);
+  const [rowData, setRowData] = useState<IHistoryDayRow[]>([]);
   const [columnDefs, setColumnDefs] = useState<ColDef[]>([]);
   const [currentDate, setCurrentDate] = useState<(Dayjs | null)[]>(
     initConfigs.currentDate
   );
+
+  const historyData = useGetHistoryQuery(
+    dayjs(currentDate[0]).format("MM-YYYY")
+  );
+
   const [filteredCategory, setFilteredCategory] = useState("all");
   const [calendarMode, setCurrentMode] =
     useState<IHabitsCalendarState>("tracking");
@@ -38,19 +45,17 @@ const HabitsCalendar = () => {
   }, [isMobile]);
 
   useEffect(() => {
-    const newColumnDefs = tableConfigs.getColumnDefs(currentDate);
+    if (!historyData.data) return;
+    const newColumnDefs = tableConfigs.getColumnDefs(currentDate, calendarMode);
     const newRows = tableConfigs.getRows(
-      data,
-      currentDate,
-      calendarMode,
-      filteredCategory
+      habitsData.data,
+      historyData.data,
+      currentDate
     );
-
-    console.log(data);
 
     setColumnDefs(newColumnDefs);
     setRowData(newRows);
-  }, [currentDate, data, filteredCategory, calendarMode]);
+  }, [currentDate, filteredCategory, calendarMode, habitsData, historyData]);
 
   return (
     <StyledHabitsCalendar>

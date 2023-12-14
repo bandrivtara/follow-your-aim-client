@@ -1,13 +1,6 @@
+export type IValueTypes = "number" | "boolean" | "array" | "duration";
+
 export interface IHabitData {
-  id?: string;
-  details: IHabitDetails;
-  history?: IHabitHistory[];
-  store?: any[];
-}
-
-export type IValueTypes = "number" | "boolean" | "array" | "time" | "duration";
-
-export interface IHabitDetails {
   id: string;
   scheduleTime?: string;
   title: string;

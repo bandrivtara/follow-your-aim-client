@@ -6,12 +6,13 @@ import { habitConfigs } from "../HabitCellRenderer/habitConfigs";
 const DayCellRenderer = ({
   value,
   data,
+  ...rest
 }: ICellRendererParams<IDayCellEditor>) => {
   const currentCellRendererData =
     value &&
     data &&
-    data.habitDetails.valueType &&
-    habitConfigs?.[data.habitDetails.valueType]?.cellRenderer(value, data);
+    data.details.valueType &&
+    habitConfigs?.[data.details.valueType]?.cellRenderer(value, data);
 
   const getProgressColor = () => {
     if (!currentCellRendererData) return "transparent";

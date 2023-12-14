@@ -19,7 +19,7 @@ const RelatedHabits = ({ value }: ICellRendererParams) => {
 
   return relatedHabits.map((habit) => (
     <Tag key={habit.id} color="processing">
-      {habit.details.title}
+      {habit.title}
     </Tag>
   ));
 };

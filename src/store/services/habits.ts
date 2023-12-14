@@ -6,7 +6,7 @@ import {
   addDoc,
   getDoc,
 } from "firebase/firestore";
-import { IHabitData, IHabitDetails } from "../../types/habits.types";
+import { IHabitData } from "../../types/habits.types";
 import { api, db } from "../api";
 
 export const habitFirestoreApi = api.injectEndpoints({
@@ -57,7 +57,7 @@ export const habitFirestoreApi = api.injectEndpoints({
     }),
 
     addHabit: builder.mutation({
-      async queryFn(habitDetails: IHabitDetails) {
+      async queryFn(habitDetails: IHabitData) {
         try {
           await addDoc(collection(db, "habit"), {
             details: habitDetails,

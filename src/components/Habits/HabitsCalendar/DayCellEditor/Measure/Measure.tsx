@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import _ from "lodash";
 import FormButtons from "share/components/Form/FormButtons";
 import { IStopEditing } from "../../HabitCellRenderer/habitConfigs";
+import { useUpdateHistoryMutation } from "store/services/history";
 
 interface IProps {
   colDef: ColDef<IDayCellEditor>;
@@ -20,47 +21,43 @@ interface IFormValues {
 
 const MeasureHabit = ({ colDef, stopEditing, data }: IProps) => {
   const [form] = Form.useForm();
-  const [updateHabit] = useUpdateHabitMutation();
+  const [updateHistory] = useUpdateHistoryMutation();
   const [initValues, setInitValues] = useState<null | IFormValues>(null);
   const cellData = colDef.field && data[+colDef.field];
+  const { calendarMode } = colDef.cellRendererParams;
 
   useEffect(() => {
     setInitValues({
       value:
         cellData?.value ||
         cellData?.plannedValue ||
-        data.habitDetails.minToComplete ||
+        data.details.minToComplete ||
         0,
-      plannedValue:
-        cellData?.plannedValue || data.habitDetails.minToComplete || 0,
+      plannedValue: cellData?.plannedValue || data.details.minToComplete || 0,
     });
-  }, [cellData, data.habitDetails.minToComplete]);
+  }, [cellData, data.details.minToComplete]);
 
   const handleConfirm = async (formValues: IFormValues) => {
     if (colDef.field) {
       const habitToUpdate = {
-        id: data.id,
+        id: data.currentDate,
         data: { ...cellData, ...formValues },
-        path: `history.${data.currentDate.year}.${data.currentDate.month}.${colDef.field}`,
+        path: `${colDef.field}.${data.id}`,
       };
-      console.log(habitToUpdate);
-      await updateHabit(habitToUpdate).unwrap();
+
+      await updateHistory(habitToUpdate).unwrap();
       stopEditing();
     }
   };
 
   const handleDelete = async () => {
     if (colDef.field) {
-      const newMonthHistory = _.pickBy(data, (_value, key) => !isNaN(+key));
-      delete newMonthHistory[colDef.field];
-      const habitToUpdate = {
-        id: data.id,
-        data: newMonthHistory,
-        path: `history.${data.currentDate.year}.${data.currentDate.month}`,
+      const dayToUpdate = {
+        id: data.currentDate,
+        data: {},
+        path: `${colDef.field}.${data.id}`,
       };
-
-      await updateHabit(habitToUpdate).unwrap();
-      stopEditing();
+      await updateHistory(dayToUpdate).unwrap();
     }
   };
 
@@ -92,7 +89,7 @@ const MeasureHabit = ({ colDef, stopEditing, data }: IProps) => {
             prevValues !== currentValues
           }
         >
-          {data.calendarMode === "tracking" ? (
+          {calendarMode === "tracking" ? (
             <Form.Item
               name="value"
               label="Значення"
@@ -101,7 +98,7 @@ const MeasureHabit = ({ colDef, stopEditing, data }: IProps) => {
               <InputNumber
                 onKeyDown={handleKeyUp}
                 autoFocus
-                addonAfter={data.habitDetails.measure}
+                addonAfter={data.details.measure}
                 min={1}
               />
             </Form.Item>
@@ -114,7 +111,7 @@ const MeasureHabit = ({ colDef, stopEditing, data }: IProps) => {
               <InputNumber
                 onKeyDown={handleKeyUp}
                 autoFocus
-                addonAfter={data.habitDetails.measure}
+                addonAfter={data.details.measure}
                 min={1}
               />
             </Form.Item>
