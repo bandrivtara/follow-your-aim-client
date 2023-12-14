@@ -4,10 +4,10 @@ import { getTimeOptions } from "share/functions/getTimeOptions";
 import { ClockCircleOutlined } from "@ant-design/icons";
 import { useEffect, useState } from "react";
 import { ColDef } from "ag-grid-community";
-import { useUpdateHabitMutation } from "store/services/habits";
 import FormButtons from "share/components/Form/FormButtons";
 import { IDayCellEditor } from "../DayCellEditor";
 import { IStopEditing } from "../../HabitCellRenderer/habitConfigs";
+import { useUpdateHistoryMutation } from "store/services/history";
 
 interface IProps {
   data: IDayCellEditor;
@@ -22,23 +22,23 @@ interface IFormValues {
 
 const DurationHabit = ({ data, colDef, stopEditing }: IProps) => {
   const [form] = Form.useForm();
-  const [updateHabit] = useUpdateHabitMutation();
+  const [updateHistory] = useUpdateHistoryMutation();
   const cellData = colDef?.field && data[+colDef.field];
 
   const [initValues, setInitValues] = useState<null | IFormValues>(null);
 
   useEffect(() => {
     setInitValues({ ...cellData, plannedValue: 0 });
-  }, [cellData, data.habitDetails.minToComplete]);
+  }, [cellData, data.details.minToComplete]);
 
   const handleConfirm = async (formValues: IFormValues) => {
     if (colDef.field) {
       const habitToUpdate = {
-        id: data.id,
+        id: data.currentDate,
         data: { ...cellData, ...formValues, value: true },
-        path: `history.${data.currentDate.year}.${data.currentDate.month}.${colDef.field}`,
+        path: `${colDef.field}.${data.id}`,
       };
-      await updateHabit(habitToUpdate).unwrap();
+      await updateHistory(habitToUpdate).unwrap();
       stopEditing();
     }
   };
@@ -48,12 +48,12 @@ const DurationHabit = ({ data, colDef, stopEditing }: IProps) => {
       const newMonthHistory = _.pickBy(data, (_value, key) => !isNaN(+key));
       delete newMonthHistory[colDef.field];
       const habitToUpdate = {
-        id: data.id,
-        data: newMonthHistory,
-        path: `history.${data.currentDate.year}.${data.currentDate.month}`,
+        id: data.currentDate,
+        data: null,
+        path: `${colDef.field}.${data.id}`,
       };
 
-      await updateHabit(habitToUpdate).unwrap();
+      await updateHistory(habitToUpdate).unwrap();
       stopEditing();
     }
   };

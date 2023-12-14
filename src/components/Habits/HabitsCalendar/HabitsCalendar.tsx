@@ -8,12 +8,10 @@ import StyledHabitsCalendar from "./HabitsCalendar.styled";
 import dayjs, { Dayjs } from "dayjs";
 import { getFirstDayOfWeek } from "share/functions/getFirstDayOfWeek";
 import FiltersBar from "./FiltersBar/FiltersBar";
-import tableConfigs, { IHabitRow } from "./tableConfigs";
+import tableConfigs from "./tableConfigs";
 import useIsMobile from "share/hooks/useIsMobile";
-import {
-  useGetHistoryListQuery,
-  useGetHistoryQuery,
-} from "store/services/history";
+import { useGetHistoryQuery } from "store/services/history";
+import { IHistoryDayRow } from "types/history.types";
 
 export type IHabitsCalendarState = "tracking" | "planning";
 
@@ -26,7 +24,7 @@ const HabitsCalendar = () => {
   const habitsData = useGetHabitListQuery();
   const gridRef = useRef<AgGridReact>(null);
 
-  const [rowData, setRowData] = useState<IHabitRow[]>([]);
+  const [rowData, setRowData] = useState<IHistoryDayRow[]>([]);
   const [columnDefs, setColumnDefs] = useState<ColDef[]>([]);
   const [currentDate, setCurrentDate] = useState<(Dayjs | null)[]>(
     initConfigs.currentDate
@@ -47,13 +45,12 @@ const HabitsCalendar = () => {
   }, [isMobile]);
 
   useEffect(() => {
-    const newColumnDefs = tableConfigs.getColumnDefs(currentDate);
+    if (!historyData.data) return;
+    const newColumnDefs = tableConfigs.getColumnDefs(currentDate, calendarMode);
     const newRows = tableConfigs.getRows(
       habitsData.data,
-      currentDate,
-      calendarMode,
-      filteredCategory,
-      historyData.data
+      historyData.data,
+      currentDate
     );
 
     setColumnDefs(newColumnDefs);

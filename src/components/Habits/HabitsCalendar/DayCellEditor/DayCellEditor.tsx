@@ -1,11 +1,11 @@
 import { ICellEditorParams } from "ag-grid-community";
 import { forwardRef, memo } from "react";
-import { IHabitDetails } from "types/habits.types";
+import { IHabitData } from "types/habits.types";
 import { habitConfigs } from "../HabitCellRenderer/habitConfigs";
 
 export interface IDayCellEditor {
   id: string;
-  habitDetails: IHabitDetails;
+  details: IHabitData;
   currentDate: {
     year: number;
     month: number;
@@ -20,8 +20,8 @@ const DayCellEditor = memo(
     ({ data, colDef, stopEditing }: ICellEditorParams<IDayCellEditor>) => {
       const currentCellEditorData =
         data &&
-        data.habitDetails.valueType &&
-        habitConfigs[data.habitDetails.valueType].cellEditor({
+        data.details.valueType &&
+        habitConfigs[data.details.valueType].cellEditor({
           data,
           colDef,
           stopEditing,

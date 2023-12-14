@@ -30,6 +30,7 @@ import { getTimeOptions } from "share/functions/getTimeOptions";
 import { IStopEditing } from "../../HabitCellRenderer/habitConfigs";
 import StyledListHabit from "./List.styled";
 import ListHabitsStore from "./ListStore/ListStore";
+import { useUpdateHistoryMutation } from "store/services/history";
 
 interface IProps {
   colDef: ColDef<IDayCellEditor>;
@@ -58,7 +59,7 @@ const initTask = {
 const ListHabit = ({ data, colDef, stopEditing }: IProps) => {
   const [form] = Form.useForm();
   const [storeForm] = Form.useForm();
-  const [updateHabit] = useUpdateHabitMutation();
+  const [updateHistory] = useUpdateHistoryMutation();
   const formTasks: ITask[] = useWatch("tasks", form);
   const [editFiledIndex, setEditFiledIndex] = useState<null | number>(null);
   const [isStoreOpened, setIsStoreOpened] = useState(false);
@@ -67,7 +68,8 @@ const ListHabit = ({ data, colDef, stopEditing }: IProps) => {
 
   useEffect(() => {
     storeForm.setFieldsValue(data.store);
-    if (cellData) {
+
+    if (cellData && cellData.tasks) {
       form.setFieldsValue(cellData);
     } else {
       form.setFieldsValue({ value: 0, tasks: [initTask] });
@@ -87,16 +89,14 @@ const ListHabit = ({ data, colDef, stopEditing }: IProps) => {
         value: `${doneTaskCount}/${validatedTasks.length}`,
       };
       const habitToUpdate = {
-        id: data.id,
+        id: data.currentDate,
         data: { ...newDayStatus },
-        path: `history.${data.currentDate.year}.${data.currentDate.month}.${colDef.field}`,
+        path: `${colDef.field}.${data.id}`,
       };
-
-      console.log(habitToUpdate, 123);
 
       const storeValues = storeForm.getFieldsValue();
       const storeToUpdate = {
-        id: data.id,
+        id: data.currentDate,
         data: storeValues,
         path: "store",
       };
@@ -104,10 +104,11 @@ const ListHabit = ({ data, colDef, stopEditing }: IProps) => {
       if (!validatedTasks[0]) {
         await handleDelete();
       } else {
-        await updateHabit(habitToUpdate).unwrap();
+        console.log(data);
+        await updateHistory(habitToUpdate).unwrap();
       }
 
-      await updateHabit(storeToUpdate).unwrap();
+      // await updateHabit(storeToUpdate).unwrap();
       return stopEditing();
     }
   };
@@ -139,12 +140,11 @@ const ListHabit = ({ data, colDef, stopEditing }: IProps) => {
       const newMonthHistory = _.pickBy(data, (_value, key) => !isNaN(+key));
       delete newMonthHistory[colDef.field];
       const habitToUpdate = {
-        id: data.id,
-        data: newMonthHistory,
-        path: `history.${data.currentDate.year}.${data.currentDate.month}`,
+        id: data.currentDate,
+        data: null,
+        path: `${colDef.field}.${data.id}`,
       };
-      console.log("test");
-      await updateHabit(habitToUpdate).unwrap();
+      await updateHistory(habitToUpdate).unwrap();
       stopEditing();
     }
   };

@@ -4,10 +4,10 @@ import { IDayCellEditor } from "../DayCellEditor";
 import { ClockCircleOutlined } from "@ant-design/icons";
 import { getTimeOptions } from "share/functions/getTimeOptions";
 import FormButtons from "share/components/Form/FormButtons";
-import { useUpdateHabitMutation } from "store/services/habits";
 import { ColDef } from "ag-grid-community";
 import { useEffect, useState } from "react";
 import { IStopEditing } from "../../HabitCellRenderer/habitConfigs";
+import { useUpdateHistoryMutation } from "store/services/history";
 
 interface IProps {
   data: IDayCellEditor;
@@ -22,7 +22,7 @@ interface IFormValues {
 
 const Time = ({ data, colDef, stopEditing }: IProps) => {
   const [form] = Form.useForm();
-  const [updateHabit] = useUpdateHabitMutation();
+  const [updateHistory] = useUpdateHistoryMutation();
   const cellData = colDef.field && data[+colDef.field];
 
   const [initValues, setInitValues] = useState<null | IFormValues>(null);
@@ -32,22 +32,23 @@ const Time = ({ data, colDef, stopEditing }: IProps) => {
       value:
         cellData?.value ||
         cellData?.plannedValue ||
-        data.habitDetails.minToComplete ||
+        data.details.minToComplete ||
         0,
-      plannedValue:
-        cellData?.plannedValue || data.habitDetails.minToComplete || 0,
+      plannedValue: cellData?.plannedValue || data.details.minToComplete || 0,
     });
-  }, [cellData, data.habitDetails.minToComplete]);
+  }, [cellData, data.details.minToComplete]);
 
   const handleConfirm = async (formValues: IFormValues) => {
     if (colDef.field) {
-      const habitToUpdate = {
+      const historyToUpdate = {
         id: data.id,
         data: { ...cellData, ...formValues },
-        path: `history.${data.currentDate.year}.${data.currentDate.month}.${colDef.field}`,
+        path: `${colDef.field}.${data.id}`,
       };
-      await updateHabit(habitToUpdate).unwrap();
-      stopEditing();
+
+      console.log(historyToUpdate);
+      await updateHistory(historyToUpdate).unwrap();
+      // stopEditing();
     }
   };
 
@@ -55,13 +56,13 @@ const Time = ({ data, colDef, stopEditing }: IProps) => {
     if (colDef.field) {
       const newMonthHistory = _.pickBy(data, (_value, key) => !isNaN(+key));
       delete newMonthHistory[colDef.field];
-      const habitToUpdate = {
+      const historyToUpdate = {
         id: data.id,
-        data: newMonthHistory,
-        path: `history.${data.currentDate.year}.${data.currentDate.month}`,
+        data: null,
+        path: `${colDef.field}.${data.id}`,
       };
 
-      await updateHabit(habitToUpdate).unwrap();
+      await updateHistory(historyToUpdate).unwrap();
       stopEditing();
     }
   };

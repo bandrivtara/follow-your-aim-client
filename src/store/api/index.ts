@@ -17,7 +17,7 @@ const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 
 export const api = createApi({
-  tagTypes: ["Tasks", "Habit", "Categories", "Aims", "History"],
+  tagTypes: ["Tasks", "Habit", "Categories", "Aims", "History", "Todo"],
   reducerPath: "splitApi",
   baseQuery: fakeBaseQuery(),
   endpoints: () => ({}),

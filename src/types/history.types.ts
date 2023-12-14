@@ -1,9 +1,19 @@
+import { IHabitData } from "./habits.types";
+
 export interface IHistoryData {
-  id?: string;
-  details: IHistoryDay;
+  [day: string]: {
+    [habitId: string]: IHabitDayValues;
+  };
 }
 
-export interface IHistoryDay {
+export type IHistoryDayRow = {
+  [day: string | "id" | "details" | "currentDate"]:
+    | IHabitDayValues
+    | string
+    | IHabitData;
+};
+
+export interface IHabitDayValues {
   value?: number;
   progress?: number;
   isPlanned?: boolean;

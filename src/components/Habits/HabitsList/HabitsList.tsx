@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { useGetHabitListQuery } from "store/services/habits";
-import { IHabitDetails } from "types/habits.types";
+import { IHabitData } from "types/habits.types";
 import configs from "./tableConfigs";
 import { Table } from "antd";
 
-interface HabitListItem extends IHabitDetails {
+interface HabitListItem extends IHabitData {
   key: React.Key;
 }
 
@@ -15,7 +15,7 @@ const Habit = () => {
   useEffect(() => {
     const newData = data?.map((item, index) => ({
       key: index,
-      ...item.details,
+      ...item,
       id: item.id || "",
     }));
 
