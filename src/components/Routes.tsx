@@ -2,9 +2,15 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import routes from "../config/routes";
 import AppLayout from "./Layout/AppLayout";
 import Main from "./Main/Main";
-import Calendar from "./Calendar/Calendar";
-import Activity from "./Activities/Activity";
-import AddEditActivity from "./Activities/AddEditActivity/AddEditActivity";
+import AddEditAim from "./Aims/AddEditAim/AddEditAim";
+import AddEditHabit from "./Habits/AddEditHabit/AddEditHabit";
+import Habit from "./Habits/HabitsList/HabitsList";
+import AimsList from "./Aims/AimsList/AimsList";
+import CategoriesList from "./Categories/CategoriesList/CategoriesList";
+import AddEditCategory from "./Categories/AddEditCategory/AddEditCategory";
+import TaskGroupsList from "./TaskGroups/TaskGroupsList/TaskGroupsList";
+import AddEditTaskGroup from "./TaskGroups/AddEditTaskGroups/AddEditTaskGroups";
+import TrackerCalendar from "./Calendar/Tracker/TrackerCalendar";
 
 const AppRoutes = () => {
   return (
@@ -13,14 +19,38 @@ const AppRoutes = () => {
         <Routes>
           <Route path={routes.main} element={<Main />} />
 
-          <Route path={routes.activity.list} element={<Activity />} />
-          <Route path={routes.activity.add} element={<AddEditActivity />} />
+          <Route path={routes.calendar.tracker} element={<TrackerCalendar />} />
+
+          <Route path={routes.habit.list} element={<Habit />} />
+          <Route path={routes.habit.add} element={<AddEditHabit />} />
           <Route
-            path={`${routes.activity.edit}/:activityId`}
-            element={<AddEditActivity />}
+            path={`${routes.habit.edit}/:habitId`}
+            element={<AddEditHabit />}
           />
 
-          <Route path={routes.calendar} element={<Calendar />} />
+          <Route path={routes.taskGroups.list} element={<TaskGroupsList />} />
+          <Route path={routes.taskGroups.add} element={<AddEditTaskGroup />} />
+          <Route
+            path={`${routes.taskGroups.edit}/:taskGroupId`}
+            element={<AddEditTaskGroup />}
+          />
+
+          <Route path={routes.aims.list} element={<AimsList />} />
+          <Route path={routes.aims.add} element={<AddEditAim />} />
+          <Route path={`${routes.aims.edit}/:aimId`} element={<AddEditAim />} />
+
+          <Route
+            path={routes.lifeCategories.list}
+            element={<CategoriesList />}
+          />
+          <Route
+            path={routes.lifeCategories.add}
+            element={<AddEditCategory />}
+          />
+          <Route
+            path={`${routes.lifeCategories.edit}/:categoryId`}
+            element={<AddEditCategory />}
+          />
         </Routes>
       </AppLayout>
     </Router>

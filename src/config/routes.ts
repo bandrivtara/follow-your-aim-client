@@ -3,25 +3,39 @@ const routes = {
   schedule: "/schedule",
   chatGpt: "/chat-gpt",
   profile: "/profile",
-  calendar: "/calendar",
-  tasks: {
-    path: "/tasks",
-    list: "/tasks/list",
-    add: "/tasks/add",
-    statistic: "/tasks/statistic",
+  calendar: {
+    path: "/calendar",
+    routine: "/calendar/routine",
+    tracker: "/calendar/tracker",
+    aims: "/calendar/aims",
   },
-  activity: {
-    path: "/activity",
-    list: "/activity/list",
-    add: "/activity/add",
-    edit: "/activity/edit",
-    statistic: "/activity/statistic",
+  taskGroups: {
+    path: "/task-groups",
+    list: "/task-groups/list",
+    add: "/task-groups/add",
+    edit: "/task-groups/edit",
+    statistic: "/task-groups/statistic",
   },
-  goals: {
-    path: "/goals",
-    list: "/goals/list",
-    add: "/goals/add",
-    statistic: "/goals/statistic",
+  habit: {
+    path: "/habit",
+    list: "/habit/list",
+    add: "/habit/add",
+    edit: "/habit/edit",
+    statistic: "/habit/statistic",
+  },
+  aims: {
+    path: "/aims",
+    list: "/aims/list",
+    add: "/aims/add",
+    edit: "aims/edit",
+    statistic: "/aims/statistic",
+  },
+  lifeCategories: {
+    path: "/categories",
+    list: "/categories/list",
+    add: "/categories/add",
+    edit: "/categories/edit",
+    statistic: "/categories/statistic",
   },
 };
 
