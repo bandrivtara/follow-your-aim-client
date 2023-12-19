@@ -26,11 +26,9 @@ import { useWatch } from "antd/es/form/Form";
 import FormButtons from "share/components/Form/FormButtons";
 import { ColDef } from "ag-grid-community";
 import { IDayCellEditor } from "../DayCellEditor";
-import { useUpdateHabitMutation } from "store/services/habits";
 import { getTimeOptions } from "share/functions/getTimeOptions";
 import { IStopEditing } from "../../DayCellRenderer/trackerConfigs";
 import StyledListHabit from "./List.styled";
-import ListHabitsStore from "./ListStore/ListStore";
 import { useUpdateHistoryMutation } from "store/services/history";
 import TaskGroupsStore from "components/TaskGroups/TaskGroupsStore/TaskGroupsStore";
 import {
@@ -121,8 +119,6 @@ const ListHabit = ({ data, colDef, stopEditing }: IProps) => {
         console.log(data);
         await updateHistory(habitToUpdate).unwrap();
       }
-
-      // await updateHabit(storeToUpdate).unwrap();
       return stopEditing();
     }
   };

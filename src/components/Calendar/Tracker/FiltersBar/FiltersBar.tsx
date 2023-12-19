@@ -3,9 +3,9 @@ import { DatePicker, Radio, Select, TimeRangePickerProps } from "antd";
 import { AgGridReact } from "ag-grid-react";
 import dayjs, { Dayjs } from "dayjs";
 import StyledFiltersBarRow from "./FiltersBar.styled";
-import { IHabitsCalendarState } from "../HabitsCalendar";
 import { getFirstDayOfWeek } from "share/functions/getFirstDayOfWeek";
 import useIsMobile from "share/hooks/useIsMobile";
+import { ITrackerCalendarState } from "../TrackerCalendar";
 
 interface IProps {
   gridRef: RefObject<AgGridReact<any>>;
@@ -13,8 +13,8 @@ interface IProps {
   currentDate: (Dayjs | null)[];
   setFilteredCategory: (filteredCategory: string) => void;
   filteredCategory: string;
-  setCurrentMode: (mode: IHabitsCalendarState) => void;
-  calendarMode: IHabitsCalendarState;
+  setCurrentMode: (mode: ITrackerCalendarState) => void;
+  calendarMode: ITrackerCalendarState;
 }
 
 const FiltersBar = ({
