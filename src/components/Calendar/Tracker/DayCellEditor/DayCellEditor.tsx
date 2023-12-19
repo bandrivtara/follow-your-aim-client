@@ -1,7 +1,7 @@
 import { ICellEditorParams } from "ag-grid-community";
 import { forwardRef, memo } from "react";
 import { IHabitData } from "types/habits.types";
-import { habitConfigs } from "../HabitCellRenderer/habitConfigs";
+import { trackerConfigs } from "../DayCellRenderer/trackerConfigs";
 
 export interface IDayCellEditor {
   id: string;
@@ -21,7 +21,7 @@ const DayCellEditor = memo(
       const currentCellEditorData =
         data &&
         data.details.valueType &&
-        habitConfigs[data.details.valueType].cellEditor({
+        trackerConfigs[data.details.valueType].cellEditor({
           data,
           colDef,
           stopEditing,

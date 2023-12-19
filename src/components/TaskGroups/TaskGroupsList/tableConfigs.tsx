@@ -15,6 +15,13 @@ const tableConfigs: ColDef[] = [
     field: "description",
     minWidth: 500,
   },
+  {
+    headerName: "Кількість",
+    field: "tasksStore",
+    cellRenderer: ({ value }): ICellRendererParams =>
+      value && value[0] && value.length,
+    minWidth: 500,
+  },
 ];
 
 export default tableConfigs;

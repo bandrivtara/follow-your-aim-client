@@ -3,19 +3,19 @@ import DayCellEditor from "./DayCellEditor/DayCellEditor";
 import DayCellRenderer from "./DayCellRenderer/DayCellRenderer";
 import { getDaysOfMonth } from "share/functions/getDaysOfMonth";
 import dayjs, { Dayjs } from "dayjs";
-import { IHabitsCalendarState } from "./HabitsCalendar";
+import { ITrackerCalendarState } from "./TrackerCalendar";
 import _ from "lodash";
 import { IHabitData } from "types/habits.types";
-import HabitCellRenderer from "./HabitCellRenderer/HabitCellRenderer";
 import {
   IHabitDayValues,
   IHistoryData,
   IHistoryDayRow,
 } from "types/history.types";
+import RowNameRenderer from "./DayCellRenderer/RowNameRenderer";
 
 export interface IHabitRow {
   habitDetails: IHabitData;
-  calendarMode: IHabitsCalendarState;
+  calendarMode: ITrackerCalendarState;
   category?: string;
   currentDate: { year: number | null; month: number | null };
   id?: string;
@@ -24,7 +24,7 @@ export interface IHabitRow {
 
 const getColumnDefs = (
   currentDate: (Dayjs | null)[],
-  calendarMode: IHabitsCalendarState
+  calendarMode: ITrackerCalendarState
 ): ColDef[] => {
   if (!currentDate[0] || !currentDate[1]) return [];
 
@@ -61,7 +61,7 @@ const getColumnDefs = (
     {
       field: "details",
       headerName: "Назва",
-      cellRenderer: HabitCellRenderer,
+      cellRenderer: RowNameRenderer,
       pinned: "left",
       width: 220,
     },

@@ -1,4 +1,4 @@
-import { Form, Input, Button } from "antd";
+import { Form, Input, Button, Card } from "antd";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   useAddTaskGroupMutation,
@@ -7,8 +7,9 @@ import {
 } from "store/services/taskGroups";
 import routes from "config/routes";
 import TextArea from "antd/es/input/TextArea";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { ITaskGroups } from "types/taskGroups";
+import TaskGroupsStore from "../TaskGroupsStore/TaskGroupsStore";
 
 const formInitialValues = {
   title: "",
@@ -38,10 +39,8 @@ const AddEditTaskGroup = () => {
         data: newTaskGroupData,
         path: "",
       };
-      console.log(newTaskGroupData);
       await updateTaskGroup(taskGroupToUpdate).unwrap();
     } else {
-      console.log(newTaskGroupData, 333);
       await addTaskGroup(newTaskGroupData);
     }
 
@@ -66,6 +65,10 @@ const AddEditTaskGroup = () => {
       <Form.Item name="description" label="Опис">
         <TextArea rows={2} />
       </Form.Item>
+
+      <Card>
+        <TaskGroupsStore form={form} />
+      </Card>
 
       <Form.Item>
         <Button htmlType="submit">

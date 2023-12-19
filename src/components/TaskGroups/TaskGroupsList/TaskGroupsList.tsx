@@ -10,7 +10,6 @@ const TaskGroupsList = () => {
 
   useEffect(() => {
     if (data) {
-      console.log(data);
       setRowData(data);
     }
   }, [data]);

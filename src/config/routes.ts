@@ -3,9 +3,14 @@ const routes = {
   schedule: "/schedule",
   chatGpt: "/chat-gpt",
   profile: "/profile",
+  calendar: {
+    path: "/calendar",
+    routine: "/calendar/routine",
+    tracker: "/calendar/tracker",
+    aims: "/calendar/aims",
+  },
   taskGroups: {
     path: "/task-groups",
-    calendar: "/task-groups/calendar",
     list: "/task-groups/list",
     add: "/task-groups/add",
     edit: "/task-groups/edit",
@@ -13,7 +18,6 @@ const routes = {
   },
   habit: {
     path: "/habit",
-    calendar: "/habit/calendar",
     list: "/habit/list",
     add: "/habit/add",
     edit: "/habit/edit",
@@ -21,7 +25,6 @@ const routes = {
   },
   aims: {
     path: "/aims",
-    calendar: "/aims/calendar",
     list: "/aims/list",
     add: "/aims/add",
     edit: "aims/edit",

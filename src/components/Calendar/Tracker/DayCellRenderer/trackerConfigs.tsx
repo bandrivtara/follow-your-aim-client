@@ -2,11 +2,11 @@ import { ReactNode } from "react";
 import { IValueTypes } from "types/habits.types";
 import { IDayCellEditor } from "../DayCellEditor/DayCellEditor";
 import { ColDef } from "ag-grid-community";
-import MeasureHabit from "../DayCellEditor/Measure/Measure";
-import BooleanHabit from "../DayCellEditor/Boolean/Boolean";
-import ListHabit from "../DayCellEditor/List/List";
+import MeasureTracker from "../DayCellEditor/Measure/Measure";
+import BooleanTracker from "../DayCellEditor/Boolean/Boolean";
+import ListTracker from "../DayCellEditor/List/List";
 import Time from "../DayCellEditor/Specific/Time";
-import DurationHabit from "../DayCellEditor/Duration/Duration";
+import DurationTracker from "../DayCellEditor/Duration/Duration";
 
 interface IValue {
   value: any;
@@ -21,8 +21,8 @@ export type IStopEditing = (
   suppressNavigateAfterEdit?: boolean | undefined
 ) => void;
 
-type THabitConfig = {
-  [habitType in IValueTypes]: {
+type TTrackerConfig = {
+  [trackerType in IValueTypes]: {
     cellEditor: (cellEditorData: {
       data: IDayCellEditor;
       colDef: ColDef<IDayCellEditor>;
@@ -39,10 +39,10 @@ type THabitConfig = {
   };
 };
 
-export const habitConfigs: THabitConfig = {
+export const trackerConfigs: TTrackerConfig = {
   number: {
     cellEditor: ({ colDef, stopEditing, data }) => (
-      <MeasureHabit colDef={colDef} stopEditing={stopEditing} data={data} />
+      <MeasureTracker colDef={colDef} stopEditing={stopEditing} data={data} />
     ),
     cellRenderer: (cell, data) => ({
       component: <>{cell.value || cell.plannedValue}</>,
@@ -53,7 +53,7 @@ export const habitConfigs: THabitConfig = {
   },
   boolean: {
     cellEditor: ({ colDef, stopEditing, data }) => (
-      <BooleanHabit colDef={colDef} stopEditing={stopEditing} data={data} />
+      <BooleanTracker colDef={colDef} stopEditing={stopEditing} data={data} />
     ),
     cellRenderer: (cell) => {
       return {
@@ -65,15 +65,15 @@ export const habitConfigs: THabitConfig = {
   },
   array: {
     cellEditor: ({ colDef, stopEditing, data }) => (
-      <ListHabit colDef={colDef} stopEditing={stopEditing} data={data} />
+      <ListTracker colDef={colDef} stopEditing={stopEditing} data={data} />
     ),
     cellRenderer: (cell) => {
       let progress = 0;
       let isPlanned = false;
 
       if (cell.value) {
-        const habitStatus = cell.value.split("/");
-        progress = +habitStatus[0] / +habitStatus[1];
+        const trackerStatus = cell.value.split("/");
+        progress = +trackerStatus[0] / +trackerStatus[1];
         isPlanned = true;
       }
 
@@ -86,7 +86,7 @@ export const habitConfigs: THabitConfig = {
   },
   // meals: {
   //   cellEditor: ({ data, form, colDef }) => (
-  //     <DietaryHabit data={data} colDef={colDef} form={form} />
+  //     <DietaryTracker data={data} colDef={colDef} form={form} />
   //   ),
   //   cellRenderer: (cell) => {
   //     return {
@@ -98,7 +98,7 @@ export const habitConfigs: THabitConfig = {
   // },
   duration: {
     cellEditor: ({ data, colDef, stopEditing }) => (
-      <DurationHabit data={data} colDef={colDef} stopEditing={stopEditing} />
+      <DurationTracker data={data} colDef={colDef} stopEditing={stopEditing} />
     ),
     cellRenderer: (cell) => {
       return {

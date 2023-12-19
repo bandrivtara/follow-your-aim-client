@@ -7,6 +7,10 @@ import {
   CalendarOutlined,
   CheckOutlined,
   AimOutlined,
+  OrderedListOutlined,
+  HeatMapOutlined,
+  CarryOutOutlined,
+  InsertRowAboveOutlined,
 } from "@ant-design/icons";
 import type { MenuProps } from "antd";
 import routes from "../../config/routes";
@@ -24,16 +28,35 @@ const useMenuItems = () => {
       icon: <DesktopOutlined rev="string" />,
     },
     {
-      key: 3,
-      label: "Завдання",
-      icon: <CheckOutlined rev="string" />,
+      key: 2,
+      label: "Календар",
+      icon: <CalendarOutlined rev="string" />,
       children: [
         {
-          key: 30,
-          label: "Календар завдань",
-          onClick: () => navigate(routes.taskGroups.calendar),
-          icon: <CalendarOutlined rev="string" />,
+          key: 21,
+          label: "Розклад",
+          onClick: () => navigate(routes.calendar.routine),
+          icon: <InsertRowAboveOutlined rev="string" />,
         },
+        {
+          key: 22,
+          label: "Трекер",
+          onClick: () => navigate(routes.calendar.tracker),
+          icon: <CarryOutOutlined rev="string" />,
+        },
+        {
+          key: 23,
+          label: "Цілі",
+          onClick: () => navigate(routes.calendar.aims),
+          icon: <AimOutlined rev="string" />,
+        },
+      ],
+    },
+    {
+      key: 3,
+      label: "Завдання",
+      icon: <OrderedListOutlined rev="string" />,
+      children: [
         {
           key: 31,
           label: "Усі групи завдань",
@@ -60,12 +83,6 @@ const useMenuItems = () => {
       icon: <CheckOutlined rev="string" />,
       children: [
         {
-          key: 40,
-          label: "Календар",
-          onClick: () => navigate(routes.habit.calendar),
-          icon: <CalendarOutlined rev="string" />,
-        },
-        {
           key: 41,
           label: "Усі звички",
           onClick: () => navigate(routes.habit.list),
@@ -91,12 +108,6 @@ const useMenuItems = () => {
       icon: <AimOutlined rev="string" />,
       children: [
         {
-          key: 50,
-          label: "Календар",
-          onClick: () => navigate(routes.aims.calendar),
-          icon: <CalendarOutlined rev="string" />,
-        },
-        {
           key: 51,
           label: "Усі цілі",
           onClick: () => navigate(routes.aims.list),
@@ -119,7 +130,7 @@ const useMenuItems = () => {
     {
       key: 6,
       label: "Сфери життя",
-      icon: <AimOutlined rev="string" />,
+      icon: <HeatMapOutlined rev="string" />,
       children: [
         {
           key: 61,

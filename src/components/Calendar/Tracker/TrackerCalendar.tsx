@@ -4,7 +4,7 @@ import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-material.css";
 import { ColDef } from "ag-grid-community";
 import { useGetHabitListQuery } from "store/services/habits";
-import StyledHabitsCalendar from "./HabitsCalendar.styled";
+import StyledTrackerCalendar from "./TrackerCalendar.styled";
 import dayjs, { Dayjs } from "dayjs";
 import { getFirstDayOfWeek } from "share/functions/getFirstDayOfWeek";
 import FiltersBar from "./FiltersBar/FiltersBar";
@@ -13,13 +13,13 @@ import useIsMobile from "share/hooks/useIsMobile";
 import { useGetHistoryQuery } from "store/services/history";
 import { IHistoryDayRow } from "types/history.types";
 
-export type IHabitsCalendarState = "tracking" | "planning";
+export type ITrackerCalendarState = "tracking" | "planning";
 
 const initConfigs = {
   currentDate: [getFirstDayOfWeek(), dayjs().endOf("week")],
 };
 
-const HabitsCalendar = () => {
+const TrackerCalendar = () => {
   const isMobile = useIsMobile();
   const habitsData = useGetHabitListQuery();
   const gridRef = useRef<AgGridReact>(null);
@@ -36,7 +36,7 @@ const HabitsCalendar = () => {
 
   const [filteredCategory, setFilteredCategory] = useState("all");
   const [calendarMode, setCurrentMode] =
-    useState<IHabitsCalendarState>("tracking");
+    useState<ITrackerCalendarState>("tracking");
 
   useEffect(() => {
     if (isMobile) {
@@ -58,7 +58,7 @@ const HabitsCalendar = () => {
   }, [currentDate, filteredCategory, calendarMode, habitsData, historyData]);
 
   return (
-    <StyledHabitsCalendar>
+    <StyledTrackerCalendar>
       <FiltersBar
         gridRef={gridRef}
         calendarMode={calendarMode}
@@ -76,8 +76,8 @@ const HabitsCalendar = () => {
           columnDefs={columnDefs}
         ></AgGridReact>
       </div>
-    </StyledHabitsCalendar>
+    </StyledTrackerCalendar>
   );
 };
 
-export default HabitsCalendar;
+export default TrackerCalendar;

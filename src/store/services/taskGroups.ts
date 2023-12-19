@@ -71,9 +71,10 @@ export const taskGroupFirestoreApi = api.injectEndpoints({
     updateTaskGroup: builder.mutation({
       async queryFn(taskGroupDetails) {
         try {
-          await updateDoc(doc(db, "taskGroup", taskGroupDetails.id), {
-            [taskGroupDetails.path]: taskGroupDetails.data,
-          });
+          await updateDoc(
+            doc(db, "taskGroup", taskGroupDetails.id),
+            taskGroupDetails.data
+          );
           return { data: null };
         } catch (error: any) {
           console.error(error.message);
