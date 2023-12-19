@@ -6,7 +6,7 @@ import { getTimeOptions } from "share/functions/getTimeOptions";
 import FormButtons from "share/components/Form/FormButtons";
 import { ColDef } from "ag-grid-community";
 import { useEffect, useState } from "react";
-import { IStopEditing } from "../../HabitCellRenderer/habitConfigs";
+import { IStopEditing } from "../../DayCellRenderer/trackerConfigs";
 import { useUpdateHistoryMutation } from "store/services/history";
 
 interface IProps {

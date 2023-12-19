@@ -59,9 +59,7 @@ export const habitFirestoreApi = api.injectEndpoints({
     addHabit: builder.mutation({
       async queryFn(habitDetails: IHabitData) {
         try {
-          await addDoc(collection(db, "habit"), {
-            details: habitDetails,
-          });
+          await addDoc(collection(db, "habit"), habitDetails);
           return { data: null };
         } catch (error: any) {
           console.error(error.message);

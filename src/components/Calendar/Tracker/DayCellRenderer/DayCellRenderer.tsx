@@ -1,7 +1,7 @@
 import { ICellRendererParams } from "ag-grid-community";
 import StyledDayCellRenderer from "./DayCellRenderer.styled";
 import { IDayCellEditor } from "../DayCellEditor/DayCellEditor";
-import { habitConfigs } from "../HabitCellRenderer/habitConfigs";
+import { trackerConfigs } from "./trackerConfigs";
 
 const DayCellRenderer = ({
   value,
@@ -12,7 +12,7 @@ const DayCellRenderer = ({
     value &&
     data &&
     data.details.valueType &&
-    habitConfigs?.[data.details.valueType]?.cellRenderer(value, data);
+    trackerConfigs?.[data.details.valueType]?.cellRenderer(value, data);
 
   const getProgressColor = () => {
     if (!currentCellRendererData) return "transparent";

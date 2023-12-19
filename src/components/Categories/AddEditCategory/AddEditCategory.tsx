@@ -22,10 +22,10 @@ const formInitialValues = {
 const AddEditCategory = () => {
   const [form] = Form.useForm();
   const navigate = useNavigate();
-  let { sphereId } = useParams();
+  let { categoryId } = useParams();
   const [addCategory] = useAddCategoryMutation();
   const [updateCategory] = useUpdateCategoryMutation();
-  const sphereDetails = useGetCategoryQuery(sphereId);
+  const categoryDetails = useGetCategoryQuery(categoryId);
   const habitData = useGetHabitListQuery();
   const aimsData = useGetAimsListQuery();
 
@@ -37,15 +37,15 @@ const AddEditCategory = () => {
   const [notSelectedAims, setNotSelectedAims] = useState<any[]>([]);
 
   useEffect(() => {
-    if (sphereDetails) {
-      if (sphereDetails.data && sphereDetails.data) {
-        console.log(sphereDetails.data);
-        form.setFieldsValue(sphereDetails.data);
-        setCurrentHabitsKeys(sphereDetails.data.relatedHabits);
-        setCurrentAimsKeys(sphereDetails.data.relatedAims);
+    if (categoryDetails) {
+      if (categoryDetails.data && categoryDetails.data) {
+        console.log(categoryDetails.data);
+        form.setFieldsValue(categoryDetails.data);
+        setCurrentHabitsKeys(categoryDetails.data.relatedHabits);
+        setCurrentAimsKeys(categoryDetails.data.relatedAims);
       }
     }
-  }, [sphereDetails, form]);
+  }, [categoryDetails, form]);
 
   useEffect(() => {
     console.log(selectedHabitsKeys, notSelectedHabits);
@@ -104,14 +104,14 @@ const AddEditCategory = () => {
   };
 
   const onFinish = async (newCategoryData: ICategory) => {
-    if (sphereId) {
-      const sphereToUpdate = {
-        id: sphereId,
+    if (categoryId) {
+      const categoryToUpdate = {
+        id: categoryId,
         data: newCategoryData,
         path: "",
       };
       console.log(newCategoryData);
-      await updateCategory(sphereToUpdate).unwrap();
+      await updateCategory(categoryToUpdate).unwrap();
     } else {
       console.log(newCategoryData, 333);
       await addCategory(newCategoryData);
@@ -165,7 +165,7 @@ const AddEditCategory = () => {
 
       <Form.Item>
         <Button htmlType="submit">
-          {sphereId ? "Записати зміни" : "Додати звичку"}
+          {categoryId ? "Записати зміни" : "Додати звичку"}
         </Button>
       </Form.Item>
     </Form>

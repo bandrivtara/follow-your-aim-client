@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import { IDayCellEditor } from "../DayCellEditor";
 import { ColDef } from "ag-grid-community";
-import { IStopEditing } from "../../HabitCellRenderer/habitConfigs";
 import { useUpdateHistoryMutation } from "store/services/history";
+import { IStopEditing } from "../../DayCellRenderer/trackerConfigs";
 
 interface IProps {
   colDef: ColDef<IDayCellEditor>;

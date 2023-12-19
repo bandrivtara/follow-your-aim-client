@@ -5,11 +5,12 @@ import Main from "./Main/Main";
 import AddEditAim from "./Aims/AddEditAim/AddEditAim";
 import AddEditHabit from "./Habits/AddEditHabit/AddEditHabit";
 import Habit from "./Habits/HabitsList/HabitsList";
-import HabitsCalendar from "./Habits/HabitsCalendar/HabitsCalendar";
-import AimCalendar from "./Aims/AimsCalendar/AimCalendar";
 import AimsList from "./Aims/AimsList/AimsList";
 import CategoriesList from "./Categories/CategoriesList/CategoriesList";
 import AddEditCategory from "./Categories/AddEditCategory/AddEditCategory";
+import TaskGroupsList from "./TaskGroups/TaskGroupsList/TaskGroupsList";
+import AddEditTaskGroup from "./TaskGroups/AddEditTaskGroups/AddEditTaskGroups";
+import TrackerCalendar from "./Calendar/Tracker/TrackerCalendar";
 
 const AppRoutes = () => {
   return (
@@ -18,7 +19,8 @@ const AppRoutes = () => {
         <Routes>
           <Route path={routes.main} element={<Main />} />
 
-          <Route path={routes.calendar} element={<HabitsCalendar />} />
+          <Route path={routes.calendar.tracker} element={<TrackerCalendar />} />
+
           <Route path={routes.habit.list} element={<Habit />} />
           <Route path={routes.habit.add} element={<AddEditHabit />} />
           <Route
@@ -26,7 +28,13 @@ const AppRoutes = () => {
             element={<AddEditHabit />}
           />
 
-          <Route path={routes.aims.calendar} element={<AimCalendar />} />
+          <Route path={routes.taskGroups.list} element={<TaskGroupsList />} />
+          <Route path={routes.taskGroups.add} element={<AddEditTaskGroup />} />
+          <Route
+            path={`${routes.taskGroups.edit}/:taskGroupId`}
+            element={<AddEditTaskGroup />}
+          />
+
           <Route path={routes.aims.list} element={<AimsList />} />
           <Route path={routes.aims.add} element={<AddEditAim />} />
           <Route path={`${routes.aims.edit}/:aimId`} element={<AddEditAim />} />
@@ -40,7 +48,7 @@ const AppRoutes = () => {
             element={<AddEditCategory />}
           />
           <Route
-            path={`${routes.lifeCategories.edit}/:sphereId`}
+            path={`${routes.lifeCategories.edit}/:categoryId`}
             element={<AddEditCategory />}
           />
         </Routes>

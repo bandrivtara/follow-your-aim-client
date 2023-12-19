@@ -4,6 +4,7 @@ import {
   Button,
   Cascader,
   Col,
+  Collapse,
   Divider,
   Form,
   Input,
@@ -25,12 +26,15 @@ import { useWatch } from "antd/es/form/Form";
 import FormButtons from "share/components/Form/FormButtons";
 import { ColDef } from "ag-grid-community";
 import { IDayCellEditor } from "../DayCellEditor";
-import { useUpdateHabitMutation } from "store/services/habits";
 import { getTimeOptions } from "share/functions/getTimeOptions";
-import { IStopEditing } from "../../HabitCellRenderer/habitConfigs";
+import { IStopEditing } from "../../DayCellRenderer/trackerConfigs";
 import StyledListHabit from "./List.styled";
-import ListHabitsStore from "./ListStore/ListStore";
 import { useUpdateHistoryMutation } from "store/services/history";
+import TaskGroupsStore from "components/TaskGroups/TaskGroupsStore/TaskGroupsStore";
+import {
+  useGetTaskGroupQuery,
+  useUpdateTaskGroupMutation,
+} from "store/services/taskGroups";
 
 interface IProps {
   colDef: ColDef<IDayCellEditor>;
@@ -63,18 +67,25 @@ const ListHabit = ({ data, colDef, stopEditing }: IProps) => {
   const formTasks: ITask[] = useWatch("tasks", form);
   const [editFiledIndex, setEditFiledIndex] = useState<null | number>(null);
   const [isStoreOpened, setIsStoreOpened] = useState(false);
+  const [updateTaskGroup] = useUpdateTaskGroupMutation();
+  const taskGroupDetails = useGetTaskGroupQuery(data.id);
 
   const cellData = colDef.field && data[+colDef.field];
 
   useEffect(() => {
-    storeForm.setFieldsValue(data.store);
+    if (taskGroupDetails) {
+      if (taskGroupDetails.data && taskGroupDetails.data) {
+        console.log(taskGroupDetails, data.id);
+        storeForm.setFieldsValue(taskGroupDetails.data);
+      }
+    }
 
     if (cellData && cellData.tasks) {
       form.setFieldsValue(cellData);
     } else {
       form.setFieldsValue({ value: 0, tasks: [initTask] });
     }
-  }, [cellData, data, form, storeForm]);
+  }, [cellData, data, form, storeForm, taskGroupDetails]);
 
   const handleConfirm = async () => {
     const formValues = form.getFieldsValue();
@@ -95,11 +106,12 @@ const ListHabit = ({ data, colDef, stopEditing }: IProps) => {
       };
 
       const storeValues = storeForm.getFieldsValue();
-      const storeToUpdate = {
-        id: data.currentDate,
+      const taskGroupToUpdate = {
+        id: data.id,
         data: storeValues,
-        path: "store",
+        path: "",
       };
+      await updateTaskGroup(taskGroupToUpdate).unwrap();
 
       if (!validatedTasks[0]) {
         await handleDelete();
@@ -107,8 +119,6 @@ const ListHabit = ({ data, colDef, stopEditing }: IProps) => {
         console.log(data);
         await updateHistory(habitToUpdate).unwrap();
       }
-
-      // await updateHabit(storeToUpdate).unwrap();
       return stopEditing();
     }
   };
@@ -155,13 +165,10 @@ const ListHabit = ({ data, colDef, stopEditing }: IProps) => {
 
   const addToStore = (taskIndex: number) => {
     const storeTasks = [
-      ...storeForm.getFieldsValue().tasks,
+      ...storeForm.getFieldsValue().tasksStore,
       formTasks[taskIndex],
     ];
-    storeForm.setFieldsValue({
-      value: storeForm.getFieldsValue().value,
-      tasks: storeTasks,
-    });
+    storeForm.setFieldValue("tasksStore", storeTasks);
   };
 
   return (
@@ -317,11 +324,22 @@ const ListHabit = ({ data, colDef, stopEditing }: IProps) => {
             </div>
           </Form.Item>
         </Form>
-        <ListHabitsStore
-          dayForm={form}
-          form={storeForm}
-          isStoreOpened={isStoreOpened}
-          setIsStoreOpened={setIsStoreOpened}
+        <Collapse
+          collapsible="header"
+          activeKey={isStoreOpened ? 1 : 0}
+          items={[
+            {
+              key: "1",
+              label: "Сховище завдань",
+              onItemClick: () => setIsStoreOpened(!isStoreOpened),
+              forceRender: true,
+              children: (
+                <Form layout="horizontal" form={storeForm} name="storeForm">
+                  <TaskGroupsStore dayForm={form} form={storeForm} />
+                </Form>
+              ),
+            },
+          ]}
         />
         <div className="form-buttons">
           <FormButtons

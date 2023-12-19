@@ -13,6 +13,10 @@ const StyledListHabitStore = styled.div`
     display: block;
     height: 100%;
   }
+
+  .ant-col {
+    margin-top: 4px;
+  }
 `;
 
 export default StyledListHabitStore;
