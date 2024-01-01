@@ -45,7 +45,6 @@ const TrackerCalendar = () => {
   }, [isMobile]);
 
   useEffect(() => {
-    if (!historyData.data) return;
     const newColumnDefs = tableConfigs.getColumnDefs(currentDate, calendarMode);
     const newRows = tableConfigs.getRows(
       habitsData.data,

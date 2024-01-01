@@ -72,7 +72,7 @@ const getColumnDefs = (
 
 const getRows = (
   habitsData: IHabitData[] = [],
-  historyData: IHistoryData,
+  historyData: IHistoryData = {},
   currentDate: (Dayjs | null)[]
 ) => {
   const currentMMYYYY = dayjs(currentDate[0]).format("MM-YYYY");

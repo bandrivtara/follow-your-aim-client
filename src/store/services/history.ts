@@ -3,10 +3,11 @@ import {
   doc,
   updateDoc,
   getDocs,
-  addDoc,
   getDoc,
+  addDoc,
+  setDoc,
 } from "firebase/firestore";
-import { IHistoryData, IHabitDayValues } from "types/history.types";
+import { IHistoryData } from "types/history.types";
 import { api, db } from "../api";
 
 export const historyFirestoreApi = api.injectEndpoints({
@@ -44,8 +45,8 @@ export const historyFirestoreApi = api.injectEndpoints({
               } as IHistoryData,
             };
           }
-
-          throw new Error("History not found");
+          // throw new Error("History not found");
+          return { data: {} };
         } catch (error: any) {
           console.error(error.message);
           return { error: error.message };
@@ -53,24 +54,16 @@ export const historyFirestoreApi = api.injectEndpoints({
       },
       providesTags: ["History"],
     }),
-
-    addHistory: builder.mutation({
-      async queryFn(historyDetails: IHabitDayValues) {
-        try {
-          await addDoc(collection(db, "history"), historyDetails);
-
-          return { data: null };
-        } catch (error: any) {
-          console.error(error.message);
-          return { error: error.message };
-        }
-      },
-      invalidatesTags: ["History"],
-    }),
     updateHistory: builder.mutation({
       async queryFn(history) {
         try {
-          await updateDoc(doc(db, "history", history.id), {
+          const historyRef = doc(db, "history", history.id);
+          const historySnapshot = await getDoc(historyRef);
+          const isCurrentMonthExists = historySnapshot.exists();
+          if (!isCurrentMonthExists) {
+            await setDoc(doc(db, "history", history.id), {});
+          }
+          await updateDoc(historyRef, {
             [history.path]: history.data,
           });
           return { data: null };
@@ -87,6 +80,5 @@ export const historyFirestoreApi = api.injectEndpoints({
 export const {
   useGetHistoryQuery,
   useGetHistoryListQuery,
-  useAddHistoryMutation,
   useUpdateHistoryMutation,
 } = historyFirestoreApi;
