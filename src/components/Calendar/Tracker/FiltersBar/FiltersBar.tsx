@@ -13,6 +13,8 @@ interface IProps {
   currentDate: (Dayjs | null)[];
   setFilteredCategory: (filteredCategory: string) => void;
   filteredCategory: string;
+  setRowSortingType: (rowSortingType: string) => void;
+  rowSortingType: string;
   setCurrentMode: (mode: ITrackerCalendarState) => void;
   calendarMode: ITrackerCalendarState;
 }
@@ -22,6 +24,8 @@ const FiltersBar = ({
   currentDate,
   setFilteredCategory,
   filteredCategory,
+  setRowSortingType,
+  rowSortingType,
   setCurrentMode,
   calendarMode,
   gridRef,
@@ -104,6 +108,17 @@ const FiltersBar = ({
           <Select.Option value="grouped">Погруповані</Select.Option>
           <Select.Option value="daily">Денні</Select.Option>
           <Select.Option value="sport">Спорт</Select.Option>
+        </Select>
+
+        <Select
+          defaultValue={"schedule-time"}
+          onChange={setRowSortingType}
+          value={rowSortingType}
+        >
+          <Select.Option value="schedule-time">Сортувати по часу</Select.Option>
+          <Select.Option value="alphabetic">
+            Сортувати по алфавіту
+          </Select.Option>
         </Select>
       </div>
       <div className="mods">

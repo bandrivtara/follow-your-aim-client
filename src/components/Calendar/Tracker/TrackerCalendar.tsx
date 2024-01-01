@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-material.css";
@@ -35,6 +35,7 @@ const TrackerCalendar = () => {
   );
 
   const [filteredCategory, setFilteredCategory] = useState("all");
+  const [rowSortingType, setRowSortingType] = useState("schedule-time");
   const [calendarMode, setCurrentMode] =
     useState<ITrackerCalendarState>("tracking");
 
@@ -49,12 +50,20 @@ const TrackerCalendar = () => {
     const newRows = tableConfigs.getRows(
       habitsData.data,
       historyData.data,
-      currentDate
+      currentDate,
+      rowSortingType
     );
 
     setColumnDefs(newColumnDefs);
     setRowData(newRows);
-  }, [currentDate, filteredCategory, calendarMode, habitsData, historyData]);
+  }, [
+    currentDate,
+    filteredCategory,
+    calendarMode,
+    habitsData,
+    historyData,
+    rowSortingType,
+  ]);
 
   return (
     <StyledTrackerCalendar>
@@ -66,6 +75,8 @@ const TrackerCalendar = () => {
         setCurrentDate={setCurrentDate}
         filteredCategory={filteredCategory}
         setFilteredCategory={setFilteredCategory}
+        rowSortingType={rowSortingType}
+        setRowSortingType={setRowSortingType}
       />
       <div className="ag-theme-material fyi-ag-theme">
         <AgGridReact

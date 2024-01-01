@@ -4,7 +4,6 @@ import {
   updateDoc,
   getDocs,
   getDoc,
-  addDoc,
   setDoc,
 } from "firebase/firestore";
 import { IHistoryData } from "types/history.types";

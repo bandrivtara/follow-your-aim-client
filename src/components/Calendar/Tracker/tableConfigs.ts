@@ -73,7 +73,8 @@ const getColumnDefs = (
 const getRows = (
   habitsData: IHabitData[] = [],
   historyData: IHistoryData = {},
-  currentDate: (Dayjs | null)[]
+  currentDate: (Dayjs | null)[],
+  rowSortingType: string
 ) => {
   const currentMMYYYY = dayjs(currentDate[0]).format("MM-YYYY");
   const habits: any = {};
@@ -120,6 +121,28 @@ const getRows = (
       }
     });
   }
+
+  function compareTime(a: any, b: any) {
+    const timeA = a.details.scheduleTime || [24, 0];
+    const timeB = b.details.scheduleTime || [24, 0];
+
+    // Compare hours
+    if (timeA[0] !== timeB[0]) {
+      return timeA[0] - timeB[0];
+    }
+
+    // If hours are the same, compare minutes
+    return timeA[1] - timeB[1];
+  }
+
+  if (rowSortingType === "alphabetic") {
+    // @ts-ignore
+    return _.orderBy(rows, [(row) => row.details.title]);
+  } else if (rowSortingType === "schedule-time") {
+    // @ts-ignore
+    return _.orderBy(rows, [(row) => row.details.title]).sort(compareTime);
+  }
+
   return rows;
 };
 
