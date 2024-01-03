@@ -6,12 +6,9 @@ import dayjs, { Dayjs } from "dayjs";
 import { ITrackerCalendarState } from "./TrackerCalendar";
 import _ from "lodash";
 import { IHabitData } from "types/habits.types";
-import {
-  IHabitDayValues,
-  IHistoryData,
-  IHistoryDayRow,
-} from "types/history.types";
+import { IHistoryData, IHistoryDayRow } from "types/history.types";
 import RowNameRenderer from "./DayCellRenderer/RowNameRenderer";
+import compareTime from "share/functions/compareTime";
 
 export interface IHabitRow {
   habitDetails: IHabitData;
@@ -90,7 +87,7 @@ const getRows = (
     // Iterate through each id in the object for the current day
     for (let id in historyData[day]) {
       // Check if there is already an object with the same id in the rows
-      if (habits && habits[id]) {
+      if (habits && habits[id] && !habits[id].isHidden) {
         let existingObject: any = rows.find((row) => row.id === id);
 
         // If the object doesn't exist, create a new one
@@ -112,7 +109,7 @@ const getRows = (
   if (historyData) {
     // Include items from habitsData with empty values if they are not present in the historyData
     habitsData.forEach((habit) => {
-      if (!rows.find((row) => row.id === habit.id)) {
+      if (!rows.find((row) => row.id === habit.id) && !habit.isHidden) {
         rows.push({
           id: habit.id,
           details: habits[habit.id],
@@ -121,20 +118,6 @@ const getRows = (
       }
     });
   }
-
-  function compareTime(a: any, b: any) {
-    const timeA = a.details.scheduleTime || [24, 0];
-    const timeB = b.details.scheduleTime || [24, 0];
-
-    // Compare hours
-    if (timeA[0] !== timeB[0]) {
-      return timeA[0] - timeB[0];
-    }
-
-    // If hours are the same, compare minutes
-    return timeA[1] - timeB[1];
-  }
-
   if (rowSortingType === "alphabetic") {
     // @ts-ignore
     return _.orderBy(rows, [(row) => row.details.title]);
