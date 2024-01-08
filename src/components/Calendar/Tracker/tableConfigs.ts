@@ -7,7 +7,7 @@ import { ITrackerCalendarState } from "./TrackerCalendar";
 import _ from "lodash";
 import { IHabitData } from "types/habits.types";
 import { IHistoryData, IHistoryDayRow } from "types/history.types";
-import RowNameRenderer from "./DayCellRenderer/RowNameRenderer";
+import RowNameRenderer from "./RowNameRenderer/RowNameRenderer";
 import compareTime from "share/functions/compareTime";
 
 export interface IHabitRow {

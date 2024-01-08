@@ -75,7 +75,6 @@ const ListHabit = ({ data, colDef, stopEditing }: IProps) => {
   useEffect(() => {
     if (taskGroupDetails) {
       if (taskGroupDetails.data && taskGroupDetails.data) {
-        console.log(taskGroupDetails, data.id);
         storeForm.setFieldsValue(taskGroupDetails.data);
       }
     }

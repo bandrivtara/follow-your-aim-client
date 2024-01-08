@@ -71,9 +71,7 @@ export const habitFirestoreApi = api.injectEndpoints({
     updateHabit: builder.mutation({
       async queryFn(habitDetails) {
         try {
-          await updateDoc(doc(db, "habit", habitDetails.id), {
-            [habitDetails.path]: habitDetails.data,
-          });
+          await updateDoc(doc(db, "habit", habitDetails.id), habitDetails.data);
           return { data: null };
         } catch (error: any) {
           console.error(error.message);

@@ -13,6 +13,15 @@ export interface IHabitData {
   minToComplete?: number;
   specificId?: string;
   isHidden?: boolean;
+  fields?: IHabitField[];
+}
+
+export interface IHabitField {
+  id: string;
+  name: string;
+  minToComplete: number;
+  unit: string;
+  orderIndex: number;
 }
 
 interface IHabitHistory {
