@@ -181,88 +181,83 @@ const AddEditHabit = () => {
           {({ getFieldValue }) => {
             if (getFieldValue("valueType") === "number") {
               return (
-                <>
-                  <Form.List name="fields">
-                    {(fields, { add, remove }) => (
-                      <>
-                        {fields.map((field, index) => (
+                <Form.List name="fields">
+                  {(fields, { add, remove }) => (
+                    <>
+                      {fields.map((field, index) => (
+                        <Form.Item
+                          className={index === 0 ? "main-field" : ""}
+                          {...formItemLayoutWithOutLabel}
+                          label={index === 0 ? "Головне:" : `${index + 1}:`}
+                          key={field.key}
+                        >
                           <Form.Item
-                            className={index === 0 ? "main-field" : ""}
-                            {...formItemLayoutWithOutLabel}
-                            label={index === 0 ? "Головне:" : `${index + 1}:`}
-                            key={field.key}
-                          >
+                            noStyle
+                            name={[field.name, "orderIndex"]}
+                            initialValue={field.key}
+                          />
+                          <Form.Item
+                            noStyle
+                            name={[field.name, "id"]}
+                            initialValue={uniqid()}
+                          />
+                          <Space.Compact>
+                            <Form.Item name={[`${field.name}`, "name"]} noStyle>
+                              <Input
+                                placeholder="Назва"
+                                style={{ width: "80%" }}
+                              />
+                            </Form.Item>
+                            <Form.Item name={[field.name, "unit"]} noStyle>
+                              <Input
+                                placeholder="Одиниця"
+                                style={{ width: "80%" }}
+                              />
+                            </Form.Item>
                             <Form.Item
+                              name={[field.name, "minToComplete"]}
                               noStyle
-                              name={[field.name, "orderIndex"]}
-                              initialValue={field.key}
-                            />
-                            <Form.Item
-                              noStyle
-                              name={[field.name, "id"]}
-                              initialValue={uniqid()}
-                            />
-                            <Space.Compact>
-                              <Form.Item
-                                name={[`${field.name}`, "name"]}
-                                noStyle
-                              >
-                                <Input
-                                  placeholder="Назва"
-                                  style={{ width: "80%" }}
-                                />
-                              </Form.Item>
-                              <Form.Item name={[field.name, "unit"]} noStyle>
-                                <Input
-                                  placeholder="Одиниця"
-                                  style={{ width: "80%" }}
-                                />
-                              </Form.Item>
-                              <Form.Item
-                                name={[field.name, "minToComplete"]}
-                                noStyle
-                              >
-                                <InputNumber
-                                  placeholder="Мінімум"
-                                  style={{ width: "60%" }}
-                                />
-                              </Form.Item>
+                            >
+                              <InputNumber
+                                placeholder="Мінімум"
+                                style={{ width: "60%" }}
+                              />
+                            </Form.Item>
 
+                            <Button
+                              type="dashed"
+                              disabled={index === 0}
+                              onClick={() => setAsMainField(field)}
+                            >
+                              <UpCircleOutlined />
+                            </Button>
+                            {fields.length > 1 ? (
                               <Button
+                                danger
                                 type="dashed"
-                                disabled={index === 0}
-                                onClick={() => setAsMainField(field)}
+                                onClick={() => remove(field.name)}
                               >
-                                <UpCircleOutlined />
+                                <MinusCircleOutlined className="dynamic-delete-button" />
                               </Button>
-                              {fields.length > 1 ? (
-                                <Button
-                                  danger
-                                  type="dashed"
-                                  onClick={() => remove(field.name)}
-                                >
-                                  <MinusCircleOutlined className="dynamic-delete-button" />
-                                </Button>
-                              ) : null}
-                            </Space.Compact>
-                          </Form.Item>
-                        ))}
-
-                        <Form.Item {...formItemLayoutWithOutLabel}>
-                          <Button
-                            type="dashed"
-                            onClick={() => add()}
-                            style={{ width: "100%" }}
-                            icon={<PlusOutlined />}
-                            disabled={fields.length > 3}
-                          >
-                            Додати поле
-                          </Button>
+                            ) : null}
+                          </Space.Compact>
                         </Form.Item>
-                      </>
-                    )}
-                  </Form.List>
-                </>
+                      ))}
+
+                      <Form.Item {...formItemLayoutWithOutLabel}>
+                        <Button
+                          type="dashed"
+                          onClick={() => add()}
+                          style={{ width: "100%" }}
+                          icon={<PlusOutlined />}
+                          disabled={fields.length > 3}
+                        >
+                          Додати поле
+                        </Button>
+                      </Form.Item>
+                    </>
+                  )}
+                </Form.List>
               );
             }
           }}

@@ -11,6 +11,7 @@ import AddEditCategory from "./Categories/AddEditCategory/AddEditCategory";
 import TaskGroupsList from "./TaskGroups/TaskGroupsList/TaskGroupsList";
 import AddEditTaskGroup from "./TaskGroups/AddEditTaskGroups/AddEditTaskGroups";
 import TrackerCalendar from "./Calendar/Tracker/TrackerCalendar";
+import AimCalendar from "./Aims/AimsCalendar/AimCalendar";
 
 const AppRoutes = () => {
   return (
@@ -20,6 +21,7 @@ const AppRoutes = () => {
           <Route path={routes.main} element={<Main />} />
 
           <Route path={routes.calendar.tracker} element={<TrackerCalendar />} />
+          <Route path={routes.calendar.aims} element={<AimCalendar />} />
 
           <Route path={routes.habit.list} element={<Habit />} />
           <Route path={routes.habit.add} element={<AddEditHabit />} />
