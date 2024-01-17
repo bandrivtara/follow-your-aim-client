@@ -51,6 +51,8 @@ const formInitialValues: IAim = {
   isRelatedWithHabit: false,
   finalAim: 0,
   calculationType: "sum",
+  relatedHabit: [],
+  relatedList: [],
 };
 
 const AddEditAim = () => {
@@ -67,8 +69,8 @@ const AddEditAim = () => {
   const relatedHabit = useWatch("relatedHabit", form);
   useWatch("relatedList", form);
 
-  const convertToArray = (obj) => {
-    const resultArray = [];
+  const convertToArray = (obj: any) => {
+    const resultArray: any[] = [];
 
     Object.keys(obj).forEach((key) => {
       const index = parseInt(key, 10);
@@ -76,6 +78,16 @@ const AddEditAim = () => {
     });
 
     return resultArray;
+  };
+
+  const convertToObject = (arr: any[]) => {
+    const resultObject: any = {};
+
+    arr.forEach((innerArray, index: number) => {
+      resultObject[index] = innerArray;
+    });
+
+    return resultObject;
   };
 
   useEffect(() => {
@@ -100,16 +112,6 @@ const AddEditAim = () => {
       setCategories(categoriesData.data);
     }
   }, [categoriesData]);
-
-  const convertToObject = (arr) => {
-    const resultObject = {};
-
-    arr.forEach((innerArray, index) => {
-      resultObject[index] = innerArray;
-    });
-
-    return resultObject;
-  };
 
   const onFinish = async (newAimData: IAim) => {
     const data = {

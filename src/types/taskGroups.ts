@@ -5,7 +5,16 @@ export interface ITaskGroups {
   valueType: string;
   isHidden?: boolean;
   category?: string;
-  store: ITask[];
+  tasksStore: ITask[];
+  tasksStages: ITaskStage[];
+}
+
+export interface ITaskStage {
+  title: string;
+  description: string;
+  id: string;
+  stagePercentage: number;
+  subTasks: ITask[];
 }
 
 export type ITaskStatus = "pending" | "failed" | "done";

@@ -2,7 +2,7 @@ import styled from "@emotion/styled";
 
 interface IStyledAimCellRenderer {
   progressBarStyles: { width: number; marginLeft: number } | null;
-  progressData: { totalValue: number; progress: number };
+  progressData: { currentValue: number; progress: number };
 }
 
 const StyledAimCellRenderer = styled.div<IStyledAimCellRenderer>`
