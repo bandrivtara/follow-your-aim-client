@@ -7,6 +7,7 @@ import {
   Select,
   Radio,
   Cascader,
+  InputNumber,
 } from "antd";
 import { useParams } from "react-router-dom";
 import {
@@ -27,6 +28,7 @@ import { Switch } from "@mui/material";
 import { DefaultOptionType } from "antd/es/select";
 import { useGetHabitListQuery } from "store/services/habits";
 import { useWatch } from "antd/es/form/Form";
+import { useGetTaskGroupListQuery } from "store/services/taskGroups";
 
 interface ICascaderOption {
   value: string;
@@ -47,11 +49,13 @@ const formInitialValues: IAim = {
   id: "",
   aimType: "number",
   isRelatedWithHabit: false,
-  relatedHabitAim: 0,
+  finalAim: 0,
+  calculationType: "sum",
 };
 
 const AddEditAim = () => {
   const habitsList = useGetHabitListQuery();
+  const tasksGroup = useGetTaskGroupListQuery();
   const [form] = Form.useForm();
   let { aimId } = useParams();
   const [addAim] = useAddAimMutation();
@@ -61,17 +65,32 @@ const AddEditAim = () => {
   const [categories, setCategories] = useState<ICategory[]>([]);
   const [updateCategory] = useUpdateCategoryMutation();
   const relatedHabit = useWatch("relatedHabit", form);
+  useWatch("relatedList", form);
+
+  const convertToArray = (obj) => {
+    const resultArray = [];
+
+    Object.keys(obj).forEach((key) => {
+      const index = parseInt(key, 10);
+      resultArray[index] = obj[key];
+    });
+
+    return resultArray;
+  };
 
   useEffect(() => {
     if (aimDetails) {
       if (aimDetails.data && aimDetails.data) {
-        form.setFieldsValue({
+        const aimData = {
           ...aimDetails.data,
           dateFrom: dayjs(aimDetails.data.dateFrom),
           dateTo: dayjs(aimDetails.data.dateTo),
-        });
+        };
+        if (aimDetails.data.relatedList) {
+          aimData.relatedList = convertToArray(aimDetails.data.relatedList);
+        }
 
-        console.log(aimDetails.data, 222);
+        form.setFieldsValue(aimData);
       }
     }
   }, [aimDetails, form]);
@@ -82,25 +101,36 @@ const AddEditAim = () => {
     }
   }, [categoriesData]);
 
+  const convertToObject = (arr) => {
+    const resultObject = {};
+
+    arr.forEach((innerArray, index) => {
+      resultObject[index] = innerArray;
+    });
+
+    return resultObject;
+  };
+
   const onFinish = async (newAimData: IAim) => {
+    const data = {
+      ...newAimData,
+      dateFrom: dayjs(newAimData.dateFrom).format("YYYY/MM/DD"),
+      dateTo: dayjs(newAimData.dateTo).format("YYYY/MM/DD"),
+    };
+    if (newAimData.relatedList) {
+      data.relatedList = convertToObject(newAimData.relatedList);
+    }
+
     if (aimId) {
       const aimToUpdate = {
         id: aimId,
-        data: {
-          ...newAimData,
-          dateFrom: dayjs(newAimData.dateFrom).format("YYYY/MM/DD"),
-          dateTo: dayjs(newAimData.dateTo).format("YYYY/MM/DD"),
-        },
+        data,
         path: "",
       };
       console.log(newAimData, 123);
       await updateAim(aimToUpdate).unwrap();
     } else {
-      await addAim({
-        ...newAimData,
-        dateFrom: dayjs(newAimData.dateFrom).format("YYYY/MM/DD"),
-        dateTo: dayjs(newAimData.dateTo).format("YYYY/MM/DD"),
-      });
+      await addAim(data);
       console.log(newAimData, 123);
     }
 
@@ -143,6 +173,26 @@ const AddEditAim = () => {
         }));
       }
       return habitOption;
+    });
+
+    return options;
+  };
+
+  const getRelatedLists = () => {
+    if (!tasksGroup.data) return [];
+    console.log(tasksGroup);
+    const options: ICascaderOption[] = tasksGroup.data.map((taskGroup) => {
+      const tasksOption: ICascaderOption = {
+        value: taskGroup.id,
+        label: taskGroup.title,
+      };
+      if (taskGroup?.tasksStages) {
+        tasksOption.children = taskGroup.tasksStages.map((taskStage) => ({
+          value: taskStage.id,
+          label: taskStage.title,
+        }));
+      }
+      return tasksOption;
     });
 
     return options;
@@ -202,6 +252,7 @@ const AddEditAim = () => {
         <Radio.Group defaultValue="number">
           <Radio.Button value="number">Вимірювальна</Radio.Button>
           <Radio.Button value="boolean">Проста (Так/Ні)</Radio.Button>
+          <Radio.Button value="list">Список завдань</Radio.Button>
         </Radio.Group>
       </Form.Item>
 
@@ -246,11 +297,47 @@ const AddEditAim = () => {
                     placeholder="Вибери звичку"
                   />
                 </Form.Item>
+                <Form.Item name="calculationType" label="Тип вимірювання">
+                  <Radio.Group defaultValue="sum">
+                    <Radio.Button value="sum">Сума усіх вартостей</Radio.Button>
+                    <Radio.Button value="lastMeasureAsc">
+                      За остатньою вартістю (Зростаюча)
+                    </Radio.Button>
+                    <Radio.Button value="lastMeasureDesc">
+                      За остатньою вартістю (Спадаюча)
+                    </Radio.Button>
+                  </Radio.Group>
+                </Form.Item>
               </>
             );
           }
         }}
       </Form.Item>
+
+      <Form.Item
+        noStyle
+        shouldUpdate={(prevValues, currentValues) =>
+          prevValues.aimType !== currentValues.aimType
+        }
+      >
+        {({ getFieldValue }) => {
+          if (getFieldValue("aimType") === "list") {
+            return (
+              <>
+                <Form.Item name="relatedList" label="Повязаний список">
+                  <Cascader
+                    multiple
+                    options={getRelatedLists()}
+                    showSearch={{ filter }}
+                    placeholder="Вибери звичку"
+                  />
+                </Form.Item>
+              </>
+            );
+          }
+        }}
+      </Form.Item>
+
       <Form.Item
         noStyle
         shouldUpdate={(prevValues, currentValues) =>
@@ -262,10 +349,10 @@ const AddEditAim = () => {
             return (
               <Form.Item
                 rules={[{ required: true }]}
-                name="relatedHabitAim"
+                name="finalAim"
                 label="Кінцева ціль"
               >
-                <Input
+                <InputNumber
                   addonAfter={
                     relatedHabit
                       ? habitsList.data
@@ -284,7 +371,7 @@ const AddEditAim = () => {
 
       <Form.Item>
         <Button htmlType="submit">
-          {aimId ? "Записати зміни" : "Додати звичку"}
+          {aimId ? "Записати зміни" : "Додати ціль"}
         </Button>
       </Form.Item>
     </Form>

@@ -2,6 +2,8 @@ export interface ITaskGroups {
   id: string;
   title: string;
   description: string;
+  valueType: string;
+  isHidden?: boolean;
   category?: string;
   store: ITask[];
 }

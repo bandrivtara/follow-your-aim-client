@@ -62,7 +62,6 @@ const AddEditHabit = () => {
   useEffect(() => {
     if (habitDetails.data) {
       form.setFieldsValue(habitDetails.data);
-      console.log(habitDetails.data);
     }
   }, [habitDetails, form]);
 

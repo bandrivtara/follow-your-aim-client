@@ -8,7 +8,7 @@ import {
 
 interface IProps {
   handleDecline: (event: MouseEvent<HTMLElement>) => void;
-  handleDelete: (event: MouseEvent<HTMLElement>) => void;
+  handleDelete?: (event: MouseEvent<HTMLElement>) => void;
   handleConfirm?: (formValues: any) => Promise<void>;
 }
 
@@ -34,14 +34,16 @@ const FormButtons = ({
         size={"large"}
         onClick={handleDecline}
       />
-      <Button
-        style={{ marginLeft: 20 }}
-        danger
-        type="primary"
-        icon={<DeleteOutlined rev="value" />}
-        size={"large"}
-        onClick={handleDelete}
-      />
+      {handleDelete && (
+        <Button
+          style={{ marginLeft: 20 }}
+          danger
+          type="primary"
+          icon={<DeleteOutlined rev="value" />}
+          size={"large"}
+          onClick={handleDelete}
+        />
+      )}
     </>
   );
 };

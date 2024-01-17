@@ -11,6 +11,8 @@ import {
   Radio,
   Row,
   Space,
+  Tabs,
+  TabsProps,
 } from "antd";
 import {
   BorderOutlined,
@@ -30,11 +32,12 @@ import { getTimeOptions } from "share/functions/getTimeOptions";
 import { IStopEditing } from "../../DayCellRenderer/trackerConfigs";
 import StyledListHabit from "./List.styled";
 import { useUpdateHistoryMutation } from "store/services/history";
-import TaskGroupsStore from "components/TaskGroups/TaskGroupsStore/TaskGroupsStore";
+import TaskGroupsStore from "components/TaskGroups/AddEditTaskGroups/TaskGroupsStore/TaskGroupsStore";
 import {
   useGetTaskGroupQuery,
   useUpdateTaskGroupMutation,
 } from "store/services/taskGroups";
+import TaskGroupsStages from "components/TaskGroups/AddEditTaskGroups/TaskGroupsStages/TaskGroupsStages";
 
 interface IProps {
   colDef: ColDef<IDayCellEditor>;
@@ -63,20 +66,21 @@ const initTask = {
 const ListHabit = ({ data, colDef, stopEditing }: IProps) => {
   const [form] = Form.useForm();
   const [storeForm] = Form.useForm();
+  const [stageForm] = Form.useForm();
   const [updateHistory] = useUpdateHistoryMutation();
   const formTasks: ITask[] = useWatch("tasks", form);
   const [editFiledIndex, setEditFiledIndex] = useState<null | number>(null);
   const [isStoreOpened, setIsStoreOpened] = useState(false);
+  const [activeTab, setActiveTab] = useState("1");
   const [updateTaskGroup] = useUpdateTaskGroupMutation();
   const taskGroupDetails = useGetTaskGroupQuery(data.id);
 
   const cellData = colDef.field && data[+colDef.field];
 
   useEffect(() => {
-    if (taskGroupDetails) {
-      if (taskGroupDetails.data && taskGroupDetails.data) {
-        storeForm.setFieldsValue(taskGroupDetails.data);
-      }
+    if (taskGroupDetails && taskGroupDetails.data) {
+      storeForm.setFieldsValue(taskGroupDetails.data);
+      stageForm.setFieldsValue(taskGroupDetails.data);
     }
 
     if (cellData && cellData.tasks) {
@@ -84,7 +88,7 @@ const ListHabit = ({ data, colDef, stopEditing }: IProps) => {
     } else {
       form.setFieldsValue({ value: 0, tasks: [initTask] });
     }
-  }, [cellData, data, form, storeForm, taskGroupDetails]);
+  }, [cellData, data, form, stageForm, storeForm, taskGroupDetails]);
 
   const handleConfirm = async () => {
     const formValues = form.getFieldsValue();
@@ -169,6 +173,27 @@ const ListHabit = ({ data, colDef, stopEditing }: IProps) => {
     ];
     storeForm.setFieldValue("tasksStore", storeTasks);
   };
+
+  const tabItems: TabsProps["items"] = [
+    {
+      key: "1",
+      label: "Вибрати з етапів",
+      children: (
+        <Form layout="horizontal" form={stageForm} name="tasksStages">
+          <TaskGroupsStages dayForm={form} form={stageForm} />
+        </Form>
+      ),
+    },
+    {
+      key: "2",
+      label: "Сховище",
+      children: (
+        <Form layout="horizontal" form={storeForm} name="storeForm">
+          <TaskGroupsStore dayForm={form} form={storeForm} />
+        </Form>
+      ),
+    },
+  ];
 
   return (
     initTask && (
@@ -329,13 +354,16 @@ const ListHabit = ({ data, colDef, stopEditing }: IProps) => {
           items={[
             {
               key: "1",
-              label: "Сховище завдань",
+              label: "Завдання",
               onItemClick: () => setIsStoreOpened(!isStoreOpened),
               forceRender: true,
               children: (
-                <Form layout="horizontal" form={storeForm} name="storeForm">
-                  <TaskGroupsStore dayForm={form} form={storeForm} />
-                </Form>
+                <Tabs
+                  defaultActiveKey="1"
+                  items={tabItems}
+                  onChange={(key: string) => setActiveTab(key)}
+                  activeKey={activeTab}
+                />
               ),
             },
           ]}

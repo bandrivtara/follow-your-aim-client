@@ -24,6 +24,10 @@ const StyledCalendar = styled.div`
   .filters-bar {
     display: flex;
   }
+
+  .ag-cell {
+    padding: 0px 4px;
+  }
 `;
 
 export default StyledCalendar;

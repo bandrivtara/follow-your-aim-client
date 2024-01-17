@@ -12,6 +12,7 @@ import tableConfigs from "./tableConfigs";
 import useIsMobile from "share/hooks/useIsMobile";
 import { useGetHistoryQuery } from "store/services/history";
 import { IHistoryDayRow } from "types/history.types";
+import { useGetTaskGroupListQuery } from "store/services/taskGroups";
 
 export type ITrackerCalendarState = "tracking" | "planning";
 
@@ -22,6 +23,7 @@ const initConfigs = {
 const TrackerCalendar = () => {
   const isMobile = useIsMobile();
   const habitsData = useGetHabitListQuery();
+  const taskGroupsData = useGetTaskGroupListQuery();
   const gridRef = useRef<AgGridReact>(null);
 
   const [rowData, setRowData] = useState<IHistoryDayRow[]>([]);
@@ -49,11 +51,12 @@ const TrackerCalendar = () => {
     const newColumnDefs = tableConfigs.getColumnDefs(currentDate, calendarMode);
     const newRows = tableConfigs.getRows(
       habitsData.data,
+      taskGroupsData.data,
       historyData.data,
       currentDate,
       rowSortingType
     );
-
+    console.log(newRows);
     setColumnDefs(newColumnDefs);
     setRowData(newRows);
   }, [
@@ -63,6 +66,7 @@ const TrackerCalendar = () => {
     habitsData,
     historyData,
     rowSortingType,
+    taskGroupsData.data,
   ]);
 
   return (

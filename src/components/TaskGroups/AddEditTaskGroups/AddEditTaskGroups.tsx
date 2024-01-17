@@ -1,4 +1,4 @@
-import { Form, Input, Button, Card } from "antd";
+import { Form, Input, Button, Card, Switch } from "antd";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   useAddTaskGroupMutation,
@@ -7,9 +7,10 @@ import {
 } from "store/services/taskGroups";
 import routes from "config/routes";
 import TextArea from "antd/es/input/TextArea";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { ITaskGroups } from "types/taskGroups";
-import TaskGroupsStore from "../TaskGroupsStore/TaskGroupsStore";
+import TaskGroupsStore from "./TaskGroupsStore/TaskGroupsStore";
+import TaskGroupsStages from "./TaskGroupsStages/TaskGroupsStages";
 
 const formInitialValues = {
   title: "",
@@ -39,13 +40,14 @@ const AddEditTaskGroup = () => {
         data: newTaskGroupData,
         path: "",
       };
+      console.log(taskGroupToUpdate);
       await updateTaskGroup(taskGroupToUpdate).unwrap();
     } else {
       await addTaskGroup(newTaskGroupData);
     }
 
-    navigate(routes.taskGroups.list);
-    navigate(0);
+    // navigate(routes.taskGroups.list);
+    // navigate(0);
   };
 
   return (
@@ -61,14 +63,39 @@ const AddEditTaskGroup = () => {
       <Form.Item rules={[{ required: true }]} name="title" label="Назва">
         <Input />
       </Form.Item>
-
+      <Form.Item name="valueType" initialValue="taskGroup" />
       <Form.Item name="description" label="Опис">
         <TextArea rows={2} />
       </Form.Item>
 
-      <Card>
+      <Card title="Сховище завдань">
         <TaskGroupsStore form={form} />
       </Card>
+
+      <Form.Item
+        valuePropName="checked"
+        name="isDividedIntoStages"
+        label="Розділити на етапи"
+      >
+        <Switch />
+      </Form.Item>
+
+      <Form.Item
+        noStyle
+        shouldUpdate={(prevValues, currentValues) =>
+          prevValues.isDividedIntoStages !== currentValues.isDividedIntoStages
+        }
+      >
+        {({ getFieldValue }) => {
+          if (getFieldValue("isDividedIntoStages")) {
+            return (
+              <Card title="Етапи завдань">
+                <TaskGroupsStages form={form} />
+              </Card>
+            );
+          }
+        }}
+      </Form.Item>
 
       <Form.Item>
         <Button htmlType="submit">

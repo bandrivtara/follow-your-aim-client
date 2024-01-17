@@ -1,4 +1,4 @@
-export type IValueTypes = "number" | "boolean" | "array" | "duration";
+export type IValueTypes = "number" | "boolean" | "taskGroup" | "duration";
 
 export interface IHabitData {
   id: string;

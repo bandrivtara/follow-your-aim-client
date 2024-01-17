@@ -75,7 +75,7 @@ export const trackerConfigs: TTrackerConfig = {
       };
     },
   },
-  array: {
+  taskGroup: {
     cellEditor: ({ colDef, stopEditing, data }) => (
       <ListTracker colDef={colDef} stopEditing={stopEditing} data={data} />
     ),

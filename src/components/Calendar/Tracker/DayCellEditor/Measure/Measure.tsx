@@ -2,15 +2,9 @@ import { Form, InputNumber } from "antd";
 import { IDayCellEditor } from "../DayCellEditor";
 import { ColDef } from "ag-grid-community";
 import { useEffect, useState } from "react";
-import _ from "lodash";
 import FormButtons from "share/components/Form/FormButtons";
 import { IStopEditing } from "../../DayCellRenderer/trackerConfigs";
-import {
-  useGetHistoryListQuery,
-  useGetHistoryQuery,
-  useUpdateHistoryMutation,
-} from "store/services/history";
-import { useGetHabitListQuery } from "store/services/habits";
+import { useUpdateHistoryMutation } from "store/services/history";
 
 interface IProps {
   colDef: ColDef<IDayCellEditor>;

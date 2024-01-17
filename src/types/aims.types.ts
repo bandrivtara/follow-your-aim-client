@@ -13,6 +13,8 @@ export interface IAim {
   progress: number;
   value: any;
   aimType: "number" | "boolean";
+  calculationType: "sum" | "lastMeasureAsc" | "lastMeasureDesc";
   isRelatedWithHabit: boolean;
-  relatedHabitAim?: number;
+  finalAim?: number;
+  currentValue?: number;
 }

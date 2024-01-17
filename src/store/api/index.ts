@@ -13,8 +13,8 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app);
+export const fbApp = initializeApp(firebaseConfig);
+export const db = getFirestore(fbApp);
 
 export const api = createApi({
   tagTypes: ["Habit", "Categories", "Aims", "History", "Todo", "TaskGroup"],
