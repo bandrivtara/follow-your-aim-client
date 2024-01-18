@@ -4,8 +4,8 @@ import {
   useAddCategoryMutation,
   useGetCategoryQuery,
   useUpdateCategoryMutation,
-} from "store/services/categories";
-import { ICategory } from "types/categories.types";
+} from "store/services/spheres";
+import { ICategory } from "types/spheres.types";
 import routes from "config/routes";
 import TextArea from "antd/es/input/TextArea";
 import { useEffect, useState } from "react";

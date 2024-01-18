@@ -22,8 +22,8 @@ import dayjs from "dayjs";
 import {
   useGetCategoriesListQuery,
   useUpdateCategoryMutation,
-} from "store/services/categories";
-import { ICategory } from "types/categories.types";
+} from "store/services/spheres";
+import { ICategory } from "types/spheres.types";
 import { Switch } from "@mui/material";
 import { DefaultOptionType } from "antd/es/select";
 import { useGetHabitListQuery } from "store/services/habits";
@@ -50,6 +50,7 @@ const formInitialValues: IAim = {
   aimType: "number",
   isRelatedWithHabit: false,
   finalAim: 0,
+  startedPoint: 0,
   calculationType: "sum",
   relatedHabit: [],
   relatedList: [],
@@ -311,6 +312,37 @@ const AddEditAim = () => {
                   </Radio.Group>
                 </Form.Item>
               </>
+            );
+          }
+        }}
+      </Form.Item>
+      <Form.Item
+        noStyle
+        shouldUpdate={(prevValues, currentValues) =>
+          prevValues.calculationType !== currentValues.calculationType ||
+          prevValues.aimType !== currentValues.aimType
+        }
+      >
+        {({ getFieldValue }) => {
+          if (
+            (getFieldValue("calculationType") === "lastMeasureAsc" ||
+              getFieldValue("calculationType") === "lastMeasureDesc") &&
+            getFieldValue("aimType") === "number"
+          ) {
+            return (
+              <Form.Item name="startedPoint" label="Початкове значення">
+                <InputNumber
+                  addonAfter={
+                    relatedHabit
+                      ? habitsList.data
+                          ?.find((habit) => relatedHabit[0] === habit.id)
+                          ?.fields?.find(
+                            (field) => field.id === relatedHabit[1]
+                          )?.unit
+                      : ""
+                  }
+                />
+              </Form.Item>
             );
           }
         }}

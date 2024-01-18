@@ -16,6 +16,7 @@ export interface IAim {
   calculationType: "sum" | "lastMeasureAsc" | "lastMeasureDesc";
   isRelatedWithHabit: boolean;
   finalAim: number;
+  startedPoint: number;
   currentValue?: number;
   relatedHabit: string[];
   relatedList: string[];

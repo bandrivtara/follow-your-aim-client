@@ -31,8 +31,8 @@ import { getTimeOptions } from "share/functions/getTimeOptions";
 import {
   useGetCategoriesListQuery,
   useUpdateCategoryMutation,
-} from "store/services/categories";
-import { ICategory } from "types/categories.types";
+} from "store/services/spheres";
+import { ICategory } from "types/spheres.types";
 import { useWatch } from "antd/es/form/Form";
 import StyledAddEditHabit from "./AddEditHabit.styled";
 

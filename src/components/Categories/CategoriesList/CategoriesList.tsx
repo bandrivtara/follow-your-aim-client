@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import tableConfigs from "./tableConfigs";
-import { ICategory } from "types/categories.types";
-import { useGetCategoriesListQuery } from "store/services/categories";
+import { ICategory } from "types/spheres.types";
+import { useGetCategoriesListQuery } from "store/services/spheres";
 import { AgGridReact } from "ag-grid-react";
 
 const Category = () => {

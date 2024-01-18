@@ -17,7 +17,16 @@ export const fbApp = initializeApp(firebaseConfig);
 export const db = getFirestore(fbApp);
 
 export const api = createApi({
-  tagTypes: ["Habit", "Categories", "Aims", "History", "Todo", "TaskGroup"],
+  tagTypes: [
+    "Habit",
+    "Spheres",
+    "Aims",
+    "History",
+    "Todo",
+    "TaskGroup",
+    "HabitsCategories",
+    "AimsCategories",
+  ],
   reducerPath: "splitApi",
   baseQuery: fakeBaseQuery(),
   endpoints: () => ({}),
