@@ -28,13 +28,10 @@ import {
   UpCircleOutlined,
 } from "@ant-design/icons";
 import { getTimeOptions } from "share/functions/getTimeOptions";
-import {
-  useGetCategoriesListQuery,
-  useUpdateCategoryMutation,
-} from "store/services/spheres";
-import { ICategory } from "types/spheres.types";
 import { useWatch } from "antd/es/form/Form";
 import StyledAddEditHabit from "./AddEditHabit.styled";
+import { IHabitsCategory } from "types/habitsCategories.types";
+import { useGetHabitsCategoriesListQuery } from "store/services/habitsCategories";
 
 const formInitialValues = {
   title: "",
@@ -54,9 +51,10 @@ const AddEditHabit = () => {
   const [addHabit] = useAddHabitMutation();
   const [updateHabit] = useUpdateHabitMutation();
   const habitDetails = useGetHabitQuery(habitId);
-  const categoriesData = useGetCategoriesListQuery();
-  const [categories, setCategories] = useState<ICategory[]>([]);
-  const [updateCategory] = useUpdateCategoryMutation();
+  const habitsCategoriesData = useGetHabitsCategoriesListQuery();
+  const [habitsCategories, setHabitHabitsCategories] = useState<
+    IHabitsCategory[]
+  >([]);
   const currentFields = useWatch("fields", form);
 
   useEffect(() => {
@@ -66,10 +64,10 @@ const AddEditHabit = () => {
   }, [habitDetails, form]);
 
   useEffect(() => {
-    if (categoriesData && categoriesData.data) {
-      setCategories(categoriesData.data);
+    if (habitsCategoriesData?.data) {
+      setHabitHabitsCategories(habitsCategoriesData.data);
     }
-  }, [categoriesData]);
+  }, [habitsCategoriesData]);
 
   const formItemLayoutWithOutLabel = {
     wrapperCol: {
@@ -92,7 +90,7 @@ const AddEditHabit = () => {
     // if (newHabitData.category) {
     //   await Promise.all(
     //     newHabitData.category.map(async (category) => {
-    //       const currentCategoryData = categories.find(
+    //       const currentCategoryData = habitsCategories.find(
     //         (sphere) => sphere.id === category
     //       );
     //       if (
@@ -149,12 +147,14 @@ const AddEditHabit = () => {
         </Form.Item>
         <Form.Item
           rules={[{ required: true }]}
-          name="category"
+          name="habitCategory"
           label="Категорія"
         >
           <Select mode="multiple" placeholder="Виберіть категорію">
-            {categories.map((sphere) => (
-              <Select.Option value={sphere.id}>{sphere.title}</Select.Option>
+            {habitsCategories.map((category) => (
+              <Select.Option value={category.id}>
+                {category.title}
+              </Select.Option>
             ))}
           </Select>
         </Form.Item>

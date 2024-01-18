@@ -22,6 +22,12 @@ const routes = {
     add: "/habit/add",
     edit: "/habit/edit",
     statistic: "/habit/statistic",
+    categories: {
+      path: "/habit/categories",
+      list: "/habit/categories/list",
+      add: "/habit/categories/add",
+      edit: "/habit/categories/edit",
+    },
   },
   aims: {
     path: "/aims",
@@ -29,13 +35,19 @@ const routes = {
     add: "/aims/add",
     edit: "aims/edit",
     statistic: "/aims/statistic",
+    categories: {
+      path: "/aims/categories",
+      list: "/aims/categories/list",
+      add: "/aims/categories/add",
+      edit: "/aims/categories/edit",
+    },
   },
-  lifeCategories: {
-    path: "/categories",
-    list: "/categories/list",
-    add: "/categories/add",
-    edit: "/categories/edit",
-    statistic: "/categories/statistic",
+  spheres: {
+    path: "/spheres",
+    list: "/spheres/list",
+    add: "/spheres/add",
+    edit: "/spheres/edit",
+    statistic: "/spheres/statistic",
   },
 };
 

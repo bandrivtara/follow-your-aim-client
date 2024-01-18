@@ -1,8 +1,8 @@
-export interface IHabitCategoryData extends IHabitCategory {
+export interface IHabitsCategoryData extends IHabitsCategory {
   id: string;
 }
 
-export interface IHabitCategory {
+export interface IHabitsCategory {
   id: string;
   title: string;
   description: string;

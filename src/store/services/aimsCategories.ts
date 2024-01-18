@@ -36,7 +36,7 @@ export const aimsCategoriesFirestoreApi = api.injectEndpoints({
       providesTags: ["AimsCategories"],
     }),
 
-    getCategory: builder.query({
+    getAimsCategory: builder.query({
       async queryFn(aimsCategoriesId) {
         try {
           const aimsCategoriesRef = doc(db, "sphere", aimsCategoriesId);
@@ -59,7 +59,7 @@ export const aimsCategoriesFirestoreApi = api.injectEndpoints({
       providesTags: ["AimsCategories"],
     }),
 
-    addCategory: builder.mutation({
+    addAimsCategory: builder.mutation({
       async queryFn(aimsCategoriesDetails: IAimsCategory) {
         try {
           await addDoc(collection(db, "sphere"), aimsCategoriesDetails);
@@ -71,7 +71,7 @@ export const aimsCategoriesFirestoreApi = api.injectEndpoints({
       },
       invalidatesTags: ["AimsCategories"],
     }),
-    updateCategory: builder.mutation({
+    updateAimsCategory: builder.mutation({
       async queryFn(aimsCategoriesDetails) {
         try {
           console.log(aimsCategoriesDetails, 555);
@@ -91,8 +91,8 @@ export const aimsCategoriesFirestoreApi = api.injectEndpoints({
 });
 
 export const {
-  useGetCategoryQuery,
+  useGetAimsCategoryQuery,
   useGetAimsCategoriesListQuery,
-  useAddCategoryMutation,
-  useUpdateCategoryMutation,
+  useAddAimsCategoryMutation,
+  useUpdateAimsCategoryMutation,
 } = aimsCategoriesFirestoreApi;

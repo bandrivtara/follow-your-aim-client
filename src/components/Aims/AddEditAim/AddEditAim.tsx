@@ -20,10 +20,10 @@ import { useEffect, useState } from "react";
 import { IAim } from "types/aims.types";
 import dayjs from "dayjs";
 import {
-  useGetCategoriesListQuery,
-  useUpdateCategoryMutation,
-} from "store/services/spheres";
-import { ICategory } from "types/spheres.types";
+  useGetAimsCategoriesListQuery,
+  useUpdateAimsCategoryMutation,
+} from "store/services/aimsCategories";
+import { IAimsCategory } from "types/aimsCategories.types";
 import { Switch } from "@mui/material";
 import { DefaultOptionType } from "antd/es/select";
 import { useGetHabitListQuery } from "store/services/habits";
@@ -64,9 +64,9 @@ const AddEditAim = () => {
   const [addAim] = useAddAimMutation();
   const [updateAim] = useUpdateAimMutation();
   const aimDetails = useGetAimQuery(aimId);
-  const categoriesData = useGetCategoriesListQuery();
-  const [categories, setCategories] = useState<ICategory[]>([]);
-  const [updateCategory] = useUpdateCategoryMutation();
+  const categoriesData = useGetAimsCategoriesListQuery();
+  const [categories, setCategories] = useState<IAimsCategory[]>([]);
+  const [updateAimsCategory] = useUpdateAimsCategoryMutation();
   const relatedHabit = useWatch("relatedHabit", form);
   useWatch("relatedList", form);
 

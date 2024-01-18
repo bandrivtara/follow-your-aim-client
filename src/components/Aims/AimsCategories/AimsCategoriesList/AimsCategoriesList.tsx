@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import tableConfigs from "./tableConfigs";
-import { ICategory } from "types/spheres.types";
-import { useGetCategoriesListQuery } from "store/services/spheres";
+import { IAimsCategory } from "types/aimsCategories.types";
+import { useGetAimsCategoriesListQuery } from "store/services/aimsCategories";
 import { AgGridReact } from "ag-grid-react";
 
-const Category = () => {
-  const { data } = useGetCategoriesListQuery();
-  const [rowData, setRowData] = useState<ICategory[]>([]);
+const AimsCategoriesList = () => {
+  const { data } = useGetAimsCategoriesListQuery();
+  const [rowData, setRowData] = useState<IAimsCategory[]>([]);
 
   useEffect(() => {
     console.log(data);
@@ -28,4 +28,4 @@ const Category = () => {
   );
 };
 
-export default Category;
+export default AimsCategoriesList;

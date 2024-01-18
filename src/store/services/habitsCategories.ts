@@ -7,24 +7,24 @@ import {
   getDoc,
 } from "firebase/firestore";
 import {
-  IHabitCategory,
-  IHabitCategoryData,
+  IHabitsCategory,
+  IHabitsCategoryData,
 } from "../../types/habitsCategories.types";
 import { api, db } from "../api";
 
 export const habitsCategoriesFirestoreApi = api.injectEndpoints({
   endpoints: (builder) => ({
-    getHabitsCategoriesList: builder.query<IHabitCategoryData[], void>({
+    getHabitsCategoriesList: builder.query<IHabitsCategoryData[], void>({
       async queryFn() {
         try {
           const ref = collection(db, "habitsCategories");
           const querySnapshot = await getDocs(ref);
-          let habitsCategoriesList: IHabitCategoryData[] = [];
+          let habitsCategoriesList: IHabitsCategoryData[] = [];
           querySnapshot?.forEach((doc) => {
             habitsCategoriesList.push({
               id: doc.id,
               ...doc.data(),
-            } as IHabitCategoryData);
+            } as IHabitsCategoryData);
           });
 
           return { data: habitsCategoriesList };
@@ -36,7 +36,7 @@ export const habitsCategoriesFirestoreApi = api.injectEndpoints({
       providesTags: ["HabitsCategories"],
     }),
 
-    getCategory: builder.query({
+    getHabitsCategory: builder.query({
       async queryFn(habitsCategoriesId) {
         try {
           const habitsCategoriesRef = doc(
@@ -50,7 +50,7 @@ export const habitsCategoriesFirestoreApi = api.injectEndpoints({
               data: {
                 id: habitsCategoriesSnapshot.id,
                 ...habitsCategoriesSnapshot.data(),
-              } as IHabitCategoryData,
+              } as IHabitsCategoryData,
             };
           }
 
@@ -63,8 +63,8 @@ export const habitsCategoriesFirestoreApi = api.injectEndpoints({
       providesTags: ["HabitsCategories"],
     }),
 
-    addCategory: builder.mutation({
-      async queryFn(habitsCategoriesDetails: IHabitCategory) {
+    addHabitsCategory: builder.mutation({
+      async queryFn(habitsCategoriesDetails: IHabitsCategory) {
         try {
           await addDoc(
             collection(db, "habitsCategories"),
@@ -78,7 +78,7 @@ export const habitsCategoriesFirestoreApi = api.injectEndpoints({
       },
       invalidatesTags: ["HabitsCategories"],
     }),
-    updateCategory: builder.mutation({
+    updateHabitsCategory: builder.mutation({
       async queryFn(habitsCategoriesDetails) {
         try {
           console.log(habitsCategoriesDetails, 555);
@@ -98,8 +98,8 @@ export const habitsCategoriesFirestoreApi = api.injectEndpoints({
 });
 
 export const {
-  useGetCategoryQuery,
+  useGetHabitsCategoryQuery,
   useGetHabitsCategoriesListQuery,
-  useAddCategoryMutation,
-  useUpdateCategoryMutation,
+  useAddHabitsCategoryMutation,
+  useUpdateHabitsCategoryMutation,
 } = habitsCategoriesFirestoreApi;

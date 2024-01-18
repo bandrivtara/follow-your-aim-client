@@ -1,11 +1,11 @@
 import { Form, Input, Button, Transfer } from "antd";
 import { useNavigate, useParams } from "react-router-dom";
 import {
-  useAddCategoryMutation,
-  useGetCategoryQuery,
-  useUpdateCategoryMutation,
-} from "store/services/spheres";
-import { ICategory } from "types/spheres.types";
+  useAddHabitsCategoryMutation,
+  useGetHabitsCategoryQuery,
+  useUpdateHabitsCategoryMutation,
+} from "store/services/habitsCategories";
+import { IHabitsCategory } from "types/habitsCategories.types";
 import routes from "config/routes";
 import TextArea from "antd/es/input/TextArea";
 import { useEffect, useState } from "react";
@@ -19,33 +19,29 @@ const formInitialValues = {
   relatedAims: [],
 };
 
-const AddEditCategory = () => {
+const AddEditHabitsCategory = () => {
   const [form] = Form.useForm();
   const navigate = useNavigate();
-  let { categoryId } = useParams();
-  const [addCategory] = useAddCategoryMutation();
-  const [updateCategory] = useUpdateCategoryMutation();
-  const categoryDetails = useGetCategoryQuery(categoryId);
+  let { habitsCategoryId } = useParams();
+  const [addHabitsCategory] = useAddHabitsCategoryMutation();
+  const [updateHabitsCategory] = useUpdateHabitsCategoryMutation();
+  const habitsCategoryDetails = useGetHabitsCategoryQuery(habitsCategoryId);
   const habitData = useGetHabitListQuery();
   const aimsData = useGetAimsListQuery();
 
   const [currentHabitsKeys, setCurrentHabitsKeys] = useState<string[]>([]);
   const [selectedHabitsKeys, setSelectedHabitsKeys] = useState<string[]>([]);
   const [notSelectedHabits, setNotSelectedHabits] = useState<any[]>([]);
-  const [currentAimsKeys, setCurrentAimsKeys] = useState<string[]>([]);
-  const [selectedAimsKeys, setSelectedAimsKeys] = useState<string[]>([]);
-  const [notSelectedAims, setNotSelectedAims] = useState<any[]>([]);
 
   useEffect(() => {
-    if (categoryDetails) {
-      if (categoryDetails.data && categoryDetails.data) {
-        console.log(categoryDetails.data);
-        form.setFieldsValue(categoryDetails.data);
-        setCurrentHabitsKeys(categoryDetails.data.relatedHabits);
-        setCurrentAimsKeys(categoryDetails.data.relatedAims);
+    if (habitsCategoryDetails) {
+      if (habitsCategoryDetails.data && habitsCategoryDetails.data) {
+        console.log(habitsCategoryDetails.data);
+        form.setFieldsValue(habitsCategoryDetails.data);
+        setCurrentHabitsKeys(habitsCategoryDetails.data.relatedHabits);
       }
     }
-  }, [categoryDetails, form]);
+  }, [habitsCategoryDetails, form]);
 
   useEffect(() => {
     console.log(selectedHabitsKeys, notSelectedHabits);
@@ -53,7 +49,6 @@ const AddEditCategory = () => {
 
   useEffect(() => {
     const allHabits = [];
-    const allAims = [];
 
     if (habitData && habitData.data && habitData.data.length) {
       for (let i = 0; i < habitData?.data?.length; i++) {
@@ -66,18 +61,6 @@ const AddEditCategory = () => {
       }
 
       setNotSelectedHabits(allHabits);
-    }
-    if (aimsData && aimsData.data && aimsData.data.length) {
-      for (let i = 0; i < aimsData?.data?.length; i++) {
-        const data = {
-          key: aimsData?.data[i].id,
-          title: aimsData?.data[i].title,
-        };
-
-        allAims.push(data);
-      }
-
-      setNotSelectedAims(allAims);
     }
   }, [habitData, aimsData, form]);
 
@@ -92,32 +75,21 @@ const AddEditCategory = () => {
     setSelectedHabitsKeys([...sourceSelectedKeys, ...targetSelectedKeys]);
   };
 
-  const onAimsTransferChange = (nextTargetKeys: string[]) => {
-    setCurrentAimsKeys(nextTargetKeys);
-  };
-
-  const onAimsTransferSelectChange = (
-    sourceSelectedKeys: string[],
-    targetSelectedKeys: string[]
-  ) => {
-    setSelectedAimsKeys([...sourceSelectedKeys, ...targetSelectedKeys]);
-  };
-
-  const onFinish = async (newCategoryData: ICategory) => {
-    if (categoryId) {
-      const categoryToUpdate = {
-        id: categoryId,
-        data: newCategoryData,
+  const onFinish = async (newHabitsCategoryData: IHabitsCategory) => {
+    if (habitsCategoryId) {
+      const habitsCategoryToUpdate = {
+        id: habitsCategoryId,
+        data: newHabitsCategoryData,
         path: "",
       };
-      console.log(newCategoryData);
-      await updateCategory(categoryToUpdate).unwrap();
+      console.log(newHabitsCategoryData);
+      await updateHabitsCategory(habitsCategoryToUpdate).unwrap();
     } else {
-      console.log(newCategoryData, 333);
-      await addCategory(newCategoryData);
+      console.log(newHabitsCategoryData, 333);
+      await addHabitsCategory(newHabitsCategoryData);
     }
 
-    navigate(routes.lifeCategories.list);
+    navigate(routes.spheres.list);
     navigate(0);
   };
 
@@ -151,25 +123,13 @@ const AddEditCategory = () => {
         />
       </Form.Item>
 
-      <Form.Item name="relatedAims" label="Повязані цілі">
-        <Transfer
-          dataSource={notSelectedAims}
-          titles={["Source", "Target"]}
-          targetKeys={currentAimsKeys}
-          selectedKeys={selectedAimsKeys}
-          onChange={onAimsTransferChange}
-          onSelectChange={onAimsTransferSelectChange}
-          render={(item) => item.title}
-        />
-      </Form.Item>
-
       <Form.Item>
         <Button htmlType="submit">
-          {categoryId ? "Записати зміни" : "Додати звичку"}
+          {habitsCategoryId ? "Записати зміни" : "Додати звичку"}
         </Button>
       </Form.Item>
     </Form>
   );
 };
 
-export default AddEditCategory;
+export default AddEditHabitsCategory;
