@@ -8,6 +8,7 @@ export interface IHabitData {
   description?: string;
   complexity?: number;
   habitsCategoryId?: string;
+  sphereId?: string;
   measure?: string;
   active?: boolean;
   minToComplete?: number;

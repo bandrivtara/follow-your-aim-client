@@ -15,7 +15,7 @@ const tableConfigs: ColDef[] = [
   {
     headerName: "Опис",
     field: "description",
-    minWidth: 500,
+    flex: 1,
   },
   {
     headerName: "Повязані звички",

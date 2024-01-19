@@ -29,6 +29,7 @@ import { DefaultOptionType } from "antd/es/select";
 import { useGetHabitListQuery } from "store/services/habits";
 import { useWatch } from "antd/es/form/Form";
 import { useGetTaskGroupListQuery } from "store/services/taskGroups";
+import { useGetSpheresListQuery } from "store/services/spheres";
 
 interface ICascaderOption {
   value: string;
@@ -43,6 +44,7 @@ const formInitialValues: IAim = {
   dateFrom: "",
   dateTo: "",
   aimsCategoryId: "",
+  sphereId: "",
   progress: 0,
   complexity: 1,
   value: "",
@@ -65,8 +67,7 @@ const AddEditAim = () => {
   const [updateAim] = useUpdateAimMutation();
   const aimDetails = useGetAimQuery(aimId);
   const aimsCategories = useGetAimsCategoriesListQuery();
-  const [categories, setCategories] = useState<IAimsCategory[]>([]);
-  const [updateAimsCategory] = useUpdateAimsCategoryMutation();
+  const spheres = useGetSpheresListQuery();
   const relatedHabit = useWatch("relatedHabit", form);
   useWatch("relatedList", form);
 
@@ -210,6 +211,19 @@ const AddEditAim = () => {
             ))}
           <Select.Option key={"no-category"} value={""}>
             Без категорії
+          </Select.Option>
+        </Select>
+      </Form.Item>
+      <Form.Item label="Сфера" name="sphereId">
+        <Select placeholder="Виберіть сферу">
+          {spheres.data &&
+            spheres.data.map((sphere) => (
+              <Select.Option key={sphere.id} value={sphere.id}>
+                {sphere.title}
+              </Select.Option>
+            ))}
+          <Select.Option key={"no-sphere"} value={""}>
+            Без сфери
           </Select.Option>
         </Select>
       </Form.Item>

@@ -1,7 +1,6 @@
 import { Form, Input, Button, Transfer } from "antd";
 import { useNavigate, useParams } from "react-router-dom";
 import {
-  useAddAimsCategoryMutation,
   useGetAimsCategoryQuery,
   useUpdateAimsCategoryMutation,
 } from "store/services/aimsCategories";
@@ -21,7 +20,6 @@ const AddEditAimsCategory = () => {
   const [form] = Form.useForm();
   const navigate = useNavigate();
   let { aimsCategoryId } = useParams();
-  const [addAimsCategory] = useAddAimsCategoryMutation();
   const [updateAimsCategory] = useUpdateAimsCategoryMutation();
   const [updateAim] = useUpdateAimMutation();
   const aimsCategoryDetails = useGetAimsCategoryQuery(aimsCategoryId);
@@ -32,16 +30,11 @@ const AddEditAimsCategory = () => {
   const [notSelectedAims, setNotSelectedAims] = useState<any[]>([]);
 
   useEffect(() => {
-    if (aimsCategoryDetails.data && aimData.data) {
+    if (aimData.data) {
       const relatedAims = aimData.data
         .filter((aim) => aim.aimsCategoryId === aimsCategoryId)
         .map((aim) => aim.id);
 
-      form.setFieldsValue(aimsCategoryDetails.data);
-      setCurrentAimsKeys(relatedAims);
-    }
-
-    if (aimData.data) {
       const allAims = [];
       for (let i = 0; i < aimData?.data?.length; i++) {
         const data = {
@@ -51,8 +44,13 @@ const AddEditAimsCategory = () => {
 
         allAims.push(data);
       }
-      console.log(allAims);
+
+      setCurrentAimsKeys(relatedAims);
       setNotSelectedAims(allAims);
+    }
+
+    if (aimsCategoryDetails.data) {
+      form.setFieldsValue(aimsCategoryDetails.data);
     }
   }, [aimsCategoryDetails, form, aimData.data, aimsCategoryId]);
 
@@ -75,7 +73,6 @@ const AddEditAimsCategory = () => {
       path: "",
     };
     await updateAimsCategory(aimsCategoryToUpdate).unwrap();
-
     await Promise.all(
       currentAimsKeys.map(async (aimId) => {
         const aimToUpdate = {

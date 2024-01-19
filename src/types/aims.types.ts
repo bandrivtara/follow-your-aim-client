@@ -8,6 +8,7 @@ export interface IAim {
   description: string;
   complexity: number;
   aimsCategoryId?: string;
+  sphereId?: string;
   dateFrom: string;
   dateTo: string;
   progress: number;

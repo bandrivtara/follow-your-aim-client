@@ -1,7 +1,6 @@
 import { Form, Input, Button, Transfer } from "antd";
 import { useNavigate, useParams } from "react-router-dom";
 import {
-  useAddHabitsCategoryMutation,
   useGetHabitsCategoryQuery,
   useUpdateHabitsCategoryMutation,
 } from "store/services/habitsCategories";
@@ -25,7 +24,6 @@ const AddEditHabitsCategory = () => {
   const [form] = Form.useForm();
   const navigate = useNavigate();
   let { habitsCategoryId } = useParams();
-  const [addHabitsCategory] = useAddHabitsCategoryMutation();
   const [updateHabitsCategory] = useUpdateHabitsCategoryMutation();
   const [updateHabit] = useUpdateHabitMutation();
   const habitsCategoryDetails = useGetHabitsCategoryQuery(habitsCategoryId);
@@ -84,7 +82,7 @@ const AddEditHabitsCategory = () => {
       currentHabitsKeys.map(async (habitId) => {
         const habitToUpdate = {
           id: habitId,
-          data: { habitsCategoryId },
+          data: { habitsCategoryId: currentId },
           path: "",
         };
         await updateHabit(habitToUpdate);

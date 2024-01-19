@@ -32,6 +32,7 @@ import { useWatch } from "antd/es/form/Form";
 import StyledAddEditHabit from "./AddEditHabit.styled";
 import { useGetHabitsCategoriesListQuery } from "store/services/habitsCategories";
 import _ from "lodash";
+import { useGetSpheresListQuery } from "store/services/spheres";
 
 const formInitialValues = {
   title: "",
@@ -43,16 +44,17 @@ const formInitialValues = {
   scheduleTime: "",
   isHidden: false,
   habitsCategoryId: "",
+  sphereId: "",
 };
 
 const AddEditHabit = () => {
   const [form] = Form.useForm();
-  const navigate = useNavigate();
   let { habitId } = useParams();
   const [addHabit] = useAddHabitMutation();
   const [updateHabit] = useUpdateHabitMutation();
   const habitDetails = useGetHabitQuery(habitId);
   const habitsCategories = useGetHabitsCategoriesListQuery();
+  const spheres = useGetSpheresListQuery();
 
   const currentFields = useWatch("fields", form);
 
@@ -121,6 +123,19 @@ const AddEditHabit = () => {
               ))}
             <Select.Option key={"no-category"} value={""}>
               Без категорії
+            </Select.Option>
+          </Select>
+        </Form.Item>
+        <Form.Item label="Сфера" name="sphereId">
+          <Select placeholder="Виберіть сферу">
+            {spheres.data &&
+              spheres.data.map((sphere) => (
+                <Select.Option key={sphere.id} value={sphere.id}>
+                  {sphere.title}
+                </Select.Option>
+              ))}
+            <Select.Option key={"no-sphere"} value={""}>
+              Без сфери
             </Select.Option>
           </Select>
         </Form.Item>

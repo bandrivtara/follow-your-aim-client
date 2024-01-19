@@ -1,10 +1,10 @@
 import {
   collection,
   doc,
-  updateDoc,
   getDocs,
   addDoc,
   getDoc,
+  setDoc,
 } from "firebase/firestore";
 import { ISphere, ISphereData } from "../../types/spheres.types";
 import { api, db } from "../api";
@@ -71,8 +71,7 @@ export const spheresFirestoreApi = api.injectEndpoints({
     updateSphere: builder.mutation({
       async queryFn(spheresDetails) {
         try {
-          console.log(spheresDetails, 555);
-          await updateDoc(
+          await setDoc(
             doc(db, "spheres", spheresDetails.id),
             spheresDetails.data
           );
