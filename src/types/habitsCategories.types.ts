@@ -7,5 +7,4 @@ export interface IHabitsCategory {
   title: string;
   description: string;
   relatedHabits: string[];
-  relatedAims: string[];
 }

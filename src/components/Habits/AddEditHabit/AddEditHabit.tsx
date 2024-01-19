@@ -32,6 +32,7 @@ import { useWatch } from "antd/es/form/Form";
 import StyledAddEditHabit from "./AddEditHabit.styled";
 import { IHabitsCategory } from "types/habitsCategories.types";
 import { useGetHabitsCategoriesListQuery } from "store/services/habitsCategories";
+import _ from "lodash";
 
 const formInitialValues = {
   title: "",
@@ -42,6 +43,7 @@ const formInitialValues = {
   minToComplete: 0,
   scheduleTime: "",
   isHidden: false,
+  habitsCategoryId: "",
 };
 
 const AddEditHabit = () => {
@@ -52,16 +54,15 @@ const AddEditHabit = () => {
   const [updateHabit] = useUpdateHabitMutation();
   const habitDetails = useGetHabitQuery(habitId);
   const habitsCategoriesData = useGetHabitsCategoriesListQuery();
+
   const [habitsCategories, setHabitHabitsCategories] = useState<
     IHabitsCategory[]
   >([]);
   const currentFields = useWatch("fields", form);
 
   useEffect(() => {
-    if (habitDetails.data) {
-      form.setFieldsValue(habitDetails.data);
-    }
-  }, [habitDetails, form]);
+    form.setFieldsValue(habitDetails.data);
+  }, [habitDetails, form, habitsCategoriesData?.data]);
 
   useEffect(() => {
     if (habitsCategoriesData?.data) {
@@ -82,35 +83,10 @@ const AddEditHabit = () => {
         id: habitId,
         data: newHabitData,
       };
-      console.log(habitToUpdate);
       await updateHabit(habitToUpdate).unwrap();
     } else {
       await addHabit(newHabitData);
     }
-    // if (newHabitData.category) {
-    //   await Promise.all(
-    //     newHabitData.category.map(async (category) => {
-    //       const currentCategoryData = habitsCategories.find(
-    //         (sphere) => sphere.id === category
-    //       );
-    //       if (
-    //         habitId &&
-    //         currentCategoryData?.relatedHabits &&
-    //         !currentCategoryData?.relatedHabits.includes(habitId)
-    //       ) {
-    //         const sphereToUpdate = {
-    //           id: newHabitData.category,
-    //           data: {
-    //             ...currentCategoryData,
-    //             relatedHabits: [...currentCategoryData?.relatedHabits, habitId],
-    //           },
-    //           path: "",
-    //         };
-    //         await updateCategory(sphereToUpdate);
-    //       }
-    //     })
-    //   );
-    // }
 
     // navigate(routes.habit.list);
     // navigate(0);
@@ -145,17 +121,16 @@ const AddEditHabit = () => {
         >
           <Slider min={1} max={10} />
         </Form.Item>
-        <Form.Item
-          rules={[{ required: true }]}
-          name="habitCategory"
-          label="Категорія"
-        >
-          <Select mode="multiple" placeholder="Виберіть категорію">
+        <Form.Item label="Категорія" name="habitsCategoryId">
+          <Select placeholder="Виберіть категорію">
             {habitsCategories.map((category) => (
-              <Select.Option value={category.id}>
+              <Select.Option key={category.id} value={category.id}>
                 {category.title}
               </Select.Option>
             ))}
+            <Select.Option key={"no-category"} value={""}>
+              Без категорії
+            </Select.Option>
           </Select>
         </Form.Item>
         <Form.Item name="scheduleTime" label="Запланований час">

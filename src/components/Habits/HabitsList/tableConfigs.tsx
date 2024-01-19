@@ -1,58 +1,47 @@
-import { ColumnsType } from "antd/es/table";
-import { IHabitData } from "types/habits.types";
 import { Link } from "react-router-dom";
 import routes from "config/routes";
+import { ColDef, ICellRendererParams } from "ag-grid-community";
+import HabitCategoryCellRenderer from "./CellRenderer/HabitCategoryCellRenderer";
+import { IHabitsCategory } from "types/habitsCategories.types";
+import { IHabitData } from "types/habits.types";
 
-const configs: ColumnsType<IHabitData> = [
+const getColDefs = (
+  habitsCategories: IHabitsCategory[]
+): ColDef<IHabitData>[] => [
   {
-    title: "Назва",
-    dataIndex: "title",
-    key: "title",
-    render: (text, habit) => (
-      <Link to={`${routes.habit.edit}/${habit.id}`}>{text}</Link>
+    headerName: "Назва",
+    field: "title",
+    cellRenderer: ({ data, value }: ICellRendererParams) => (
+      <Link to={`${routes.habit.edit}/${data.id}`}>{value}</Link>
     ),
   },
   {
-    title: "Опис",
-    dataIndex: "description",
-    key: "description",
+    headerName: "Опис",
+    field: "description",
+    flex: 1,
   },
   {
-    title: "Складність",
-    dataIndex: "complexity",
-    key: "complexity",
+    headerName: "Категорія",
+    field: "category",
+    cellRenderer: HabitCategoryCellRenderer,
+    cellRendererParams: {
+      habitsCategories,
+    },
+    flex: 1,
   },
   {
-    title: "Категорія",
-    dataIndex: "category",
-    key: "category",
+    headerName: "Тип звички",
+    field: "valueType",
+    flex: 1,
   },
   {
-    title: "Тип звички",
-    dataIndex: "valueType",
-    key: "valueType",
-  },
-  {
-    title: "Мінімум для виконання",
-    dataIndex: "minToComplete",
-    key: "minToComplete",
-  },
-  {
-    title: "Міра значення",
-    dataIndex: "measure",
-    key: "measure",
-  },
-  {
-    title: "Створено",
-    dataIndex: "createAt",
-    key: "createAt",
-  },
-  {
-    title: "Запланований час",
-    dataIndex: "scheduleTime",
-    key: "scheduleTime",
-    render: (value) => value && `${value[0]}:${value[1]}`,
+    headerName: "Запланований час",
+    field: "scheduleTime",
+    flex: 1,
+    cellRenderer: ({ value }: any) => value && `${value[0]}:${value[1]}`,
   },
 ];
 
-export default configs;
+const tableConfigs = { getColDefs };
+
+export default tableConfigs;

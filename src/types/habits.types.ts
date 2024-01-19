@@ -7,11 +7,10 @@ export interface IHabitData {
   valueType?: IValueTypes;
   description?: string;
   complexity?: number;
-  category?: string[];
+  habitsCategoryId?: string;
   measure?: string;
   active?: boolean;
   minToComplete?: number;
-  specificId?: string;
   isHidden?: boolean;
   fields?: IHabitField[];
 }
@@ -22,12 +21,6 @@ export interface IHabitField {
   minToComplete: number;
   unit: string;
   orderIndex: number;
-}
-
-interface IHabitHistory {
-  [year: number]: {
-    [month: number]: IHabitDayData;
-  };
 }
 
 export interface IHabitDayData {

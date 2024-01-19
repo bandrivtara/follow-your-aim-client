@@ -1,32 +1,39 @@
 import { useEffect, useState } from "react";
 import { useGetHabitListQuery } from "store/services/habits";
 import { IHabitData } from "types/habits.types";
-import configs from "./tableConfigs";
-import { Table } from "antd";
-
-interface HabitListItem extends IHabitData {
-  key: React.Key;
-}
+import { Button } from "antd";
+import { useNavigate } from "react-router-dom";
+import routes from "config/routes";
+import { AgGridReact } from "ag-grid-react";
+import tableConfigs from "./tableConfigs";
+import { useGetHabitsCategoriesListQuery } from "store/services/habitsCategories";
+import { ColDef } from "ag-grid-community";
 
 const Habit = () => {
   const { data } = useGetHabitListQuery();
-  const [dataSource, setDataSource] = useState<HabitListItem[]>([]);
+  const habitsCategories = useGetHabitsCategoriesListQuery();
+  const [rowData, setRowData] = useState<IHabitData[]>([]);
+  const [columnDefs, setColumnDefs] = useState<ColDef[]>([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const newData = data?.map((item, index) => ({
-      key: index,
-      ...item,
-      id: item.id || "",
-    }));
-
-    if (newData) {
-      setDataSource(newData);
+    if (habitsCategories.data && data) {
+      const newColumnDefs = tableConfigs.getColDefs(habitsCategories.data);
+      setRowData(data);
+      setColumnDefs(newColumnDefs);
     }
-  }, [data]);
+  }, [data, habitsCategories]);
 
   return (
     <div>
-      <Table columns={configs} dataSource={dataSource} />
+      <Button onClick={() => navigate(routes.habit.add)}>Додати звичку</Button>
+      <div className="ag-theme-material fyi-ag-theme">
+        <AgGridReact
+          rowHeight={30}
+          rowData={rowData}
+          columnDefs={columnDefs}
+        ></AgGridReact>
+      </div>
     </div>
   );
 };

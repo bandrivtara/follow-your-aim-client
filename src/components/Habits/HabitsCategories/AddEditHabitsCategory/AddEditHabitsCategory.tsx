@@ -6,11 +6,12 @@ import {
   useUpdateHabitsCategoryMutation,
 } from "store/services/habitsCategories";
 import { IHabitsCategory } from "types/habitsCategories.types";
-import routes from "config/routes";
 import TextArea from "antd/es/input/TextArea";
 import { useEffect, useState } from "react";
-import { useGetHabitListQuery } from "store/services/habits";
-import { useGetAimsListQuery } from "store/services/aims";
+import {
+  useGetHabitListQuery,
+  useUpdateHabitMutation,
+} from "store/services/habits";
 
 const formInitialValues = {
   title: "",
@@ -25,44 +26,38 @@ const AddEditHabitsCategory = () => {
   let { habitsCategoryId } = useParams();
   const [addHabitsCategory] = useAddHabitsCategoryMutation();
   const [updateHabitsCategory] = useUpdateHabitsCategoryMutation();
+  const [updateHabit] = useUpdateHabitMutation();
   const habitsCategoryDetails = useGetHabitsCategoryQuery(habitsCategoryId);
   const habitData = useGetHabitListQuery();
-  const aimsData = useGetAimsListQuery();
 
   const [currentHabitsKeys, setCurrentHabitsKeys] = useState<string[]>([]);
   const [selectedHabitsKeys, setSelectedHabitsKeys] = useState<string[]>([]);
   const [notSelectedHabits, setNotSelectedHabits] = useState<any[]>([]);
 
   useEffect(() => {
-    if (habitsCategoryDetails) {
+    if (habitsCategoryDetails && habitData.data) {
       if (habitsCategoryDetails.data && habitsCategoryDetails.data) {
-        console.log(habitsCategoryDetails.data);
         form.setFieldsValue(habitsCategoryDetails.data);
-        setCurrentHabitsKeys(habitsCategoryDetails.data.relatedHabits);
+
+        const relatedHabits = habitData.data
+          .filter((habit) => habit.habitsCategoryId === habitsCategoryId)
+          .map((habit) => habit.id);
+
+        const allHabits = [];
+        for (let i = 0; i < habitData?.data?.length; i++) {
+          const data = {
+            key: habitData?.data[i].id,
+            title: habitData?.data[i].title,
+          };
+
+          allHabits.push(data);
+        }
+
+        setNotSelectedHabits(allHabits);
+        setCurrentHabitsKeys(relatedHabits);
       }
     }
-  }, [habitsCategoryDetails, form]);
-
-  useEffect(() => {
-    console.log(selectedHabitsKeys, notSelectedHabits);
-  }, [notSelectedHabits, selectedHabitsKeys]);
-
-  useEffect(() => {
-    const allHabits = [];
-
-    if (habitData && habitData.data && habitData.data.length) {
-      for (let i = 0; i < habitData?.data?.length; i++) {
-        const data = {
-          key: habitData?.data[i].id,
-          title: habitData?.data[i].title,
-        };
-
-        allHabits.push(data);
-      }
-
-      setNotSelectedHabits(allHabits);
-    }
-  }, [habitData, aimsData, form]);
+  }, [habitsCategoryDetails, form, habitData.data, habitsCategoryId]);
 
   const onHabitsTransferChange = (nextTargetKeys: string[]) => {
     setCurrentHabitsKeys(nextTargetKeys);
@@ -76,6 +71,18 @@ const AddEditHabitsCategory = () => {
   };
 
   const onFinish = async (newHabitsCategoryData: IHabitsCategory) => {
+    console.log(currentHabitsKeys);
+    await Promise.all(
+      currentHabitsKeys.map(async (habitId) => {
+        const habitToUpdate = {
+          id: habitId,
+          data: { habitsCategoryId },
+          path: "",
+        };
+        await updateHabit(habitToUpdate);
+      })
+    );
+
     if (habitsCategoryId) {
       const habitsCategoryToUpdate = {
         id: habitsCategoryId,
@@ -89,8 +96,8 @@ const AddEditHabitsCategory = () => {
       await addHabitsCategory(newHabitsCategoryData);
     }
 
-    navigate(routes.spheres.list);
-    navigate(0);
+    // navigate(routes.habit.categories.list);
+    // navigate(0);
   };
 
   return (
@@ -111,7 +118,7 @@ const AddEditHabitsCategory = () => {
         <TextArea rows={2} />
       </Form.Item>
 
-      <Form.Item name="relatedHabits" label="Повязані активності">
+      <Form.Item label="Повязані активності">
         <Transfer
           dataSource={notSelectedHabits}
           titles={["Source", "Target"]}
@@ -125,7 +132,7 @@ const AddEditHabitsCategory = () => {
 
       <Form.Item>
         <Button htmlType="submit">
-          {habitsCategoryId ? "Записати зміни" : "Додати звичку"}
+          {habitsCategoryId ? "Записати зміни" : "Додати категорію"}
         </Button>
       </Form.Item>
     </Form>
