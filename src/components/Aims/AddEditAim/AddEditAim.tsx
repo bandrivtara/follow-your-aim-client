@@ -42,7 +42,7 @@ const formInitialValues: IAim = {
   description: "",
   dateFrom: "",
   dateTo: "",
-  category: "",
+  aimsCategoryId: "",
   progress: 0,
   complexity: 1,
   value: "",
@@ -64,7 +64,7 @@ const AddEditAim = () => {
   const [addAim] = useAddAimMutation();
   const [updateAim] = useUpdateAimMutation();
   const aimDetails = useGetAimQuery(aimId);
-  const categoriesData = useGetAimsCategoriesListQuery();
+  const aimsCategories = useGetAimsCategoriesListQuery();
   const [categories, setCategories] = useState<IAimsCategory[]>([]);
   const [updateAimsCategory] = useUpdateAimsCategoryMutation();
   const relatedHabit = useWatch("relatedHabit", form);
@@ -108,12 +108,6 @@ const AddEditAim = () => {
     }
   }, [aimDetails, form]);
 
-  useEffect(() => {
-    if (categoriesData && categoriesData.data) {
-      setCategories(categoriesData.data);
-    }
-  }, [categoriesData]);
-
   const onFinish = async (newAimData: IAim) => {
     const data = {
       ...newAimData,
@@ -130,32 +124,11 @@ const AddEditAim = () => {
         data,
         path: "",
       };
-      console.log(newAimData, 123);
       await updateAim(aimToUpdate).unwrap();
     } else {
       await addAim(data);
       console.log(newAimData, 123);
     }
-
-    // const currentCategoryData = categories.find(
-    //   (sphere) => sphere.id === newAimData.category
-    // );
-    // if (
-    //   aimId &&
-    //   currentCategoryData?.relatedHabits &&
-    //   !currentCategoryData?.relatedHabits.includes(aimId)
-    // ) {
-    //   const sphereToUpdate = {
-    //     id: newAimData.category,
-    //     data: {
-    //       ...currentCategoryData,
-    //       relatedHabits: [...currentCategoryData?.relatedHabits, aimId],
-    //     },
-    //     path: "",
-    //   };
-    //   console.log(sphereToUpdate);
-    // await updateCategory(sphereToUpdate);
-    // }
 
     // navigate(routes.aims.list);
     // navigate(0);
@@ -227,6 +200,20 @@ const AddEditAim = () => {
         <TextArea rows={2} />
       </Form.Item>
 
+      <Form.Item label="Категорія" name="aimsCategoryId">
+        <Select placeholder="Виберіть категорію">
+          {aimsCategories.data &&
+            aimsCategories.data.map((aim) => (
+              <Select.Option key={aim.id} value={aim.id}>
+                {aim.title}
+              </Select.Option>
+            ))}
+          <Select.Option key={"no-category"} value={""}>
+            Без категорії
+          </Select.Option>
+        </Select>
+      </Form.Item>
+
       <Form.Item
         rules={[{ required: true }]}
         name="complexity"
@@ -241,14 +228,6 @@ const AddEditAim = () => {
 
       <Form.Item name="dateTo" label="До...">
         <DatePicker />
-      </Form.Item>
-
-      <Form.Item name="category" label="Категорія">
-        <Select placeholder="Виберіть категорію">
-          {categories.map((sphere) => (
-            <Select.Option value={sphere.id}>{sphere.title}</Select.Option>
-          ))}
-        </Select>
       </Form.Item>
 
       <Form.Item rules={[{ required: true }]} name="aimType" label="Тип">

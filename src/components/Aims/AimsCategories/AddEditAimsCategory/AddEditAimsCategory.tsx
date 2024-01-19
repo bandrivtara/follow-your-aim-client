@@ -6,59 +6,55 @@ import {
   useUpdateAimsCategoryMutation,
 } from "store/services/aimsCategories";
 import { IAimsCategory } from "types/aimsCategories.types";
-import routes from "config/routes";
 import TextArea from "antd/es/input/TextArea";
 import { useEffect, useState } from "react";
-import { useGetHabitListQuery } from "store/services/habits";
-import { useGetAimsListQuery } from "store/services/aims";
+import { useGetAimsListQuery, useUpdateAimMutation } from "store/services/aims";
+import uniqid from "uniqid";
 
 const formInitialValues = {
   title: "",
   description: "",
-  relatedHabits: [],
   relatedAims: [],
 };
 
 const AddEditAimsCategory = () => {
   const [form] = Form.useForm();
   const navigate = useNavigate();
-  let { categoryId } = useParams();
+  let { aimsCategoryId } = useParams();
   const [addAimsCategory] = useAddAimsCategoryMutation();
   const [updateAimsCategory] = useUpdateAimsCategoryMutation();
-  const categoryDetails = useGetAimsCategoryQuery(categoryId);
-  const habitData = useGetHabitListQuery();
-  const aimsData = useGetAimsListQuery();
+  const [updateAim] = useUpdateAimMutation();
+  const aimsCategoryDetails = useGetAimsCategoryQuery(aimsCategoryId);
+  const aimData = useGetAimsListQuery();
 
   const [currentAimsKeys, setCurrentAimsKeys] = useState<string[]>([]);
   const [selectedAimsKeys, setSelectedAimsKeys] = useState<string[]>([]);
   const [notSelectedAims, setNotSelectedAims] = useState<any[]>([]);
 
   useEffect(() => {
-    if (categoryDetails) {
-      if (categoryDetails.data && categoryDetails.data) {
-        console.log(categoryDetails.data);
-        form.setFieldsValue(categoryDetails.data);
-        setCurrentAimsKeys(categoryDetails.data.relatedAims);
-      }
+    if (aimsCategoryDetails.data && aimData.data) {
+      const relatedAims = aimData.data
+        .filter((aim) => aim.aimsCategoryId === aimsCategoryId)
+        .map((aim) => aim.id);
+
+      form.setFieldsValue(aimsCategoryDetails.data);
+      setCurrentAimsKeys(relatedAims);
     }
-  }, [categoryDetails, form]);
 
-  useEffect(() => {
-    const allAims = [];
-
-    if (aimsData && aimsData.data && aimsData.data.length) {
-      for (let i = 0; i < aimsData?.data?.length; i++) {
+    if (aimData.data) {
+      const allAims = [];
+      for (let i = 0; i < aimData?.data?.length; i++) {
         const data = {
-          key: aimsData?.data[i].id,
-          title: aimsData?.data[i].title,
+          key: aimData?.data[i].id,
+          title: aimData?.data[i].title,
         };
 
         allAims.push(data);
       }
-
+      console.log(allAims);
       setNotSelectedAims(allAims);
     }
-  }, [habitData, aimsData, form]);
+  }, [aimsCategoryDetails, form, aimData.data, aimsCategoryId]);
 
   const onAimsTransferChange = (nextTargetKeys: string[]) => {
     setCurrentAimsKeys(nextTargetKeys);
@@ -72,21 +68,27 @@ const AddEditAimsCategory = () => {
   };
 
   const onFinish = async (newAimsCategoryData: IAimsCategory) => {
-    if (categoryId) {
-      const categoryToUpdate = {
-        id: categoryId,
-        data: newAimsCategoryData,
-        path: "",
-      };
-      console.log(newAimsCategoryData);
-      await updateAimsCategory(categoryToUpdate).unwrap();
-    } else {
-      console.log(newAimsCategoryData, 333);
-      await addAimsCategory(newAimsCategoryData);
-    }
+    const currentId = aimsCategoryId || uniqid();
+    const aimsCategoryToUpdate = {
+      id: currentId,
+      data: newAimsCategoryData,
+      path: "",
+    };
+    await updateAimsCategory(aimsCategoryToUpdate).unwrap();
 
-    navigate(routes.spheres.list);
-    navigate(0);
+    await Promise.all(
+      currentAimsKeys.map(async (aimId) => {
+        const aimToUpdate = {
+          id: aimId,
+          data: { aimsCategoryId: currentId },
+          path: "",
+        };
+        await updateAim(aimToUpdate);
+      })
+    );
+
+    // navigate(routes.aim.categories.list);
+    // navigate(0);
   };
 
   return (
@@ -107,7 +109,7 @@ const AddEditAimsCategory = () => {
         <TextArea rows={2} />
       </Form.Item>
 
-      <Form.Item name="relatedAims" label="Повязані цілі">
+      <Form.Item label="Повязані ">
         <Transfer
           dataSource={notSelectedAims}
           titles={["Source", "Target"]}
@@ -121,7 +123,7 @@ const AddEditAimsCategory = () => {
 
       <Form.Item>
         <Button htmlType="submit">
-          {categoryId ? "Записати зміни" : "Додати звичку"}
+          {aimsCategoryId ? "Записати зміни" : "Додати категорію"}
         </Button>
       </Form.Item>
     </Form>

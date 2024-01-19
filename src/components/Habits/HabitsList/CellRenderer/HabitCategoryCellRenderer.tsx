@@ -9,9 +9,7 @@ interface IHabitCategoryCellRenderer extends ICellRendererParams<IHabitData> {
 }
 
 const HabitCategoryCellRenderer = ({
-  value,
   data,
-  colDef,
   habitsCategories,
 }: IHabitCategoryCellRenderer) => {
   const [habitCategory, setHabitCategory] = useState("");

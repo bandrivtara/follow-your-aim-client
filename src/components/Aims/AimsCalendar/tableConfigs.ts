@@ -67,7 +67,7 @@ const getRows = (allAims: IAimData[] | undefined) => {
     const row = {
       [`col-${dayjs(aim.dateFrom).year()}-${dayjs(aim.dateFrom).month()}`]:
         aim.title,
-      "aim-names-col": aim.category,
+      "aim-names-col": aim.aimsCategoryId,
       colName: `col-${dayjs(aim.dateFrom).year()}-${dayjs(
         aim.dateFrom
       ).month()}`,
@@ -77,7 +77,7 @@ const getRows = (allAims: IAimData[] | undefined) => {
 
     if (
       rows[0] &&
-      rows.some((row: any) => row["aim-names-col"] === aim.category)
+      rows.some((row: any) => row["aim-names-col"] === aim.aimsCategoryId)
     ) {
       delete row["aim-names-col"];
     }

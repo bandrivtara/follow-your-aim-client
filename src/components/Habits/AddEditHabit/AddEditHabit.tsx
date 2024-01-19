@@ -20,7 +20,7 @@ import {
 } from "store/services/habits";
 import { IHabitData } from "types/habits.types";
 import TextArea from "antd/es/input/TextArea";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import {
   ClockCircleOutlined,
   MinusCircleOutlined,
@@ -30,7 +30,6 @@ import {
 import { getTimeOptions } from "share/functions/getTimeOptions";
 import { useWatch } from "antd/es/form/Form";
 import StyledAddEditHabit from "./AddEditHabit.styled";
-import { IHabitsCategory } from "types/habitsCategories.types";
 import { useGetHabitsCategoriesListQuery } from "store/services/habitsCategories";
 import _ from "lodash";
 
@@ -53,22 +52,13 @@ const AddEditHabit = () => {
   const [addHabit] = useAddHabitMutation();
   const [updateHabit] = useUpdateHabitMutation();
   const habitDetails = useGetHabitQuery(habitId);
-  const habitsCategoriesData = useGetHabitsCategoriesListQuery();
+  const habitsCategories = useGetHabitsCategoriesListQuery();
 
-  const [habitsCategories, setHabitHabitsCategories] = useState<
-    IHabitsCategory[]
-  >([]);
   const currentFields = useWatch("fields", form);
 
   useEffect(() => {
     form.setFieldsValue(habitDetails.data);
-  }, [habitDetails, form, habitsCategoriesData?.data]);
-
-  useEffect(() => {
-    if (habitsCategoriesData?.data) {
-      setHabitHabitsCategories(habitsCategoriesData.data);
-    }
-  }, [habitsCategoriesData]);
+  }, [habitDetails, form, habitsCategories?.data]);
 
   const formItemLayoutWithOutLabel = {
     wrapperCol: {
@@ -123,11 +113,12 @@ const AddEditHabit = () => {
         </Form.Item>
         <Form.Item label="Категорія" name="habitsCategoryId">
           <Select placeholder="Виберіть категорію">
-            {habitsCategories.map((category) => (
-              <Select.Option key={category.id} value={category.id}>
-                {category.title}
-              </Select.Option>
-            ))}
+            {habitsCategories.data &&
+              habitsCategories.data.map((category) => (
+                <Select.Option key={category.id} value={category.id}>
+                  {category.title}
+                </Select.Option>
+              ))}
             <Select.Option key={"no-category"} value={""}>
               Без категорії
             </Select.Option>

@@ -12,6 +12,7 @@ import {
   useGetHabitListQuery,
   useUpdateHabitMutation,
 } from "store/services/habits";
+import uniqid from "uniqid";
 
 const formInitialValues = {
   title: "",
@@ -36,26 +37,26 @@ const AddEditHabitsCategory = () => {
 
   useEffect(() => {
     if (habitsCategoryDetails && habitData.data) {
-      if (habitsCategoryDetails.data && habitsCategoryDetails.data) {
-        form.setFieldsValue(habitsCategoryDetails.data);
+      form.setFieldsValue(habitsCategoryDetails.data);
 
-        const relatedHabits = habitData.data
-          .filter((habit) => habit.habitsCategoryId === habitsCategoryId)
-          .map((habit) => habit.id);
+      const relatedHabits = habitData.data
+        .filter((habit) => habit.habitsCategoryId === habitsCategoryId)
+        .map((habit) => habit.id);
 
-        const allHabits = [];
-        for (let i = 0; i < habitData?.data?.length; i++) {
-          const data = {
-            key: habitData?.data[i].id,
-            title: habitData?.data[i].title,
-          };
+      setCurrentHabitsKeys(relatedHabits);
+    }
 
-          allHabits.push(data);
-        }
+    if (habitData.data) {
+      const allHabits = [];
+      for (let i = 0; i < habitData?.data?.length; i++) {
+        const data = {
+          key: habitData?.data[i].id,
+          title: habitData?.data[i].title,
+        };
 
-        setNotSelectedHabits(allHabits);
-        setCurrentHabitsKeys(relatedHabits);
+        allHabits.push(data);
       }
+      setNotSelectedHabits(allHabits);
     }
   }, [habitsCategoryDetails, form, habitData.data, habitsCategoryId]);
 
@@ -71,7 +72,14 @@ const AddEditHabitsCategory = () => {
   };
 
   const onFinish = async (newHabitsCategoryData: IHabitsCategory) => {
-    console.log(currentHabitsKeys);
+    const currentId = habitsCategoryId || uniqid();
+    const aimsCategoryToUpdate = {
+      id: currentId,
+      data: newHabitsCategoryData,
+      path: "",
+    };
+    await updateHabitsCategory(aimsCategoryToUpdate).unwrap();
+
     await Promise.all(
       currentHabitsKeys.map(async (habitId) => {
         const habitToUpdate = {
@@ -82,19 +90,6 @@ const AddEditHabitsCategory = () => {
         await updateHabit(habitToUpdate);
       })
     );
-
-    if (habitsCategoryId) {
-      const habitsCategoryToUpdate = {
-        id: habitsCategoryId,
-        data: newHabitsCategoryData,
-        path: "",
-      };
-      console.log(newHabitsCategoryData);
-      await updateHabitsCategory(habitsCategoryToUpdate).unwrap();
-    } else {
-      console.log(newHabitsCategoryData, 333);
-      await addHabitsCategory(newHabitsCategoryData);
-    }
 
     // navigate(routes.habit.categories.list);
     // navigate(0);

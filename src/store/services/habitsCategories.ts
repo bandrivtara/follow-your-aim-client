@@ -1,10 +1,10 @@
 import {
   collection,
   doc,
-  updateDoc,
   getDocs,
   addDoc,
   getDoc,
+  setDoc,
 } from "firebase/firestore";
 import {
   IHabitsCategory,
@@ -81,8 +81,7 @@ export const habitsCategoriesFirestoreApi = api.injectEndpoints({
     updateHabitsCategory: builder.mutation({
       async queryFn(habitsCategoriesDetails) {
         try {
-          console.log(habitsCategoriesDetails, 555);
-          await updateDoc(
+          await setDoc(
             doc(db, "habitsCategories", habitsCategoriesDetails.id),
             habitsCategoriesDetails.data
           );

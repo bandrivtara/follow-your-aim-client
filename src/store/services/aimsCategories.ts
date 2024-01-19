@@ -5,6 +5,7 @@ import {
   getDocs,
   addDoc,
   getDoc,
+  setDoc,
 } from "firebase/firestore";
 import {
   IAimsCategory,
@@ -39,7 +40,7 @@ export const aimsCategoriesFirestoreApi = api.injectEndpoints({
     getAimsCategory: builder.query({
       async queryFn(aimsCategoriesId) {
         try {
-          const aimsCategoriesRef = doc(db, "sphere", aimsCategoriesId);
+          const aimsCategoriesRef = doc(db, "aimsCategories", aimsCategoriesId);
           const aimsCategoriesSnapshot = await getDoc(aimsCategoriesRef);
           if (aimsCategoriesSnapshot.exists()) {
             return {
@@ -62,7 +63,7 @@ export const aimsCategoriesFirestoreApi = api.injectEndpoints({
     addAimsCategory: builder.mutation({
       async queryFn(aimsCategoriesDetails: IAimsCategory) {
         try {
-          await addDoc(collection(db, "sphere"), aimsCategoriesDetails);
+          await addDoc(collection(db, "aimsCategories"), aimsCategoriesDetails);
           return { data: null };
         } catch (error: any) {
           console.error(error.message);
@@ -74,14 +75,13 @@ export const aimsCategoriesFirestoreApi = api.injectEndpoints({
     updateAimsCategory: builder.mutation({
       async queryFn(aimsCategoriesDetails) {
         try {
-          console.log(aimsCategoriesDetails, 555);
-          await updateDoc(
-            doc(db, "sphere", aimsCategoriesDetails.id),
+          await setDoc(
+            doc(db, "aimsCategories", aimsCategoriesDetails.id),
             aimsCategoriesDetails.data
           );
           return { data: null };
         } catch (error: any) {
-          console.error(error.message);
+          console.error(error.message, 333);
           return { error: error.message };
         }
       },

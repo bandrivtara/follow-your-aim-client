@@ -27,13 +27,15 @@ const Habit = () => {
   return (
     <div>
       <Button onClick={() => navigate(routes.habit.add)}>Додати звичку</Button>
-      <div className="ag-theme-material fyi-ag-theme">
-        <AgGridReact
-          rowHeight={30}
-          rowData={rowData}
-          columnDefs={columnDefs}
-        ></AgGridReact>
-      </div>
+      {data && (
+        <div className="ag-theme-material fyi-ag-theme">
+          <AgGridReact
+            rowHeight={30}
+            rowData={rowData}
+            columnDefs={columnDefs}
+          ></AgGridReact>
+        </div>
+      )}
     </div>
   );
 };

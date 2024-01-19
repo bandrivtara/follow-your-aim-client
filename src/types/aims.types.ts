@@ -7,7 +7,7 @@ export interface IAim {
   title: string;
   description: string;
   complexity: number;
-  category?: string;
+  aimsCategoryId?: string;
   dateFrom: string;
   dateTo: string;
   progress: number;
