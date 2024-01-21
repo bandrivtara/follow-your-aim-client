@@ -13,7 +13,7 @@ const RelatedHabits = ({
   const [relatedHabits, setRelatedHabits] = useState<IHabitData[]>([]);
 
   useEffect(() => {
-    if (!habitData || !habitData.data || !value) return;
+    if (!habitData || !habitData.data) return;
     const currentRelativeHabits = habitData.data.filter(
       (habit) => habit.habitsCategoryId === data?.id
     );
