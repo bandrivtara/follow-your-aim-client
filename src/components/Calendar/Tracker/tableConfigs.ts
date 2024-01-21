@@ -6,12 +6,10 @@ import dayjs, { Dayjs } from "dayjs";
 import { ITrackerCalendarState } from "./TrackerCalendar";
 import _ from "lodash";
 import { IHabitData } from "types/habits.types";
-import {
-  IHabitDayValues,
-  IHistoryData,
-  IHistoryDayRow,
-} from "types/history.types";
-import RowNameRenderer from "./DayCellRenderer/RowNameRenderer";
+import { IHistoryData, IHistoryDayRow } from "types/history.types";
+import RowNameRenderer from "./RowNameRenderer/RowNameRenderer";
+import compareTime from "share/functions/compareTime";
+import { ITaskGroups } from "types/taskGroups";
 
 export interface IHabitRow {
   habitDetails: IHabitData;
@@ -72,53 +70,59 @@ const getColumnDefs = (
 
 const getRows = (
   habitsData: IHabitData[] = [],
-  historyData: IHistoryData,
-  currentDate: (Dayjs | null)[]
+  taskGroupsData: ITaskGroups[] = [],
+  historyData: IHistoryData = {},
+  currentDate: (Dayjs | null)[],
+  rowSortingType: string
 ) => {
   const currentMMYYYY = dayjs(currentDate[0]).format("MM-YYYY");
-  const habits: any = {};
-  habitsData.forEach((item) => {
-    habits[item.id] = item;
+  const rowItems: any = {};
+  // taskGroupsData.forEach((taskGroup) => {
+  //   rowItems[taskGroup.id] = taskGroup;
+  // });
+  console.log(taskGroupsData);
+  const rowsToShow = [...habitsData, ...taskGroupsData];
+  rowsToShow.forEach((rowData) => {
+    rowItems[rowData.id] = rowData;
   });
-
-  // Create an array to hold the transformed objects
+  console.log(rowItems);
   let rows: IHistoryDayRow[] = [];
 
-  // Iterate through each key in the input object
   for (let day in historyData) {
-    // Iterate through each id in the object for the current day
     for (let id in historyData[day]) {
-      // Check if there is already an object with the same id in the rows
-      if (habits && habits[id]) {
+      if (rowItems && rowItems[id] && !rowItems[id].isHidden) {
         let existingObject: any = rows.find((row) => row.id === id);
-
-        // If the object doesn't exist, create a new one
         if (!existingObject) {
           existingObject = {
             id: id,
-            details: habits[id],
+            details: rowItems[id],
             currentDate: currentMMYYYY,
           };
           rows.push(existingObject);
         }
 
-        // Add the value to the existing object under the current day
         existingObject[day] = { ...historyData[day][id] };
       }
     }
   }
 
   if (historyData) {
-    // Include items from habitsData with empty values if they are not present in the historyData
-    habitsData.forEach((habit) => {
-      if (!rows.find((row) => row.id === habit.id)) {
+    rowsToShow.forEach((habit) => {
+      if (!rows.find((row) => row.id === habit.id) && !habit.isHidden) {
         rows.push({
           id: habit.id,
-          details: habits[habit.id],
+          details: rowItems[habit.id],
           currentDate: currentMMYYYY,
         });
       }
     });
+  }
+  if (rowSortingType === "alphabetic") {
+    // @ts-ignore
+    return _.orderBy(rows, [(row) => row.details.title]);
+  } else if (rowSortingType === "schedule-time") {
+    // @ts-ignore
+    return _.orderBy(rows, [(row) => row.details.title]).sort(compareTime);
   }
   return rows;
 };

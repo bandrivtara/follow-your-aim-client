@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-material.css";
@@ -12,6 +12,7 @@ import tableConfigs from "./tableConfigs";
 import useIsMobile from "share/hooks/useIsMobile";
 import { useGetHistoryQuery } from "store/services/history";
 import { IHistoryDayRow } from "types/history.types";
+import { useGetTaskGroupListQuery } from "store/services/taskGroups";
 
 export type ITrackerCalendarState = "tracking" | "planning";
 
@@ -22,6 +23,7 @@ const initConfigs = {
 const TrackerCalendar = () => {
   const isMobile = useIsMobile();
   const habitsData = useGetHabitListQuery();
+  const taskGroupsData = useGetTaskGroupListQuery();
   const gridRef = useRef<AgGridReact>(null);
 
   const [rowData, setRowData] = useState<IHistoryDayRow[]>([]);
@@ -35,6 +37,7 @@ const TrackerCalendar = () => {
   );
 
   const [filteredCategory, setFilteredCategory] = useState("all");
+  const [rowSortingType, setRowSortingType] = useState("schedule-time");
   const [calendarMode, setCurrentMode] =
     useState<ITrackerCalendarState>("tracking");
 
@@ -45,17 +48,26 @@ const TrackerCalendar = () => {
   }, [isMobile]);
 
   useEffect(() => {
-    if (!historyData.data) return;
     const newColumnDefs = tableConfigs.getColumnDefs(currentDate, calendarMode);
     const newRows = tableConfigs.getRows(
       habitsData.data,
+      taskGroupsData.data,
       historyData.data,
-      currentDate
+      currentDate,
+      rowSortingType
     );
-
+    console.log(newRows);
     setColumnDefs(newColumnDefs);
     setRowData(newRows);
-  }, [currentDate, filteredCategory, calendarMode, habitsData, historyData]);
+  }, [
+    currentDate,
+    filteredCategory,
+    calendarMode,
+    habitsData,
+    historyData,
+    rowSortingType,
+    taskGroupsData.data,
+  ]);
 
   return (
     <StyledTrackerCalendar>
@@ -67,6 +79,8 @@ const TrackerCalendar = () => {
         setCurrentDate={setCurrentDate}
         filteredCategory={filteredCategory}
         setFilteredCategory={setFilteredCategory}
+        rowSortingType={rowSortingType}
+        setRowSortingType={setRowSortingType}
       />
       <div className="ag-theme-material fyi-ag-theme">
         <AgGridReact

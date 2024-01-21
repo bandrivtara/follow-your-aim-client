@@ -1,8 +1,8 @@
-export interface ICategoryData extends ICategory {
+export interface ISphereData extends ISphere {
   id: string;
 }
 
-export interface ICategory {
+export interface ISphere {
   id: string;
   title: string;
   description: string;

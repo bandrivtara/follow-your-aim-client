@@ -1,4 +1,4 @@
-export type IValueTypes = "number" | "boolean" | "array" | "duration";
+export type IValueTypes = "number" | "boolean" | "taskGroup" | "duration";
 
 export interface IHabitData {
   id: string;
@@ -7,18 +7,21 @@ export interface IHabitData {
   valueType?: IValueTypes;
   description?: string;
   complexity?: number;
-  category?: string[];
+  habitsCategoryId?: string;
+  sphereId?: string;
   measure?: string;
   active?: boolean;
   minToComplete?: number;
-  specificId?: string;
   isHidden?: boolean;
+  fields?: IHabitField[];
 }
 
-interface IHabitHistory {
-  [year: number]: {
-    [month: number]: IHabitDayData;
-  };
+export interface IHabitField {
+  id: string;
+  name: string;
+  minToComplete: number;
+  unit: string;
+  orderIndex: number;
 }
 
 export interface IHabitDayData {

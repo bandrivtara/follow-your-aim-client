@@ -13,6 +13,8 @@ interface IValue {
   isComplete: boolean;
   isPlanned: boolean;
   plannedValue: any;
+  values: any;
+  plannedValues: any;
   from?: number[];
   to?: number[];
 }
@@ -45,10 +47,20 @@ export const trackerConfigs: TTrackerConfig = {
       <MeasureTracker colDef={colDef} stopEditing={stopEditing} data={data} />
     ),
     cellRenderer: (cell, data) => ({
-      component: <>{cell.value || cell.plannedValue}</>,
+      component: (
+        <>
+          {cell.values?.[data.details.fields[0].id] ||
+            cell.plannedValues?.[data.details.fields[0].id] ||
+            ""}
+        </>
+      ),
       progress:
-        cell.value / (cell.plannedValue || data.details.minToComplete || ""),
-      isPlanned: !!cell.plannedValue,
+        cell?.values &&
+        cell.values[data.details.fields[0].id] /
+          (cell?.plannedValues?.[data.details.fields[0].id] ||
+            data.details.fields[0].minToComplete ||
+            ""),
+      isPlanned: !!cell.plannedValues,
     }),
   },
   boolean: {
@@ -63,7 +75,7 @@ export const trackerConfigs: TTrackerConfig = {
       };
     },
   },
-  array: {
+  taskGroup: {
     cellEditor: ({ colDef, stopEditing, data }) => (
       <ListTracker colDef={colDef} stopEditing={stopEditing} data={data} />
     ),

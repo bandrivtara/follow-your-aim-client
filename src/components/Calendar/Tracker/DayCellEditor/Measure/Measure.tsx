@@ -2,7 +2,6 @@ import { Form, InputNumber } from "antd";
 import { IDayCellEditor } from "../DayCellEditor";
 import { ColDef } from "ag-grid-community";
 import { useEffect, useState } from "react";
-import _ from "lodash";
 import FormButtons from "share/components/Form/FormButtons";
 import { IStopEditing } from "../../DayCellRenderer/trackerConfigs";
 import { useUpdateHistoryMutation } from "store/services/history";
@@ -14,8 +13,8 @@ interface IProps {
 }
 
 interface IFormValues {
-  value: number;
-  plannedValue: number;
+  values: { [fieldId: string]: number };
+  plannedValues: { [fieldId: string]: number };
 }
 
 const MeasureHabit = ({ colDef, stopEditing, data }: IProps) => {
@@ -26,15 +25,32 @@ const MeasureHabit = ({ colDef, stopEditing, data }: IProps) => {
   const { calendarMode } = colDef.cellRendererParams;
 
   useEffect(() => {
-    setInitValues({
-      value:
-        cellData?.value ||
-        cellData?.plannedValue ||
-        data.details.minToComplete ||
-        0,
-      plannedValue: cellData?.plannedValue || data.details.minToComplete || 0,
+    const habitFields: { [fieldId: string]: number } = {};
+    data.details.fields?.forEach((field) => {
+      habitFields[field.id] = field.minToComplete;
     });
-  }, [cellData, data.details.minToComplete]);
+
+    const newInitValues: IFormValues = {
+      values: {},
+      plannedValues: {},
+    };
+
+    for (const [fieldId, minToComplete] of Object.entries(habitFields)) {
+      if (cellData?.values?.[fieldId]) {
+        newInitValues.values[fieldId] = cellData.values[fieldId];
+      } else if (cellData?.plannedValues?.[fieldId]) {
+        newInitValues.values[fieldId] = cellData.plannedValues[fieldId];
+        newInitValues.plannedValues[fieldId] = cellData.plannedValues[fieldId];
+      } else {
+        newInitValues.values[fieldId] = minToComplete || 0;
+        newInitValues.plannedValues[fieldId] = minToComplete || 0;
+      }
+    }
+
+    console.log(newInitValues);
+
+    setInitValues(newInitValues);
+  }, [cellData, data]);
 
   const handleConfirm = async (formValues: IFormValues) => {
     if (colDef.field) {
@@ -43,7 +59,7 @@ const MeasureHabit = ({ colDef, stopEditing, data }: IProps) => {
         data: { ...cellData, ...formValues },
         path: `${colDef.field}.${data.id}`,
       };
-
+      console.log(habitToUpdate);
       await updateHistory(habitToUpdate).unwrap();
       stopEditing();
     }
@@ -88,33 +104,39 @@ const MeasureHabit = ({ colDef, stopEditing, data }: IProps) => {
             prevValues !== currentValues
           }
         >
-          {calendarMode === "tracking" ? (
-            <Form.Item
-              name="value"
-              label="Значення"
-              rules={[{ required: true }]}
-            >
-              <InputNumber
-                onKeyDown={handleKeyUp}
-                autoFocus
-                addonAfter={data.details.measure}
-                min={1}
-              />
-            </Form.Item>
-          ) : (
-            <Form.Item
-              name="plannedValue"
-              label="Запланувати"
-              rules={[{ required: true }]}
-            >
-              <InputNumber
-                onKeyDown={handleKeyUp}
-                autoFocus
-                addonAfter={data.details.measure}
-                min={1}
-              />
-            </Form.Item>
-          )}
+          {calendarMode === "tracking"
+            ? data.details.fields &&
+              data.details.fields.map((field) => (
+                <Form.Item
+                  key={field.id}
+                  name={["values", field.id]}
+                  label={field.name}
+                  initialValue={null}
+                >
+                  <InputNumber
+                    onKeyDown={handleKeyUp}
+                    autoFocus
+                    addonAfter={field.unit}
+                    min={0}
+                  />
+                </Form.Item>
+              ))
+            : data.details.fields &&
+              data.details.fields.map((field) => (
+                <Form.Item
+                  key={field.id}
+                  name={["plannedValues", field.id]}
+                  label={field.name}
+                  initialValue={null}
+                >
+                  <InputNumber
+                    onKeyDown={handleKeyUp}
+                    autoFocus
+                    addonAfter={field.unit}
+                    min={0}
+                  />
+                </Form.Item>
+              ))}
         </Form.Item>
         <Form.Item>
           <FormButtons

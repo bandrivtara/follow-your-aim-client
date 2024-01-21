@@ -9,13 +9,13 @@ const tableConfigs: ColDef[] = [
     headerName: "Назва",
     field: "title",
     cellRenderer: ({ data, value }: ICellRendererParams) => (
-      <Link to={`${routes.lifeCategories.edit}/${data.id}`}>{value}</Link>
+      <Link to={`${routes.spheres.edit}/${data.id}`}>{value}</Link>
     ),
   },
   {
     headerName: "Опис",
     field: "description",
-    minWidth: 500,
+    flex: 1,
   },
   {
     headerName: "Повязані звички",
