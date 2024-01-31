@@ -8,14 +8,15 @@ import Habit from "./Habits/HabitsList/HabitsList";
 import AimsList from "./Aims/AimsList/AimsList";
 import SpheresList from "./Spheres/SpheresList/SpheresList";
 import AddEditSphere from "./Spheres/AddEditSphere/AddEditSphere";
-import TaskGroupsList from "./TaskGroups/TaskGroupsList/TaskGroupsList";
-import AddEditTaskGroup from "./TaskGroups/AddEditTaskGroups/AddEditTaskGroups";
 import TrackerCalendar from "./Calendar/Tracker/TrackerCalendar";
 import AimCalendar from "./Aims/AimsCalendar/AimCalendar";
 import HabitsCategoriesList from "./Habits/HabitsCategories/HabitsCategoriesList/HabitsCategoriesList";
 import AddEditHabitsCategory from "./Habits/HabitsCategories/AddEditHabitsCategory/AddEditHabitsCategory";
 import AddEditAimsCategory from "./Aims/AimsCategories/AddEditAimsCategory/AddEditAimsCategory";
 import AimsCategoriesList from "./Aims/AimsCategories/AimsCategoriesList/AimsCategoriesList";
+import Scheduler from "./Scheduler/Scheduler";
+import TasksGroupsList from "./TasksGroups/TasksGroupsList/TasksGroupsList";
+import AddEditTasksGroup from "./TasksGroups/AddEditTasksGroup/AddEditTasksGroup";
 
 const AppRoutes = () => {
   return (
@@ -24,6 +25,7 @@ const AppRoutes = () => {
         <Routes>
           <Route path={routes.main} element={<Main />} />
 
+          <Route path={routes.calendar.scheduler} element={<Scheduler />} />
           <Route path={routes.calendar.tracker} element={<TrackerCalendar />} />
           <Route path={routes.calendar.aims} element={<AimCalendar />} />
 
@@ -46,11 +48,11 @@ const AppRoutes = () => {
             element={<AddEditHabitsCategory />}
           />
 
-          <Route path={routes.taskGroups.list} element={<TaskGroupsList />} />
-          <Route path={routes.taskGroups.add} element={<AddEditTaskGroup />} />
+          <Route path={routes.taskGroups.list} element={<TasksGroupsList />} />
+          <Route path={routes.taskGroups.add} element={<AddEditTasksGroup />} />
           <Route
             path={`${routes.taskGroups.edit}/:taskGroupId`}
-            element={<AddEditTaskGroup />}
+            element={<AddEditTasksGroup />}
           />
 
           <Route path={routes.aims.list} element={<AimsList />} />

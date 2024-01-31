@@ -5,19 +5,19 @@ import {
   useGetTaskGroupQuery,
   useUpdateTaskGroupMutation,
 } from "store/services/taskGroups";
-import routes from "config/routes";
 import TextArea from "antd/es/input/TextArea";
 import { useEffect } from "react";
-import { ITaskGroups } from "types/taskGroups";
-import TaskGroupsStore from "./TaskGroupsStore/TaskGroupsStore";
-import TaskGroupsStages from "./TaskGroupsStages/TaskGroupsStages";
+import { ITasksGroup } from "types/taskGroups";
+import TasksGroupStore from "./TasksGroupStore/TasksGroupStore";
+import TasksGroupStages from "./TasksGroupStages/TasksGroupStages";
 
 const formInitialValues = {
   title: "",
   description: "",
+  isDividedIntoStages: false,
 };
 
-const AddEditTaskGroup = () => {
+const AddEditTasksGroup = () => {
   const [form] = Form.useForm();
   const navigate = useNavigate();
   let { taskGroupId } = useParams();
@@ -33,21 +33,20 @@ const AddEditTaskGroup = () => {
     }
   }, [taskGroupDetails, form]);
 
-  const onFinish = async (newTaskGroupData: ITaskGroups) => {
+  const onFinish = async (newTaskGroupData: ITasksGroup) => {
     if (taskGroupId) {
       const taskGroupToUpdate = {
         id: taskGroupId,
         data: newTaskGroupData,
         path: "",
       };
-      console.log(taskGroupToUpdate);
+
       await updateTaskGroup(taskGroupToUpdate).unwrap();
     } else {
       await addTaskGroup(newTaskGroupData);
     }
 
-    // navigate(routes.taskGroups.list);
-    // navigate(0);
+    navigate(-1);
   };
 
   return (
@@ -63,13 +62,14 @@ const AddEditTaskGroup = () => {
       <Form.Item rules={[{ required: true }]} name="title" label="Назва">
         <Input />
       </Form.Item>
-      <Form.Item name="valueType" initialValue="taskGroup" />
+      <Form.Item name="type" initialValue="tasksGroup" />
+      <Form.Item name="valueType" initialValue="todoList" />
       <Form.Item name="description" label="Опис">
         <TextArea rows={2} />
       </Form.Item>
 
       <Card title="Сховище завдань">
-        <TaskGroupsStore form={form} />
+        <TasksGroupStore form={form} />
       </Card>
 
       <Form.Item
@@ -90,7 +90,7 @@ const AddEditTaskGroup = () => {
           if (getFieldValue("isDividedIntoStages")) {
             return (
               <Card title="Етапи завдань">
-                <TaskGroupsStages form={form} />
+                <TasksGroupStages form={form} />
               </Card>
             );
           }
@@ -106,4 +106,4 @@ const AddEditTaskGroup = () => {
   );
 };
 
-export default AddEditTaskGroup;
+export default AddEditTasksGroup;

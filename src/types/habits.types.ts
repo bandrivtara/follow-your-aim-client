@@ -1,10 +1,11 @@
-export type IValueTypes = "number" | "boolean" | "taskGroup" | "duration";
+export type IHabitValueTypes = "measures" | "boolean";
 
 export interface IHabitData {
   id: string;
-  scheduleTime?: string;
+  scheduleTime?: string[];
   title: string;
-  valueType?: IValueTypes;
+  type: "habit";
+  valueType: IHabitValueTypes;
   description?: string;
   complexity?: number;
   habitsCategoryId?: string;

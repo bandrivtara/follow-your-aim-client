@@ -19,8 +19,7 @@ const HabitCategoryCellRenderer = ({
     const category = habitsCategories.find(
       (category) => category.id === data.habitsCategoryId
     );
-    category && console.log(data);
-    setHabitCategory(category?.title || "");
+    category && setHabitCategory(category?.title || "");
   }, [data, habitsCategories]);
 
   return <>{habitCategory}</>;

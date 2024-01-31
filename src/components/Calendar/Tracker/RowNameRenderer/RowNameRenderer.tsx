@@ -5,7 +5,7 @@ import StyledRowNameRenderer from "./RowNameRenderer.styled";
 
 const RowNameRenderer = ({ data, value }: ICellRendererParams) => {
   const getLink = () => {
-    if (data.details.valueType === "taskGroup") {
+    if (data.details.type === "tasksGroup") {
       return `${routes.taskGroups.edit}/${data.id}`;
     }
 

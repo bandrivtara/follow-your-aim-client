@@ -9,21 +9,17 @@ import {
   Cascader,
   InputNumber,
 } from "antd";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   useAddAimMutation,
   useGetAimQuery,
   useUpdateAimMutation,
 } from "store/services/aims";
 import TextArea from "antd/es/input/TextArea";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { IAim } from "types/aims.types";
 import dayjs from "dayjs";
-import {
-  useGetAimsCategoriesListQuery,
-  useUpdateAimsCategoryMutation,
-} from "store/services/aimsCategories";
-import { IAimsCategory } from "types/aimsCategories.types";
+import { useGetAimsCategoriesListQuery } from "store/services/aimsCategories";
 import { Switch } from "@mui/material";
 import { DefaultOptionType } from "antd/es/select";
 import { useGetHabitListQuery } from "store/services/habits";
@@ -59,6 +55,7 @@ const formInitialValues: IAim = {
 };
 
 const AddEditAim = () => {
+  const navigate = useNavigate();
   const habitsList = useGetHabitListQuery();
   const tasksGroup = useGetTaskGroupListQuery();
   const [form] = Form.useForm();
@@ -128,22 +125,19 @@ const AddEditAim = () => {
       await updateAim(aimToUpdate).unwrap();
     } else {
       await addAim(data);
-      console.log(newAimData, 123);
     }
 
-    // navigate(routes.aims.list);
-    // navigate(0);
+    navigate(-1);
   };
 
   const getRelatedHabits = () => {
-    console.log(habitsList);
     if (!habitsList.data) return [];
     const options: ICascaderOption[] = habitsList.data.map((habit) => {
       const habitOption: ICascaderOption = {
         value: habit.id,
         label: habit.title,
       };
-      if (habit.valueType === "number" && habit.fields) {
+      if (habit.valueType === "measures" && habit.fields) {
         habitOption.children = habit.fields.map((habitField) => ({
           value: habitField.id,
           label: habitField.name,
@@ -157,7 +151,7 @@ const AddEditAim = () => {
 
   const getRelatedLists = () => {
     if (!tasksGroup.data) return [];
-    console.log(tasksGroup);
+
     const options: ICascaderOption[] = tasksGroup.data.map((taskGroup) => {
       const tasksOption: ICascaderOption = {
         value: taskGroup.id,

@@ -5,7 +5,7 @@ const routes = {
   profile: "/profile",
   calendar: {
     path: "/calendar",
-    routine: "/calendar/routine",
+    scheduler: "/calendar/scheduler",
     tracker: "/calendar/tracker",
     aims: "/calendar/aims",
   },

@@ -1,8 +1,9 @@
-export interface ITaskGroups {
+export interface ITasksGroup {
   id: string;
+  type: "tasksGroup";
+  valueType: string;
   title: string;
   description: string;
-  valueType: string;
   isHidden?: boolean;
   category?: string;
   tasksStore: ITask[];

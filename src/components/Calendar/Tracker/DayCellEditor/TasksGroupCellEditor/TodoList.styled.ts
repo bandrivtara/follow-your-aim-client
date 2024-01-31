@@ -1,6 +1,6 @@
 import styled from "@emotion/styled";
 
-const StyledListHabit = styled.div`
+const StyledTodoList = styled.div`
   .ant-col {
     margin-top: 4px;
   }
@@ -21,4 +21,4 @@ const StyledListHabit = styled.div`
   }
 `;
 
-export default StyledListHabit;
+export default StyledTodoList;

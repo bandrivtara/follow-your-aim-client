@@ -1,6 +1,6 @@
 import styled from "@emotion/styled";
 
-const StyledTaskGroupsStages = styled.div`
+const StyledTasksGroupStages = styled.div`
   .ant-collapse,
   .ant-collapse > .ant-collapse-item:last-child > .ant-collapse-header,
   .ant-collapse-item,
@@ -23,4 +23,4 @@ const StyledTaskGroupsStages = styled.div`
   }
 `;
 
-export default StyledTaskGroupsStages;
+export default StyledTasksGroupStages;

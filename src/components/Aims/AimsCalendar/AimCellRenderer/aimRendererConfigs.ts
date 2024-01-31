@@ -3,7 +3,7 @@ import { doc, getDoc } from "firebase/firestore";
 import { getHistoryBetweenDates } from "share/fireBase/getHistoryBetweenDates";
 import { db } from "store/api";
 import { IAim } from "types/aims.types";
-import { ITaskGroups } from "types/taskGroups";
+import { ITasksGroup } from "types/taskGroups";
 
 export const aimRendererConfigs = {
   relatedHobby: {
@@ -18,19 +18,21 @@ export const aimRendererConfigs = {
           if (monthHistoryDoc.id === dayjs(data.dateFrom).format("MM-YYYY")) {
             if (+day >= +dayjs(data.dateFrom).format("D")) {
               currentValue +=
-                habit?.[data.relatedHabit[0]]?.values?.[data.relatedHabit[1]] ||
-                0;
+                habit?.[data.relatedHabit[0]]?.measures?.[data.relatedHabit[1]]
+                  .value || 0;
             }
           } else if (
             monthHistoryDoc.id === dayjs(data.dateTo).format("MM-YYYY")
           ) {
             if (+day <= +dayjs(data.dateFrom).format("D")) {
               currentValue +=
-                habit[data.relatedHabit[0]]?.values[data.relatedHabit[1]] || 0;
+                habit?.[data.relatedHabit[0]]?.measures?.[data.relatedHabit[1]]
+                  .value || 0;
             }
           } else {
             currentValue +=
-              habit[data.relatedHabit[0]]?.values[data.relatedHabit[1]] || 0;
+              habit?.[data.relatedHabit[0]]?.measures?.[data.relatedHabit[1]]
+                .value || 0;
           }
         }
       });
@@ -55,18 +57,23 @@ export const aimRendererConfigs = {
             if (monthHistoryDoc.id === dayjs(data.dateFrom).format("MM-YYYY")) {
               if (+day >= +dayjs(data.dateFrom).format("D")) {
                 lastValue =
-                  habit?.[data.relatedHabit[0]]?.values?.[data.relatedHabit[1]];
+                  habit?.[data.relatedHabit[0]]?.measures?.[
+                    data.relatedHabit[1]
+                  ].value;
               }
             } else if (
               monthHistoryDoc.id === dayjs(data.dateTo).format("MM-YYYY")
             ) {
               if (+day <= +dayjs(data.dateFrom).format("D")) {
                 lastValue =
-                  habit?.[data.relatedHabit[0]]?.values?.[data.relatedHabit[1]];
+                  habit?.[data.relatedHabit[0]]?.measures?.[
+                    data.relatedHabit[1]
+                  ].value;
               }
             } else {
               lastValue =
-                habit?.[data.relatedHabit[0]]?.values?.[data.relatedHabit[1]];
+                habit?.[data.relatedHabit[0]]?.measures?.[data.relatedHabit[1]]
+                  .value;
             }
           }
         }
@@ -88,7 +95,7 @@ export const aimRendererConfigs = {
       const taskGroupRef = doc(db, "taskGroup", list[0]);
       const taskGroupSnapshot = await getDoc(taskGroupRef);
       if (taskGroupSnapshot.exists()) {
-        const taskGroup = taskGroupSnapshot.data() as ITaskGroups;
+        const taskGroup = taskGroupSnapshot.data() as ITasksGroup;
 
         if (list[1]) {
           const taskStage = taskGroup.tasksStages.find(

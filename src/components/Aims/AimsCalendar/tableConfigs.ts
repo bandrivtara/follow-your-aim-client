@@ -58,7 +58,6 @@ const getRows = (allAims: IAimData[] | undefined) => {
   const rows: any = [];
 
   allAims.forEach((aim) => {
-    console.log(aim);
     const monthDiff =
       dayjs(aim.dateTo).month() - dayjs(aim.dateFrom).month() + 1;
     const yearDiff = dayjs(aim.dateTo).year() - dayjs(aim.dateFrom).year();
@@ -84,7 +83,7 @@ const getRows = (allAims: IAimData[] | undefined) => {
 
     rows.push(row);
   });
-  console.log(rows);
+
   return [...rows];
 };
 

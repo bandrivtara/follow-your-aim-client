@@ -122,7 +122,7 @@ const AddEditSphere = () => {
         await updateAim(aimToUpdate);
       })
     );
-    console.log(currentHabitsKeys);
+
     await Promise.all(
       currentHabitsKeys.map(async (habitId) => {
         const habitToUpdate = {

@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import routes from "config/routes";
 import { ColDef, ICellRendererParams } from "ag-grid-community";
-import { ITask } from "types/taskGroups";
 
 const tableConfigs: ColDef[] = [
   {

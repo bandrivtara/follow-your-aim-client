@@ -12,8 +12,7 @@ const AimCategoryCellRenderer = ({ data }: ICellRendererParams<IAim>) => {
     const category = aimsCategories.data.find(
       (category) => category.id === data.aimsCategoryId
     );
-    category && console.log(data);
-    setHabitCategory(category?.title || "");
+    category && setHabitCategory(category?.title || "");
   }, [data, aimsCategories]);
 
   return <>{habitCategory}</>;

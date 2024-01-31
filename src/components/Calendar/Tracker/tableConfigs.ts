@@ -1,7 +1,7 @@
 import { ColDef } from "ag-grid-community";
 import DayCellEditor from "./DayCellEditor/DayCellEditor";
 import DayCellRenderer from "./DayCellRenderer/DayCellRenderer";
-import { getDaysOfMonth } from "share/functions/getDaysOfMonth";
+import { getDaysBetweenDates } from "share/functions/getDaysBetweenDates";
 import dayjs, { Dayjs } from "dayjs";
 import { ITrackerCalendarState } from "./TrackerCalendar";
 import _ from "lodash";
@@ -9,7 +9,7 @@ import { IHabitData } from "types/habits.types";
 import { IHistoryData, IHistoryDayRow } from "types/history.types";
 import RowNameRenderer from "./RowNameRenderer/RowNameRenderer";
 import compareTime from "share/functions/compareTime";
-import { ITaskGroups } from "types/taskGroups";
+import { ITasksGroup } from "types/taskGroups";
 
 export interface IHabitRow {
   habitDetails: IHabitData;
@@ -26,33 +26,24 @@ const getColumnDefs = (
 ): ColDef[] => {
   if (!currentDate[0] || !currentDate[1]) return [];
 
-  const days = getDaysOfMonth(
-    currentDate[0].month() + 1,
-    currentDate[0].year()
-  );
+  const days = getDaysBetweenDates(currentDate[0], currentDate[1]);
 
   const dayCols: ColDef[] = [];
+  console.log(days);
 
-  days.forEach((day) => {
-    if (
-      currentDate[0] &&
-      currentDate[1] &&
-      parseFloat(day.day) >= currentDate[0].date() &&
-      parseFloat(day.day) <= currentDate[1].date()
-    ) {
-      dayCols.push({
-        field: day.day,
-        headerName: `${day.day} ${day.weekday}`,
-        minWidth: 60,
-        editable: true,
-        cellEditorPopup: true,
-        cellRenderer: DayCellRenderer,
-        cellRendererParams: { calendarMode },
-        cellEditor: DayCellEditor,
-        cellClass: "day-cell",
-        flex: 1,
-      });
-    }
+  days.forEach((dayData) => {
+    dayCols.push({
+      field: dayData.day,
+      headerName: `${dayData.day} ${dayData.weekday}`,
+      minWidth: 60,
+      editable: true,
+      cellEditorPopup: true,
+      cellRenderer: DayCellRenderer,
+      cellRendererParams: { calendarMode, dayData },
+      cellEditor: DayCellEditor,
+      cellClass: "day-cell",
+      flex: 1,
+    });
   });
 
   const habitDetailsCol: ColDef[] = [
@@ -70,41 +61,37 @@ const getColumnDefs = (
 
 const getRows = (
   habitsData: IHabitData[] = [],
-  taskGroupsData: ITaskGroups[] = [],
+  taskGroupsData: ITasksGroup[] = [],
   historyData: IHistoryData = {},
-  currentDate: (Dayjs | null)[],
   rowSortingType: string
 ) => {
-  const currentMMYYYY = dayjs(currentDate[0]).format("MM-YYYY");
+  if (!historyData || !historyData[0]) return [];
   const rowItems: any = {};
-  // taskGroupsData.forEach((taskGroup) => {
-  //   rowItems[taskGroup.id] = taskGroup;
-  // });
-  console.log(taskGroupsData);
   const rowsToShow = [...habitsData, ...taskGroupsData];
+
   rowsToShow.forEach((rowData) => {
     rowItems[rowData.id] = rowData;
   });
-  console.log(rowItems);
-  let rows: IHistoryDayRow[] = [];
 
-  for (let day in historyData) {
-    for (let id in historyData[day]) {
-      if (rowItems && rowItems[id] && !rowItems[id].isHidden) {
-        let existingObject: any = rows.find((row) => row.id === id);
-        if (!existingObject) {
-          existingObject = {
-            id: id,
-            details: rowItems[id],
-            currentDate: currentMMYYYY,
-          };
-          rows.push(existingObject);
-        }
+  let rows = [];
+  historyData.forEach((day) => {
+    const currentDay = +day.date.split("-")[2];
 
-        existingObject[day] = { ...historyData[day][id] };
+    day.data.forEach((activityData) => {
+      let existObject = rows.find((row) => row.id === activityData.id);
+
+      if (!existObject) {
+        existObject = {
+          id: activityData.id,
+          details: rowItems[activityData.id],
+          [currentDay]: { ...activityData, currentDay: day.date },
+        };
+        rows.push(existObject);
       }
-    }
-  }
+
+      existObject[currentDay] = { ...activityData, currentDay: day.date };
+    });
+  });
 
   if (historyData) {
     rowsToShow.forEach((habit) => {
@@ -112,11 +99,11 @@ const getRows = (
         rows.push({
           id: habit.id,
           details: rowItems[habit.id],
-          currentDate: currentMMYYYY,
         });
       }
     });
   }
+
   if (rowSortingType === "alphabetic") {
     // @ts-ignore
     return _.orderBy(rows, [(row) => row.details.title]);

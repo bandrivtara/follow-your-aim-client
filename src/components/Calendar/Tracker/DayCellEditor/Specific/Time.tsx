@@ -6,7 +6,7 @@ import { getTimeOptions } from "share/functions/getTimeOptions";
 import FormButtons from "share/components/Form/FormButtons";
 import { ColDef } from "ag-grid-community";
 import { useEffect, useState } from "react";
-import { IStopEditing } from "../../DayCellRenderer/trackerConfigs";
+import { IStopEditing } from "../../cellConfigs";
 import { useUpdateHistoryMutation } from "store/services/history";
 
 interface IProps {
@@ -46,7 +46,6 @@ const Time = ({ data, colDef, stopEditing }: IProps) => {
         path: `${colDef.field}.${data.id}`,
       };
 
-      console.log(historyToUpdate);
       await updateHistory(historyToUpdate).unwrap();
       // stopEditing();
     }

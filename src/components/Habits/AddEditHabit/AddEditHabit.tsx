@@ -38,7 +38,7 @@ const formInitialValues = {
   title: "",
   description: "",
   complexity: 5,
-  valueType: "number",
+  valueType: "measures",
   measure: "хв",
   minToComplete: 0,
   scheduleTime: "",
@@ -146,12 +146,15 @@ const AddEditHabit = () => {
             options={getTimeOptions(5)}
           />
         </Form.Item>
+
+        <Form.Item name="type" initialValue="habit" />
         <Form.Item rules={[{ required: true }]} name="valueType" label="Тип">
-          <Radio.Group defaultValue="number">
-            <Radio.Button value="number">Вимірювальна</Radio.Button>
+          <Radio.Group defaultValue="measures">
+            <Radio.Button value="measures">Вимірювальна</Radio.Button>
             <Radio.Button value="boolean">Проста (Так/Ні)</Radio.Button>
           </Radio.Group>
         </Form.Item>
+
         <Form.Item
           noStyle
           shouldUpdate={(prevValues, currentValues) =>
@@ -159,7 +162,7 @@ const AddEditHabit = () => {
           }
         >
           {({ getFieldValue }) => {
-            if (getFieldValue("valueType") === "number") {
+            if (getFieldValue("valueType") === "measures") {
               return (
                 <Form.List name="fields">
                   {(fields, { add, remove }) => (

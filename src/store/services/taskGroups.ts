@@ -7,21 +7,21 @@ import {
   getDoc,
 } from "firebase/firestore";
 import { api, db } from "../api";
-import { ITaskGroups } from "types/taskGroups";
+import { ITasksGroup } from "types/taskGroups";
 
 export const taskGroupFirestoreApi = api.injectEndpoints({
   endpoints: (builder) => ({
-    getTaskGroupList: builder.query<ITaskGroups[], void>({
+    getTaskGroupList: builder.query<ITasksGroup[], void>({
       async queryFn() {
         try {
           const ref = collection(db, "taskGroup");
           const querySnapshot = await getDocs(ref);
-          let taskGroupList: ITaskGroups[] = [];
+          let taskGroupList: ITasksGroup[] = [];
           querySnapshot?.forEach((doc) => {
             taskGroupList.push({
               id: doc.id,
               ...doc.data(),
-            } as ITaskGroups);
+            } as ITasksGroup);
           });
 
           return { data: taskGroupList };
@@ -43,7 +43,7 @@ export const taskGroupFirestoreApi = api.injectEndpoints({
               data: {
                 id: taskGroupSnapshot.id,
                 ...taskGroupSnapshot.data(),
-              } as ITaskGroups,
+              } as ITasksGroup,
             };
           }
 
@@ -57,7 +57,7 @@ export const taskGroupFirestoreApi = api.injectEndpoints({
     }),
 
     addTaskGroup: builder.mutation({
-      async queryFn(taskGroupDetails: ITaskGroups) {
+      async queryFn(taskGroupDetails: ITasksGroup) {
         try {
           await addDoc(collection(db, "taskGroup"), taskGroupDetails);
           return { data: null };

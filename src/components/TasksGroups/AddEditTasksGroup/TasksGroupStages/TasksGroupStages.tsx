@@ -1,19 +1,15 @@
 import {
   BorderOutlined,
   CheckSquareOutlined,
-  ClockCircleOutlined,
   CloseSquareOutlined,
   DeleteOutlined,
-  LinkOutlined,
   MoreOutlined,
   UpCircleOutlined,
 } from "@ant-design/icons";
 import {
   Button,
   Card,
-  Cascader,
   Col,
-  Collapse,
   Divider,
   Form,
   Input,
@@ -25,7 +21,7 @@ import {
 import { Fragment, useCallback, useState } from "react";
 import { ITask } from "types/taskGroups";
 import { FormInstance, useWatch } from "antd/es/form/Form";
-import StyledTaskGroupsStages from "./TaskGroupsStages.styled";
+import StyledTasksGroupStages from "./TasksGroupStages.styled";
 import uniqid from "uniqid";
 
 interface IProps {
@@ -41,7 +37,7 @@ const initValues = {
   stagePercentage: 0,
 };
 
-const TaskGroupsStages = ({ dayForm, form }: IProps) => {
+const TasksGroupStages = ({ dayForm, form }: IProps) => {
   const formStages: ITask[] = useWatch("tasksStages", form);
   const [editFiledIndex, setEditFiledIndex] = useState<null | number>(null);
 
@@ -78,7 +74,7 @@ const TaskGroupsStages = ({ dayForm, form }: IProps) => {
   };
 
   return (
-    <StyledTaskGroupsStages>
+    <StyledTasksGroupStages>
       <Form.Item
         noStyle
         shouldUpdate={(prevValues, currentValues) =>
@@ -270,8 +266,8 @@ const TaskGroupsStages = ({ dayForm, form }: IProps) => {
           </Form.List>
         </div>
       </Form.Item>
-    </StyledTaskGroupsStages>
+    </StyledTasksGroupStages>
   );
 };
 
-export default TaskGroupsStages;
+export default TasksGroupStages;

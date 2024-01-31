@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from "react";
-import { Liquid } from "@ant-design/charts";
 import { Button, Radio, RadioChangeEvent, Space } from "antd";
 import StyledWaterCounter from "./WaterCounter.styled";
 import {
@@ -89,8 +88,6 @@ const WaterCounter = () => {
           +
         </Button>
       </Space.Compact>
-
-      <Liquid {...liquidConfig()} />
     </StyledWaterCounter>
   );
 };

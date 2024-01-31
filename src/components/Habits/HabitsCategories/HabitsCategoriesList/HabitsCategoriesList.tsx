@@ -13,7 +13,6 @@ const HabitsCategoriesList = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    console.log(data);
     if (data) {
       setRowData(data);
     }

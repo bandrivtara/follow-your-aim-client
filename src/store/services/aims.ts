@@ -71,7 +71,6 @@ export const aimsFirestoreApi = api.injectEndpoints({
     updateAim: builder.mutation({
       async queryFn(aimsDetails) {
         try {
-          console.log(aimsDetails, 555);
           await updateDoc(doc(db, "aim", aimsDetails.id), aimsDetails.data);
           return { data: null };
         } catch (error: any) {

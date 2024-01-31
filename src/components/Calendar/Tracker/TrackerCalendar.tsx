@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-material.css";
@@ -10,14 +10,14 @@ import { getFirstDayOfWeek } from "share/functions/getFirstDayOfWeek";
 import FiltersBar from "./FiltersBar/FiltersBar";
 import tableConfigs from "./tableConfigs";
 import useIsMobile from "share/hooks/useIsMobile";
-import { useGetHistoryQuery } from "store/services/history";
+import { useGetHistoryBetweenDatesQuery } from "store/services/history";
 import { IHistoryDayRow } from "types/history.types";
 import { useGetTaskGroupListQuery } from "store/services/taskGroups";
 
 export type ITrackerCalendarState = "tracking" | "planning";
 
 const initConfigs = {
-  currentDate: [getFirstDayOfWeek(), dayjs().endOf("week")],
+  currentDate: [getFirstDayOfWeek(), dayjs().endOf("month")],
 };
 
 const TrackerCalendar = () => {
@@ -26,16 +26,16 @@ const TrackerCalendar = () => {
   const taskGroupsData = useGetTaskGroupListQuery();
   const gridRef = useRef<AgGridReact>(null);
 
-  const [rowData, setRowData] = useState<IHistoryDayRow[]>([]);
-  const [columnDefs, setColumnDefs] = useState<ColDef[]>([]);
   const [currentDate, setCurrentDate] = useState<(Dayjs | null)[]>(
     initConfigs.currentDate
   );
+  const historyData = useGetHistoryBetweenDatesQuery([
+    dayjs(currentDate[0]).unix(),
+    dayjs(currentDate[1]).unix(),
+  ]);
 
-  const historyData = useGetHistoryQuery(
-    dayjs(currentDate[0]).format("MM-YYYY")
-  );
-
+  const [rowData, setRowData] = useState<IHistoryDayRow[]>([]);
+  const [columnDefs, setColumnDefs] = useState<ColDef[]>([]);
   const [filteredCategory, setFilteredCategory] = useState("all");
   const [rowSortingType, setRowSortingType] = useState("schedule-time");
   const [calendarMode, setCurrentMode] =
@@ -53,10 +53,9 @@ const TrackerCalendar = () => {
       habitsData.data,
       taskGroupsData.data,
       historyData.data,
-      currentDate,
       rowSortingType
     );
-    console.log(newRows);
+
     setColumnDefs(newColumnDefs);
     setRowData(newRows);
   }, [
@@ -64,9 +63,9 @@ const TrackerCalendar = () => {
     filteredCategory,
     calendarMode,
     habitsData,
-    historyData,
     rowSortingType,
     taskGroupsData.data,
+    historyData.data,
   ]);
 
   return (

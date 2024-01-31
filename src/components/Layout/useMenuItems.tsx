@@ -35,7 +35,7 @@ const useMenuItems = () => {
         {
           key: 21,
           label: "Розклад",
-          onClick: () => navigate(routes.calendar.routine),
+          onClick: () => navigate(routes.calendar.scheduler),
           icon: <InsertRowAboveOutlined rev="string" />,
         },
         {

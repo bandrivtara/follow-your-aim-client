@@ -2,11 +2,11 @@ import { useEffect, useState } from "react";
 import tableConfigs from "./tableConfigs";
 import { AgGridReact } from "ag-grid-react";
 import { useGetTaskGroupListQuery } from "store/services/taskGroups";
-import { ITaskGroups } from "types/taskGroups";
+import { ITasksGroup } from "types/taskGroups";
 
-const TaskGroupsList = () => {
+const TasksGroupsList = () => {
   const { data } = useGetTaskGroupListQuery();
-  const [rowData, setRowData] = useState<ITaskGroups[]>([]);
+  const [rowData, setRowData] = useState<ITasksGroup[]>([]);
 
   useEffect(() => {
     if (data) {
@@ -27,4 +27,4 @@ const TaskGroupsList = () => {
   );
 };
 
-export default TaskGroupsList;
+export default TasksGroupsList;

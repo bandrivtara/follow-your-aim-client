@@ -8,6 +8,7 @@ import {
   Divider,
   Form,
   Input,
+  InputNumber,
   Radio,
   Row,
   Space,
@@ -29,20 +30,20 @@ import FormButtons from "share/components/Form/FormButtons";
 import { ColDef } from "ag-grid-community";
 import { IDayCellEditor } from "../DayCellEditor";
 import { getTimeOptions } from "share/functions/getTimeOptions";
-import { IStopEditing } from "../../DayCellRenderer/trackerConfigs";
-import StyledListHabit from "./List.styled";
+import { IDayData, IStopEditing } from "../../cellConfigs";
+import StyledTodoList from "./TodoList.styled";
 import { useUpdateHistoryMutation } from "store/services/history";
-import TaskGroupsStore from "components/TaskGroups/AddEditTaskGroups/TaskGroupsStore/TaskGroupsStore";
 import {
   useGetTaskGroupQuery,
   useUpdateTaskGroupMutation,
 } from "store/services/taskGroups";
-import TaskGroupsStages from "components/TaskGroups/AddEditTaskGroups/TaskGroupsStages/TaskGroupsStages";
+import TasksGroupStages from "components/TasksGroups/AddEditTasksGroup/TasksGroupStages/TasksGroupStages";
+import TasksGroupStore from "components/TasksGroups/AddEditTasksGroup/TasksGroupStore/TasksGroupStore";
 
 interface IProps {
-  colDef: ColDef<IDayCellEditor>;
+  colDef: ColDef<IDayData>;
   stopEditing: IStopEditing;
-  data: IDayCellEditor;
+  data: IDayData;
 }
 
 interface ITask {
@@ -63,7 +64,7 @@ const initTask = {
   isEditOn: false,
 };
 
-const ListHabit = ({ data, colDef, stopEditing }: IProps) => {
+const TodoList = ({ data, colDef, stopEditing }: IProps) => {
   const [form] = Form.useForm();
   const [storeForm] = Form.useForm();
   const [stageForm] = Form.useForm();
@@ -75,9 +76,19 @@ const ListHabit = ({ data, colDef, stopEditing }: IProps) => {
   const [updateTaskGroup] = useUpdateTaskGroupMutation();
   const taskGroupDetails = useGetTaskGroupQuery(data.id);
 
+  const { dayData } = colDef.cellRendererParams;
+
   const cellData = colDef.field && data[+colDef.field];
 
   useEffect(() => {
+    const initTasksGroup = {
+      id: taskGroupDetails?.data?.id,
+      type: "tasksGroup",
+      valueType: "todoList",
+      progress: 0,
+      tasks: [initTask],
+    };
+
     if (taskGroupDetails && taskGroupDetails.data) {
       storeForm.setFieldsValue(taskGroupDetails.data);
       stageForm.setFieldsValue(taskGroupDetails.data);
@@ -86,26 +97,26 @@ const ListHabit = ({ data, colDef, stopEditing }: IProps) => {
     if (cellData && cellData.tasks) {
       form.setFieldsValue(cellData);
     } else {
-      form.setFieldsValue({ value: 0, tasks: [initTask] });
+      form.setFieldsValue(initTasksGroup);
     }
-  }, [cellData, data, form, stageForm, storeForm, taskGroupDetails]);
+  }, [
+    cellData,
+    data,
+    dayData.date,
+    form,
+    stageForm,
+    storeForm,
+    taskGroupDetails,
+  ]);
 
   const handleConfirm = async () => {
     const formValues = form.getFieldsValue();
     const validatedTasks = formValues.tasks.filter((task: ITask) => task.title);
-
+    console.log(dayData);
     if (colDef.field) {
-      const doneTaskCount = formTasks.filter(
-        (task) => task && task.status === "done"
-      ).length;
-      const newDayStatus = {
-        tasks: validatedTasks,
-        value: `${doneTaskCount}/${validatedTasks.length}`,
-      };
-      const habitToUpdate = {
-        id: data.currentDate,
-        data: { ...newDayStatus },
-        path: `${colDef.field}.${data.id}`,
+      const historyToUpdate = {
+        id: data[colDef.field]?.currentDay || dayData.date,
+        data: { ...formValues, tasks: validatedTasks },
       };
 
       const storeValues = storeForm.getFieldsValue();
@@ -119,8 +130,7 @@ const ListHabit = ({ data, colDef, stopEditing }: IProps) => {
       if (!validatedTasks[0]) {
         await handleDelete();
       } else {
-        console.log(data);
-        await updateHistory(habitToUpdate).unwrap();
+        await updateHistory(historyToUpdate).unwrap();
       }
       return stopEditing();
     }
@@ -153,9 +163,8 @@ const ListHabit = ({ data, colDef, stopEditing }: IProps) => {
       const newMonthHistory = _.pickBy(data, (_value, key) => !isNaN(+key));
       delete newMonthHistory[colDef.field];
       const habitToUpdate = {
-        id: data.currentDate,
+        id: data[colDef.field].currentDate,
         data: null,
-        path: `${colDef.field}.${data.id}`,
       };
       await updateHistory(habitToUpdate).unwrap();
       stopEditing();
@@ -180,7 +189,7 @@ const ListHabit = ({ data, colDef, stopEditing }: IProps) => {
       label: "Вибрати з етапів",
       children: (
         <Form layout="horizontal" form={stageForm} name="tasksStages">
-          <TaskGroupsStages dayForm={form} form={stageForm} />
+          <TasksGroupStages dayForm={form} form={stageForm} />
         </Form>
       ),
     },
@@ -189,7 +198,7 @@ const ListHabit = ({ data, colDef, stopEditing }: IProps) => {
       label: "Сховище",
       children: (
         <Form layout="horizontal" form={storeForm} name="storeForm">
-          <TaskGroupsStore dayForm={form} form={storeForm} />
+          <TasksGroupStore dayForm={form} form={storeForm} />
         </Form>
       ),
     },
@@ -197,7 +206,7 @@ const ListHabit = ({ data, colDef, stopEditing }: IProps) => {
 
   return (
     initTask && (
-      <StyledListHabit>
+      <StyledTodoList>
         <Form
           labelCol={{ md: 8 }}
           wrapperCol={{ md: 14 }}
@@ -209,7 +218,6 @@ const ListHabit = ({ data, colDef, stopEditing }: IProps) => {
           <Form.Item
             noStyle
             shouldUpdate={(prevValues, currentValues) => {
-              console.log(prevValues, currentValues);
               return prevValues !== currentValues;
             }}
           >
@@ -221,7 +229,31 @@ const ListHabit = ({ data, colDef, stopEditing }: IProps) => {
                 paddingLeft: "4px",
               }}
             >
-              <Form.Item hidden name="value" noStyle></Form.Item>
+              <Form.Item name="id" hidden />
+              <Form.Item name="valueType" hidden />
+              <Form.Item name="type" hidden />
+
+              <Form.Item
+                noStyle
+                shouldUpdate={(prevValues, currentValues) =>
+                  prevValues.tasks !== currentValues.tasks
+                }
+              >
+                {({ getFieldValue, setFieldValue }) => {
+                  const tasksList = getFieldValue("tasks");
+                  if (!tasksList) return;
+                  const doneTasks = tasksList.filter(
+                    (task) => task.status === "done"
+                  );
+                  const progress = (doneTasks.length / tasksList.length) * 100;
+                  setFieldValue("progress", +progress.toFixed(0));
+                  return (
+                    <Form.Item label="Прогрес" name="progress">
+                      <InputNumber disabled />
+                    </Form.Item>
+                  );
+                }}
+              </Form.Item>
 
               <Form.List name="tasks">
                 {(fields, { add, remove }) => (
@@ -375,9 +407,9 @@ const ListHabit = ({ data, colDef, stopEditing }: IProps) => {
             handleConfirm={handleConfirm}
           />
         </div>
-      </StyledListHabit>
+      </StyledTodoList>
     )
   );
 };
 
-export default ListHabit;
+export default TodoList;

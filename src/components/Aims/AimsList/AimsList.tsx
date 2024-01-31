@@ -13,7 +13,6 @@ const AimsList = () => {
   const [rowData, setRowData] = useState<IAim[]>([]);
 
   useEffect(() => {
-    console.log(data);
     if (data) {
       setRowData(data);
     }

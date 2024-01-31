@@ -27,7 +27,7 @@ const AimCalendar = () => {
   useEffect(() => {
     const newColumnDefs = tableConfigs.getColumnDefs(monthsDates);
     const newRows = tableConfigs.getRows(allAims.data);
-    console.log(newRows);
+
     setColumnDefs(newColumnDefs);
     setRowData(newRows);
   }, [allAims, monthsDates]);

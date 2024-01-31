@@ -24,7 +24,7 @@ import { Fragment, useCallback, useState } from "react";
 import { ITask } from "types/taskGroups";
 import { FormInstance, useWatch } from "antd/es/form/Form";
 import { getTimeOptions } from "share/functions/getTimeOptions";
-import StyledTaskGroupsStore from "./TaskGroupsStore.styled";
+import StyledTasksGroupStore from "./TasksGroupStore.styled";
 
 interface IProps {
   dayForm?: FormInstance<any>;
@@ -40,7 +40,7 @@ const initValues = {
   isEditOn: false,
 };
 
-const TaskGroupsStore = ({ dayForm, form }: IProps) => {
+const TasksGroupStore = ({ dayForm, form }: IProps) => {
   const formTasks: ITask[] = useWatch("tasksStore", form);
   const [editFiledIndex, setEditFiledIndex] = useState<null | number>(null);
 
@@ -77,7 +77,7 @@ const TaskGroupsStore = ({ dayForm, form }: IProps) => {
   };
 
   return (
-    <StyledTaskGroupsStore>
+    <StyledTasksGroupStore>
       <Form.Item
         noStyle
         shouldUpdate={(prevValues, currentValues) =>
@@ -204,8 +204,8 @@ const TaskGroupsStore = ({ dayForm, form }: IProps) => {
           </Form.List>
         </div>
       </Form.Item>
-    </StyledTaskGroupsStore>
+    </StyledTasksGroupStore>
   );
 };
 
-export default TaskGroupsStore;
+export default TasksGroupStore;
