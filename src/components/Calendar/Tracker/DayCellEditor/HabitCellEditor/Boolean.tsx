@@ -1,4 +1,4 @@
-import { Cascader, Form, InputNumber, Radio, Switch } from "antd";
+import { Cascader, Form, Radio, Switch } from "antd";
 import { ColDef } from "ag-grid-community";
 import { useEffect, useState } from "react";
 import FormButtons from "share/components/Form/FormButtons";
@@ -45,12 +45,12 @@ const Boolean = ({ colDef, stopEditing, data }: IProps) => {
 
   const handleConfirm = async (formValues: IFormValues) => {
     if (colDef.field) {
-      const measureToUpdate = {
-        id: data[colDef.field].currentDay,
+      const valueToUpdate = {
+        id: `${dayData.year}-${dayData.month.toString().padStart(2, "0")}`,
         data: { ...cellData, ...formValues },
+        path: `${dayData.day}.${data.id}`,
       };
-
-      await updateHistory(measureToUpdate).unwrap();
+      await updateHistory(valueToUpdate).unwrap();
       stopEditing();
     }
   };
@@ -58,8 +58,9 @@ const Boolean = ({ colDef, stopEditing, data }: IProps) => {
   const handleDelete = async () => {
     if (colDef.field) {
       const dayToUpdate = {
-        id: data[colDef.field]?.currentDate || dayData.date,
+        id: `${dayData.year}-${dayData.month.toString().padStart(2, "0")}`,
         data: {},
+        path: `${dayData.day}.${data.id}`,
       };
       await updateHistory(dayToUpdate).unwrap();
     }

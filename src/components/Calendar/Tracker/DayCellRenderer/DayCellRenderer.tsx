@@ -16,9 +16,9 @@ const DayCellRenderer = ({ value, data }: ICellRendererParams<IDayData>) => {
     if (!currentCellRendererData) return "transparent";
     const { progress } = currentCellRendererData;
 
-    if (progress >= 1) {
+    if (progress >= 100) {
       return "#bae637";
-    } else if (progress >= 0.5) {
+    } else if (progress >= 50) {
       return "#fffb8f";
     } else if (progress > 0) {
       return "#ff9c6e";

@@ -1,6 +1,6 @@
 const compareTime = (a: any, b: any) => {
-  const timeA = a.details.scheduleTime || [24, 0];
-  const timeB = b.details.scheduleTime || [24, 0];
+  const timeA = a.details.startTime || [24, 0];
+  const timeB = b.details.startTime || [24, 0];
 
   // Compare hours
   if (timeA[0] !== timeB[0]) {

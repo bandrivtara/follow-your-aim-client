@@ -115,8 +115,9 @@ const TodoList = ({ data, colDef, stopEditing }: IProps) => {
     console.log(dayData);
     if (colDef.field) {
       const historyToUpdate = {
-        id: data[colDef.field]?.currentDay || dayData.date,
+        id: `${dayData.year}-${dayData.month.toString().padStart(2, "0")}`,
         data: { ...formValues, tasks: validatedTasks },
+        path: `${dayData.day}.${data.id}`,
       };
 
       const storeValues = storeForm.getFieldsValue();
@@ -163,8 +164,9 @@ const TodoList = ({ data, colDef, stopEditing }: IProps) => {
       const newMonthHistory = _.pickBy(data, (_value, key) => !isNaN(+key));
       delete newMonthHistory[colDef.field];
       const habitToUpdate = {
-        id: data[colDef.field].currentDate,
-        data: null,
+        id: `${dayData.year}-${dayData.month.toString().padStart(2, "0")}`,
+        data: {},
+        path: `${dayData.day}.${data.id}`,
       };
       await updateHistory(habitToUpdate).unwrap();
       stopEditing();

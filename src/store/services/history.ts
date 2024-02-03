@@ -63,9 +63,8 @@ export const historyFirestoreApi = api.injectEndpoints({
       async queryFn(dates: number[]) {
         try {
           const [dateFrom, dateTo] = dates;
+          console.log(dates);
           if (!dateFrom || !dateTo) return;
-
-          // const allDays = generateDaysArray(dates[0], dates[1]);
           const dateRef = collection(db, "history");
           const dateQuery = query(
             dateRef,
@@ -74,24 +73,14 @@ export const historyFirestoreApi = api.injectEndpoints({
           );
           const dateQuerySnapshot = await getDocs(dateQuery);
 
-          const datesData: any = [];
+          let historyList: IHistoryData[] = [];
+          dateQuerySnapshot?.forEach((doc) => {
+            historyList.push({
+              ...doc.data(),
+            } as IHistoryData);
+          });
 
-          await Promise.all(
-            dateQuerySnapshot.docs.map(async (doc) => {
-              const querySnapshot = await getDocs(
-                collection(db, "history", doc.id, "activities")
-              );
-
-              const rangeData: any = [];
-              querySnapshot.forEach((doc) => {
-                rangeData.push(doc.data());
-              });
-
-              datesData.push({ date: doc.id, data: rangeData });
-            })
-          );
-
-          return { data: datesData };
+          return { data: historyList };
         } catch (error: any) {
           console.error(error.message);
           return { error: error.message };
@@ -102,29 +91,16 @@ export const historyFirestoreApi = api.injectEndpoints({
     updateHistory: builder.mutation({
       async queryFn(history) {
         try {
-          // const historyRef = doc(db, "history", history.id);
-          // const historySnapshot = await getDoc(historyRef);
-          // const isCurrentMonthExists = historySnapshot.exists();
-          // if (!isCurrentMonthExists) {
-          //   await setDoc(doc(db, "history", history.id), {});
-          // }
-          // await updateDoc(historyRef, {
-          //   [history.path]: history.data,
-          // });
-
           const historyRef = doc(db, "history", history.id);
-          const [year, month, day] = history.id.split("-");
-          await setDoc(historyRef, {
-            day,
-            month,
-            year,
+          const historySnapshot = await getDoc(historyRef);
+          const isCurrentMonthExists = historySnapshot.exists();
+          if (!isCurrentMonthExists) {
+            await setDoc(doc(db, "history", history.id), {});
+          }
+          await updateDoc(historyRef, {
             unix: dayjs(history.id).unix(),
+            [history.path]: history.data,
           });
-          const subCollectionRef = collection(historyRef, "activities");
-
-          const specificDocRef = doc(subCollectionRef, history.data.id);
-          await setDoc(specificDocRef, history.data);
-
           return { data: null };
         } catch (error: any) {
           console.error(error.message);

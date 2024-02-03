@@ -62,47 +62,45 @@ const getColumnDefs = (
 const getRows = (
   habitsData: IHabitData[] = [],
   taskGroupsData: ITasksGroup[] = [],
-  historyData: IHistoryData = {},
+  history: IHistoryData[] = [],
   rowSortingType: string
 ) => {
-  if (!historyData || !historyData[0]) return [];
   const rowItems: any = {};
   const rowsToShow = [...habitsData, ...taskGroupsData];
-
   rowsToShow.forEach((rowData) => {
     rowItems[rowData.id] = rowData;
   });
+  let rows: IHistoryDayRow[] = [];
 
-  let rows = [];
-  historyData.forEach((day) => {
-    const currentDay = +day.date.split("-")[2];
+  if (history[0]) {
+    history.forEach((historyData) => {
+      for (let day in historyData) {
+        for (let id in historyData[day]) {
+          if (rowItems && rowItems[id] && !rowItems[id].isHidden) {
+            let existingObject: any = rows.find((row) => row.id === id);
+            if (!existingObject) {
+              existingObject = {
+                id: id,
+                details: rowItems[id],
+              };
+              rows.push(existingObject);
+            }
 
-    day.data.forEach((activityData) => {
-      let existObject = rows.find((row) => row.id === activityData.id);
-
-      if (!existObject) {
-        existObject = {
-          id: activityData.id,
-          details: rowItems[activityData.id],
-          [currentDay]: { ...activityData, currentDay: day.date },
-        };
-        rows.push(existObject);
-      }
-
-      existObject[currentDay] = { ...activityData, currentDay: day.date };
-    });
-  });
-
-  if (historyData) {
-    rowsToShow.forEach((habit) => {
-      if (!rows.find((row) => row.id === habit.id) && !habit.isHidden) {
-        rows.push({
-          id: habit.id,
-          details: rowItems[habit.id],
-        });
+            existingObject[day] = { ...historyData[day][id] };
+          }
+        }
       }
     });
   }
+
+  rowsToShow.forEach((habit) => {
+    if (!rows.find((row) => row.id === habit.id) && !habit.isHidden) {
+      rows.push({
+        id: habit.id,
+        details: rowItems[habit.id],
+      });
+    }
+  });
 
   if (rowSortingType === "alphabetic") {
     // @ts-ignore

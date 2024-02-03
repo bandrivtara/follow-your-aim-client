@@ -15,12 +15,15 @@ import {
   DateNavigator,
   Toolbar,
   TodayButton,
+  AllDayPanel,
 } from "@devexpress/dx-react-scheduler-material-ui";
 import { appointments } from "./appointments";
 import { memo, useCallback, useEffect, useState } from "react";
 import dayjs, { Dayjs } from "dayjs";
 import { db } from "store/api";
 import { doc, getDoc } from "firebase/firestore";
+import { useGetHistoryBetweenDatesQuery } from "store/services/history";
+import { useGetHabitListQuery } from "store/services/habits";
 
 const PREFIX = "Scheduler";
 // #FOLD_BLOCK
@@ -31,29 +34,73 @@ export const classes = {
 };
 
 const Scheduler = () => {
-  const [data, setData] = useState(appointments);
-  const [currentDay, setCurrentDay] = useState<Dayjs | null>(dayjs());
+  const [data, setData] = useState([]);
+  const [currentDay, setCurrentDay] = useState<Dayjs>(dayjs());
+
+  const history = useGetHistoryBetweenDatesQuery([
+    dayjs(currentDay.startOf("week")).unix(),
+    dayjs(currentDay.endOf("week")).unix(),
+  ]);
+  const habits = useGetHabitListQuery();
+
   const [addedAppointment, setAddedAppointment] = useState({});
   const [isAppointmentBeingCreated, setIsAppointmentBeingCreated] =
     useState(false);
 
   useEffect(() => {
     const getHistoryData = async () => {
-      if (!currentDay) return;
-      const weekStart = currentDay.startOf("week");
-      const weekEnd = currentDay.endOf("week");
-      const startMonth = weekStart.month();
-      const endMonth = weekEnd.month();
+      if (!history.data || !habits.data) return;
+      console.log(history.data);
+      const newAppointments = [];
 
-      if (startMonth !== endMonth) {
-        const docRef = doc(db, "history", weekStart.format("MM-YYYY"));
-        const docSnap = await getDoc(docRef);
-      } else {
-      }
+      history.data.forEach((dayData) => {
+        dayData.data.forEach((activity) => {
+          if (activity.type === "habit") {
+            const currentHabit = habits.data?.find(
+              (habit) => habit.id === activity.id
+            );
+
+            const parsedDate = dayjs(dayData.date);
+            const year = parsedDate.year();
+            const month = parsedDate.month(); // Adding 1 because months are zero-based
+            const day = parsedDate.date();
+
+            const appointment = {
+              title: currentHabit.title,
+              startDate: new Date(year, month, day, 0, 0),
+              endDate: new Date(year, month, day + 1, 1, 0),
+              id: dayData.date + activity.id,
+              location: "Room 1",
+            };
+
+            if (activity.scheduleTime[0]) {
+              appointment.startDate = new Date(
+                year,
+                month,
+                day,
+                +activity.scheduleTime[0],
+                +activity.scheduleTime[1]
+              );
+              appointment.endDate = new Date(
+                year,
+                month,
+                day,
+                +activity.scheduleTime[0],
+                +activity.scheduleTime[1] + 30
+              );
+            }
+
+            newAppointments.push(appointment);
+          }
+        });
+      });
+
+      console.log(newAppointments);
+      setData(newAppointments);
     };
 
     getHistoryData();
-  }, [currentDay]);
+  }, [habits.data, history]);
 
   const onCommitChanges = useCallback(
     ({ added, changed, deleted }: ChangeSet) => {
@@ -123,6 +170,7 @@ const Scheduler = () => {
         <Toolbar />
         <DateNavigator />
         <TodayButton />
+        <AllDayPanel />
         <Appointments />
 
         <AppointmentTooltip showOpenButton showDeleteButton />

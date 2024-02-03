@@ -1,4 +1,4 @@
-import { Cascader, Form, InputNumber, Radio } from "antd";
+import { Cascader, Form, InputNumber, Radio, Switch } from "antd";
 import { ColDef } from "ag-grid-community";
 import { useEffect, useState } from "react";
 import FormButtons from "share/components/Form/FormButtons";
@@ -39,12 +39,18 @@ const Measures = ({ colDef, stopEditing, data }: IProps) => {
       id: data.details.id,
       type: "habit",
       valueType: cellData?.valueType || data.details.valueType,
-      scheduleTime: cellData?.scheduleTime ||
-        data.details.scheduleTime || [0, 0],
+      isAllDay: data.details.isAllDay,
       measures: {},
       progress: 0,
       status: "pending",
     };
+
+    if (!data.details.isAllDay) {
+      newInitValues.startTime = cellData?.startTime ||
+        data.details.startTime || [0, 0];
+      newInitValues.endTime = cellData?.endTime ||
+        data.details.endTime || [0, 0];
+    }
 
     for (const [fieldId, minToComplete] of Object.entries(measureFields)) {
       const cellMeasure = cellData?.measures?.[fieldId];
@@ -72,9 +78,11 @@ const Measures = ({ colDef, stopEditing, data }: IProps) => {
   const handleConfirm = async (formValues: IFormValues) => {
     if (colDef.field) {
       const measureToUpdate = {
-        id: data[colDef.field]?.currentDay || dayData.date,
+        id: `${dayData.year}-${dayData.month.toString().padStart(2, "0")}`,
         data: { ...cellData, ...formValues },
+        path: `${dayData.day}.${data.id}`,
       };
+      console.log(measureToUpdate, cellData, dayData, data);
       await updateHistory(measureToUpdate).unwrap();
       stopEditing();
     }
@@ -83,9 +91,9 @@ const Measures = ({ colDef, stopEditing, data }: IProps) => {
   const handleDelete = async () => {
     if (colDef.field) {
       const dayToUpdate = {
-        id: data.currentDate,
+        id: `${dayData.year}-${dayData.month.toString().padStart(2, "0")}`,
         data: {},
-        path: `${colDef.field}.${data.id}`,
+        path: `${dayData.day}.${data.id}`,
       };
       await updateHistory(dayToUpdate).unwrap();
     }
@@ -127,16 +135,37 @@ const Measures = ({ colDef, stopEditing, data }: IProps) => {
         onFinish={handleConfirm}
         initialValues={initValues}
       >
+        <Form.Item valuePropName="checked" name="isAllDay" label="Цілий день">
+          <Switch />
+        </Form.Item>
         <Form.Item
-          name="scheduleTime"
-          label="Година"
-          rules={[{ required: true }]}
+          noStyle
+          shouldUpdate={(prevValues, currentValues) =>
+            prevValues.isAllDay !== currentValues.isAllDay
+          }
         >
-          <Cascader
-            suffixIcon={<ClockCircleOutlined rev={"value"} />}
-            style={{ width: "100px" }}
-            options={getTimeOptions(15)}
-          />
+          {({ getFieldValue }) => {
+            if (!getFieldValue("isAllDay")) {
+              return (
+                <>
+                  <Form.Item name="startTime" label="Початок о:">
+                    <Cascader
+                      suffixIcon={<ClockCircleOutlined rev={"value"} />}
+                      style={{ width: "100px" }}
+                      options={getTimeOptions(5)}
+                    />
+                  </Form.Item>
+                  <Form.Item name="endTime" label="Закінчення о:">
+                    <Cascader
+                      suffixIcon={<ClockCircleOutlined rev={"value"} />}
+                      style={{ width: "100px" }}
+                      options={getTimeOptions(5)}
+                    />
+                  </Form.Item>
+                </>
+              );
+            }
+          }}
         </Form.Item>
         <Form.Item name="id" hidden />
         <Form.Item name="valueType" hidden />

@@ -41,7 +41,9 @@ const formInitialValues = {
   valueType: "measures",
   measure: "хв",
   minToComplete: 0,
-  scheduleTime: "",
+  isAllDay: false,
+  startTime: "",
+  endTime: "",
   isHidden: false,
   habitsCategoryId: "",
   sphereId: "",
@@ -55,6 +57,7 @@ const AddEditHabit = () => {
   const habitDetails = useGetHabitQuery(habitId);
   const habitsCategories = useGetHabitsCategoriesListQuery();
   const spheres = useGetSpheresListQuery();
+  const navigate = useNavigate();
 
   const currentFields = useWatch("fields", form);
 
@@ -75,13 +78,13 @@ const AddEditHabit = () => {
         id: habitId,
         data: newHabitData,
       };
+      console.log(habitToUpdate, 555);
       await updateHabit(habitToUpdate).unwrap();
     } else {
       await addHabit(newHabitData);
     }
 
-    // navigate(routes.habit.list);
-    // navigate(0);
+    navigate(-1);
   };
 
   const setAsMainField = (field: FormListFieldData) => {
@@ -139,13 +142,6 @@ const AddEditHabit = () => {
             </Select.Option>
           </Select>
         </Form.Item>
-        <Form.Item name="scheduleTime" label="Запланований час">
-          <Cascader
-            suffixIcon={<ClockCircleOutlined rev={"value"} />}
-            style={{ width: "100px" }}
-            options={getTimeOptions(5)}
-          />
-        </Form.Item>
 
         <Form.Item name="type" initialValue="habit" />
         <Form.Item rules={[{ required: true }]} name="valueType" label="Тип">
@@ -154,7 +150,38 @@ const AddEditHabit = () => {
             <Radio.Button value="boolean">Проста (Так/Ні)</Radio.Button>
           </Radio.Group>
         </Form.Item>
-
+        <Form.Item valuePropName="checked" name="isAllDay" label="Цілий день">
+          <Switch />
+        </Form.Item>
+        <Form.Item
+          noStyle
+          shouldUpdate={(prevValues, currentValues) =>
+            prevValues.isAllDay !== currentValues.isAllDay
+          }
+        >
+          {({ getFieldValue }) => {
+            if (!getFieldValue("isAllDay")) {
+              return (
+                <>
+                  <Form.Item name="startTime" label="Початок о:">
+                    <Cascader
+                      suffixIcon={<ClockCircleOutlined rev={"value"} />}
+                      style={{ width: "100px" }}
+                      options={getTimeOptions(5)}
+                    />
+                  </Form.Item>
+                  <Form.Item name="endTime" label="Закінчення о:">
+                    <Cascader
+                      suffixIcon={<ClockCircleOutlined rev={"value"} />}
+                      style={{ width: "100px" }}
+                      options={getTimeOptions(5)}
+                    />
+                  </Form.Item>
+                </>
+              );
+            }
+          }}
+        </Form.Item>
         <Form.Item
           noStyle
           shouldUpdate={(prevValues, currentValues) =>

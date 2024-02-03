@@ -17,7 +17,7 @@ import { useGetTaskGroupListQuery } from "store/services/taskGroups";
 export type ITrackerCalendarState = "tracking" | "planning";
 
 const initConfigs = {
-  currentDate: [getFirstDayOfWeek(), dayjs().endOf("month")],
+  currentDate: [getFirstDayOfWeek(), dayjs().endOf("week")],
 };
 
 const TrackerCalendar = () => {
@@ -30,8 +30,8 @@ const TrackerCalendar = () => {
     initConfigs.currentDate
   );
   const historyData = useGetHistoryBetweenDatesQuery([
-    dayjs(currentDate[0]).unix(),
-    dayjs(currentDate[1]).unix(),
+    dayjs(dayjs(currentDate[0]).format("YYYY-MM")).unix(),
+    dayjs(dayjs(currentDate[1]).format("YYYY-MM")).unix(),
   ]);
 
   const [rowData, setRowData] = useState<IHistoryDayRow[]>([]);
@@ -48,6 +48,7 @@ const TrackerCalendar = () => {
   }, [isMobile]);
 
   useEffect(() => {
+    console.log(historyData.data, 555);
     const newColumnDefs = tableConfigs.getColumnDefs(currentDate, calendarMode);
     const newRows = tableConfigs.getRows(
       habitsData.data,
@@ -55,7 +56,7 @@ const TrackerCalendar = () => {
       historyData.data,
       rowSortingType
     );
-
+    console.log(newRows, 1111);
     setColumnDefs(newColumnDefs);
     setRowData(newRows);
   }, [
