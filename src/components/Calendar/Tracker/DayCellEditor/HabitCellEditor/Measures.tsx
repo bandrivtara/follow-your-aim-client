@@ -199,7 +199,6 @@ const Measures = ({ colDef, stopEditing, data }: IProps) => {
                 onKeyDown={handleKeyUp}
                 autoFocus
                 addonAfter={field.unit}
-                min={0}
               />
             </Form.Item>
           ))}

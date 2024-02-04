@@ -53,49 +53,49 @@ const Scheduler = () => {
       console.log(history.data);
       const newAppointments = [];
 
-      history.data.forEach((dayData) => {
-        dayData.data.forEach((activity) => {
-          if (activity.type === "habit") {
-            const currentHabit = habits.data?.find(
-              (habit) => habit.id === activity.id
-            );
-
-            const parsedDate = dayjs(dayData.date);
-            const year = parsedDate.year();
-            const month = parsedDate.month(); // Adding 1 because months are zero-based
-            const day = parsedDate.date();
-
-            const appointment = {
-              title: currentHabit.title,
-              startDate: new Date(year, month, day, 0, 0),
-              endDate: new Date(year, month, day + 1, 1, 0),
-              id: dayData.date + activity.id,
-              location: "Room 1",
-            };
-
-            if (activity.scheduleTime[0]) {
-              appointment.startDate = new Date(
-                year,
-                month,
-                day,
-                +activity.scheduleTime[0],
-                +activity.scheduleTime[1]
+      history.data.forEach((monthData) => {
+        for (const [day, dayData] of Object.entries(monthData)) {
+          for (const [activityId, activityValue] of Object.entries(dayData)) {
+            if (
+              activityValue.type === "habit" &&
+              !activityValue.isAllDay &&
+              activityValue.startTime
+            ) {
+              const currentHabit = habits.data?.find(
+                (habit) => habit.id === activityId
               );
-              appointment.endDate = new Date(
-                year,
-                month,
-                day,
-                +activity.scheduleTime[0],
-                +activity.scheduleTime[1] + 30
-              );
+
+              console.log(activityValue, 123);
+              const parsedDate = dayjs.unix(monthData.unix);
+              const year = parsedDate.year();
+              const month = parsedDate.month(); // Adding 1 because months are zero-based
+              console.log(activityValue, 444);
+              const appointment = {
+                title: currentHabit.title,
+                startDate: new Date(
+                  year,
+                  month,
+                  day,
+                  activityValue.startTime[0],
+                  activityValue.startTime[1]
+                ),
+                endDate: new Date(
+                  year,
+                  month,
+                  day,
+                  activityValue.endTime[0],
+                  activityValue.endTime[1]
+                ),
+                id: day + activityId,
+              };
+              console.log(dayData, 444);
+              newAppointments.push(appointment);
             }
-
-            newAppointments.push(appointment);
           }
-        });
+        }
       });
 
-      console.log(newAppointments);
+      console.log(newAppointments, 333);
       setData(newAppointments);
     };
 
