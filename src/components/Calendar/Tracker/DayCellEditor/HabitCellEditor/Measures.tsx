@@ -1,4 +1,4 @@
-import { Cascader, Form, InputNumber, Radio, Switch } from "antd";
+import { Cascader, Form, Input, InputNumber, Radio, Switch } from "antd";
 import { ColDef } from "ag-grid-community";
 import { useEffect, useState } from "react";
 import FormButtons from "share/components/Form/FormButtons";
@@ -112,7 +112,11 @@ const Measures = ({ colDef, stopEditing, data }: IProps) => {
   const getCurrentProgress = (measures) => {
     const totalProgress = [];
     for (const [measureId, measure] of Object.entries(measures)) {
-      if (measure.plannedValue && measure.value) {
+      if (
+        measure.plannedValue &&
+        measure.value &&
+        Number.isInteger(+measure.value)
+      ) {
         totalProgress.push((measure.value / measure.plannedValue) * 100);
       } else if (measure.value) {
         totalProgress.push(100);
@@ -195,7 +199,7 @@ const Measures = ({ colDef, stopEditing, data }: IProps) => {
               label={field.name}
               initialValue={null}
             >
-              <InputNumber
+              <Input
                 onKeyDown={handleKeyUp}
                 autoFocus
                 addonAfter={field.unit}
@@ -211,11 +215,10 @@ const Measures = ({ colDef, stopEditing, data }: IProps) => {
               label={field.name}
               initialValue={null}
             >
-              <InputNumber
+              <Input
                 onKeyDown={handleKeyUp}
                 autoFocus
                 addonAfter={field.unit}
-                min={0}
               />
             </Form.Item>
           ))}

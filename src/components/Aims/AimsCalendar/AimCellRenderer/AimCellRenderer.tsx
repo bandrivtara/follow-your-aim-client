@@ -57,6 +57,7 @@ const AimCellRenderer = ({
           newProgressData = await relatedHobbyConfigs.lastValue(data, "desc");
         }
         if (data.calculationType === "sum") {
+          console.log(data);
           newProgressData = await relatedHobbyConfigs.sumOfValues(data);
         }
       } else if (data.relatedList) {

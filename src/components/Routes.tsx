@@ -17,6 +17,11 @@ import AimsCategoriesList from "./Aims/AimsCategories/AimsCategoriesList/AimsCat
 import Scheduler from "./Scheduler/Scheduler";
 import TasksGroupsList from "./TasksGroups/TasksGroupsList/TasksGroupsList";
 import AddEditTasksGroup from "./TasksGroups/AddEditTasksGroup/AddEditTasksGroup";
+import AddEditGroup from "./English/Vocabulary/Groups/AddEditGroup/AddEditGroup";
+import GroupsList from "./English/Vocabulary/Groups/GroupsList/GroupsList";
+import AddEditWord from "./English/Vocabulary/Words/AddEditWord/AddEditWord";
+import WordsList from "./English/Vocabulary/Words/WordsList/WordsList";
+import WordsTest from "./English/Tests/WordsTest";
 
 const AppRoutes = () => {
   return (
@@ -77,6 +82,32 @@ const AppRoutes = () => {
             path={`${routes.spheres.edit}/:sphereId`}
             element={<AddEditSphere />}
           />
+
+          <Route
+            path={routes.english.vocabulary.group.add}
+            element={<AddEditGroup />}
+          />
+          <Route
+            path={`${routes.english.vocabulary.group.edit}/:groupId`}
+            element={<AddEditGroup />}
+          />
+          <Route
+            path={routes.english.vocabulary.group.list}
+            element={<GroupsList />}
+          />
+          <Route
+            path={routes.english.vocabulary.word.add}
+            element={<AddEditWord />}
+          />
+          <Route
+            path={`${routes.english.vocabulary.word.edit}/:wordId`}
+            element={<AddEditWord />}
+          />
+          <Route
+            path={routes.english.vocabulary.word.list}
+            element={<WordsList />}
+          />
+          <Route path={routes.english.tests.words} element={<WordsTest />} />
         </Routes>
       </AppLayout>
     </Router>

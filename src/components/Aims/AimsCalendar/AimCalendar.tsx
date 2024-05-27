@@ -12,7 +12,7 @@ import { useGetAimsListQuery } from "store/services/aims";
 export type IAimCalendarState = "tracking" | "planning";
 
 const initConfigs = {
-  currentDate: [dayjs(), dayjs().add(12, "M")],
+  currentDate: [dayjs(dayjs().startOf("y")), dayjs().endOf("y")],
 };
 
 const AimCalendar = () => {
@@ -27,7 +27,7 @@ const AimCalendar = () => {
   useEffect(() => {
     const newColumnDefs = tableConfigs.getColumnDefs(monthsDates);
     const newRows = tableConfigs.getRows(allAims.data);
-
+    console.log(newRows);
     setColumnDefs(newColumnDefs);
     setRowData(newRows);
   }, [allAims, monthsDates]);

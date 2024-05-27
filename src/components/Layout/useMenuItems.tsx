@@ -152,6 +152,31 @@ const useMenuItems = () => {
         },
       ],
     },
+    {
+      key: 7,
+      label: "Англійський словник",
+      icon: <HeatMapOutlined rev="string" />,
+      children: [
+        {
+          key: 71,
+          label: "Групи",
+          onClick: () => navigate(routes.english.vocabulary.group.list),
+          icon: <UnorderedListOutlined rev="string" />,
+        },
+        {
+          key: 72,
+          label: "Слова",
+          onClick: () => navigate(routes.english.vocabulary.word.list),
+          icon: <PlusSquareOutlined rev="string" />,
+        },
+        {
+          key: 73,
+          label: "Тест на слова",
+          onClick: () => navigate(routes.english.tests.words),
+          icon: <LineChartOutlined rev="string" />,
+        },
+      ],
+    },
   ];
 
   return items;

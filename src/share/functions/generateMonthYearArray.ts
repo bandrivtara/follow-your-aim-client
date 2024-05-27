@@ -8,7 +8,7 @@ export const generateMonthYearArray = (dateFrom: string, dateTo: string) => {
     currentDate.isBefore(dayjs(dateTo, { format: "YYYY/MM/DD" })) ||
     currentDate.isSame(dayjs(dateTo, { format: "YYYY/MM/DD" }))
   ) {
-    result.push(currentDate.format("MM-YYYY"));
+    result.push(currentDate.format("YYYY-MM"));
     currentDate = currentDate.add(1, "month");
   }
 

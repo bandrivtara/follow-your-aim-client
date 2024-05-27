@@ -33,12 +33,18 @@ const Boolean = ({ colDef, stopEditing, data }: IProps) => {
       id: data.details.id,
       type: "habit",
       valueType: cellData?.details?.valueType || data.details.valueType,
-      scheduleTime: cellData?.details?.scheduleTime ||
-        data.details.scheduleTime || [0, 0],
+      isAllDay: data.details.isAllDay,
       isPlanned: cellData?.isPlanned || calendarMode !== "tracking",
       progress: 0,
       status: cellData?.isPlanned ? "done" : "pending",
     };
+
+    if (!data.details.isAllDay) {
+      newInitValues.startTime = cellData?.startTime ||
+        data.details.startTime || [0, 0];
+      newInitValues.endTime = cellData?.endTime ||
+        data.details.endTime || [0, 0];
+    }
 
     setInitValues(newInitValues);
   }, [calendarMode, cellData, data]);
@@ -88,18 +94,39 @@ const Boolean = ({ colDef, stopEditing, data }: IProps) => {
         onFinish={handleConfirm}
         initialValues={initValues}
       >
+        <Form.Item valuePropName="checked" name="isAllDay" label="Цілий день">
+          <Switch />
+        </Form.Item>
         <Form.Item
-          name="scheduleTime"
-          label="Година"
-          rules={[{ required: true }]}
+          noStyle
+          shouldUpdate={(prevValues, currentValues) =>
+            prevValues.isAllDay !== currentValues.isAllDay
+          }
         >
-          <Cascader
-            onKeyUp={handleKeyUp}
-            autoFocus
-            suffixIcon={<ClockCircleOutlined rev={"value"} />}
-            style={{ width: "100px" }}
-            options={getTimeOptions(15)}
-          />
+          {({ getFieldValue }) => {
+            if (!getFieldValue("isAllDay")) {
+              return (
+                <>
+                  <Form.Item name="startTime" label="Початок о:">
+                    <Cascader
+                      onKeyUp={handleKeyUp}
+                      autoFocus
+                      suffixIcon={<ClockCircleOutlined rev={"value"} />}
+                      style={{ width: "100px" }}
+                      options={getTimeOptions(5)}
+                    />
+                  </Form.Item>
+                  <Form.Item name="endTime" label="Закінчення о:">
+                    <Cascader
+                      suffixIcon={<ClockCircleOutlined rev={"value"} />}
+                      style={{ width: "100px" }}
+                      options={getTimeOptions(5)}
+                    />
+                  </Form.Item>
+                </>
+              );
+            }
+          }}
         </Form.Item>
 
         <Form.Item valuePropName="checked" name="isPlanned" label="Запланувати">

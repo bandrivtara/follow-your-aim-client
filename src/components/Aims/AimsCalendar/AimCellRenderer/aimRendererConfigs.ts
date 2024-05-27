@@ -12,9 +12,11 @@ export const aimRendererConfigs = {
         data.dateFrom,
         data.dateTo
       );
+
       let currentValue = 0;
       querySnapshot.forEach(async (monthHistoryDoc) => {
         for (const [day, habit] of Object.entries(monthHistoryDoc.data())) {
+          console.log(day, habit, 123123);
           if (monthHistoryDoc.id === dayjs(data.dateFrom).format("MM-YYYY")) {
             if (+day >= +dayjs(data.dateFrom).format("D")) {
               currentValue +=

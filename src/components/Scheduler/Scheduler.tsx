@@ -38,8 +38,8 @@ const Scheduler = () => {
   const [currentDay, setCurrentDay] = useState<Dayjs>(dayjs());
 
   const history = useGetHistoryBetweenDatesQuery([
-    dayjs(currentDay.startOf("week")).unix(),
-    dayjs(currentDay.endOf("week")).unix(),
+    dayjs(currentDay.startOf("month")).unix(),
+    dayjs(currentDay.endOf("month")).unix(),
   ]);
   const habits = useGetHabitListQuery();
 
@@ -50,7 +50,7 @@ const Scheduler = () => {
   useEffect(() => {
     const getHistoryData = async () => {
       if (!history.data || !habits.data) return;
-      console.log(history.data);
+      console.log(history.data, 123);
       const newAppointments = [];
 
       history.data.forEach((monthData) => {
@@ -95,7 +95,6 @@ const Scheduler = () => {
         }
       });
 
-      console.log(newAppointments, 333);
       setData(newAppointments);
     };
 

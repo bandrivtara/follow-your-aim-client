@@ -49,6 +49,25 @@ const routes = {
     edit: "/spheres/edit",
     statistic: "/spheres/statistic",
   },
+  english: {
+    vocabulary: {
+      group: {
+        path: "/english/vocabulary/groups",
+        list: "/english/vocabulary/groups/list",
+        add: "/english/vocabulary/groups/add",
+        edit: "/english/vocabulary/groups/edit",
+        statistic: "/english/vocabulary/groups/statistic",
+      },
+      word: {
+        path: "/english/vocabulary/words",
+        list: "/english/vocabulary/words/list",
+        add: "/english/vocabulary/words/add",
+        edit: "/english/vocabulary/words/edit",
+        statistic: "/english/vocabulary/words/statistic",
+      },
+    },
+    tests: { words: "english/tests/words" },
+  },
 };
 
 export default routes;
