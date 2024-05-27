@@ -35,7 +35,7 @@ const useMenuItems = () => {
         {
           key: 21,
           label: "Розклад",
-          onClick: () => navigate(routes.calendar.routine),
+          onClick: () => navigate(routes.calendar.scheduler),
           icon: <InsertRowAboveOutlined rev="string" />,
         },
         {
@@ -90,9 +90,9 @@ const useMenuItems = () => {
         },
         {
           key: 42,
-          label: "Додати звичку",
-          onClick: () => navigate(routes.habit.add),
-          icon: <PlusSquareOutlined rev="string" />,
+          label: "Категорії",
+          onClick: () => navigate(routes.habit.categories.list),
+          icon: <UnorderedListOutlined rev="string" />,
         },
         {
           key: 43,
@@ -115,9 +115,9 @@ const useMenuItems = () => {
         },
         {
           key: 52,
-          label: "Додати ціль",
-          onClick: () => navigate(routes.aims.add),
-          icon: <PlusSquareOutlined rev="string" />,
+          label: "Категорії",
+          onClick: () => navigate(routes.aims.categories.list),
+          icon: <UnorderedListOutlined rev="string" />,
         },
         {
           key: 53,
@@ -135,19 +135,44 @@ const useMenuItems = () => {
         {
           key: 61,
           label: "Усі сфери життя",
-          onClick: () => navigate(routes.lifeCategories.list),
+          onClick: () => navigate(routes.spheres.list),
           icon: <UnorderedListOutlined rev="string" />,
         },
         {
           key: 62,
           label: "Додати сферу життя",
-          onClick: () => navigate(routes.lifeCategories.add),
+          onClick: () => navigate(routes.spheres.add),
           icon: <PlusSquareOutlined rev="string" />,
         },
         {
           key: 63,
           label: "Статистика",
-          onClick: () => navigate(routes.lifeCategories.statistic),
+          onClick: () => navigate(routes.spheres.statistic),
+          icon: <LineChartOutlined rev="string" />,
+        },
+      ],
+    },
+    {
+      key: 7,
+      label: "Англійський словник",
+      icon: <HeatMapOutlined rev="string" />,
+      children: [
+        {
+          key: 71,
+          label: "Групи",
+          onClick: () => navigate(routes.english.vocabulary.group.list),
+          icon: <UnorderedListOutlined rev="string" />,
+        },
+        {
+          key: 72,
+          label: "Слова",
+          onClick: () => navigate(routes.english.vocabulary.word.list),
+          icon: <PlusSquareOutlined rev="string" />,
+        },
+        {
+          key: 73,
+          label: "Тест на слова",
+          onClick: () => navigate(routes.english.tests.words),
           icon: <LineChartOutlined rev="string" />,
         },
       ],

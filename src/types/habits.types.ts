@@ -1,24 +1,28 @@
-export type IValueTypes = "number" | "boolean" | "array" | "duration";
+export type IHabitValueTypes = "measures" | "boolean";
 
 export interface IHabitData {
   id: string;
-  scheduleTime?: string;
+  scheduleTime?: string[];
   title: string;
-  valueType?: IValueTypes;
+  type: "habit";
+  valueType: IHabitValueTypes;
   description?: string;
   complexity?: number;
-  category?: string[];
+  habitsCategoryId?: string;
+  sphereId?: string;
   measure?: string;
   active?: boolean;
   minToComplete?: number;
-  specificId?: string;
   isHidden?: boolean;
+  fields?: IHabitField[];
 }
 
-interface IHabitHistory {
-  [year: number]: {
-    [month: number]: IHabitDayData;
-  };
+export interface IHabitField {
+  id: string;
+  name: string;
+  minToComplete: number;
+  unit: string;
+  orderIndex: number;
 }
 
 export interface IHabitDayData {

@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import routes from "config/routes";
 import { ColDef, ICellRendererParams } from "ag-grid-community";
+import AimCategoryCellRenderer from "./CellRenderer/AimCategoryCellRenderer";
 
 const tableConfigs: ColDef[] = [
   {
@@ -13,7 +14,13 @@ const tableConfigs: ColDef[] = [
   {
     headerName: "Опис",
     field: "description",
-    minWidth: 500,
+    flex: 1,
+  },
+  {
+    headerName: "Категорія",
+    field: "aimsCategory",
+    cellRenderer: AimCategoryCellRenderer,
+    flex: 1,
   },
   {
     headerName: "З...",

@@ -1,8 +1,8 @@
-// @ts-nocheck
-
 import { ColDef } from "ag-grid-community";
 import dayjs, { Dayjs } from "dayjs";
-import aims from "./fakeobject";
+import AimCellRenderer from "./AimCellRenderer/AimCellRenderer";
+import { IAimData } from "types/aims.types";
+import AimCellEditor from "./AimCellEditor/AimCellEditor";
 
 const getColumnDefs = (monthsDates: (Dayjs | null)[]): ColDef[] => {
   if (!monthsDates[0] || !monthsDates[1]) return [{}];
@@ -26,20 +26,22 @@ const getColumnDefs = (monthsDates: (Dayjs | null)[]): ColDef[] => {
         .year(),
     });
   }
-  console.log(months, 123);
+
   const newColDefs: ColDef[] = months.map((month) => ({
     field: `col-${month.year}-${month.monthIndex}`,
     headerName: month.name,
     width: 150,
+    editable: ({ data }) => !data.isRelatedWithHabit,
+    cellEditorPopup: true,
+    cellEditor: AimCellEditor,
     colSpan: (params) => {
       if (params.data.colName === params.colDef.field) {
         return params.data.differenceMonths;
       }
       return 1;
     },
+    cellRenderer: AimCellRenderer,
   }));
-
-  console.log(newColDefs);
 
   const aimNamesCol: ColDef = {
     field: "aim-names-col",
@@ -51,25 +53,31 @@ const getColumnDefs = (monthsDates: (Dayjs | null)[]): ColDef[] => {
   return [aimNamesCol, ...newColDefs];
 };
 
-const getRows = () => {
-  const rows = [];
+const getRows = (allAims: IAimData[] | undefined) => {
+  if (!allAims) return [];
+  const rows: any = [];
 
-  aims.forEach((aim) => {
-    const monthDiff = dayjs(aim.timeTo).month() - dayjs(aim.timeFrom).month();
-    const yearDiff = dayjs(aim.timeTo).year() - dayjs(aim.timeFrom).year();
+  allAims.forEach((aim) => {
+    const monthDiff =
+      dayjs(aim.dateTo).month() - dayjs(aim.dateFrom).month() + 1;
+    const yearDiff = dayjs(aim.dateTo).year() - dayjs(aim.dateFrom).year();
     const difference = monthDiff + yearDiff * 12;
 
     const row = {
-      [`col-${dayjs(aim.timeFrom).year()}-${dayjs(aim.timeFrom).month()}`]:
-        aim.name,
-      "aim-names-col": aim.category,
-      colName: `col-${dayjs(aim.timeFrom).year()}-${dayjs(
-        aim.timeFrom
+      [`col-${dayjs(aim.dateFrom).year()}-${dayjs(aim.dateFrom).month()}`]:
+        aim.title,
+      "aim-names-col": aim.aimsCategoryId,
+      colName: `col-${dayjs(aim.dateFrom).year()}-${dayjs(
+        aim.dateFrom
       ).month()}`,
       differenceMonths: difference,
+      ...aim,
     };
 
-    if (rows[0] && rows.some((row) => row["aim-names-col"] === aim.category)) {
+    if (
+      rows[0] &&
+      rows.some((row: any) => row["aim-names-col"] === aim.aimsCategoryId)
+    ) {
       delete row["aim-names-col"];
     }
 

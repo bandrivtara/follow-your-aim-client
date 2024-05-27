@@ -1,9 +1,21 @@
-export interface ITaskGroups {
+export interface ITasksGroup {
   id: string;
+  type: "tasksGroup";
+  valueType: string;
   title: string;
   description: string;
+  isHidden?: boolean;
   category?: string;
-  store: ITask[];
+  tasksStore: ITask[];
+  tasksStages: ITaskStage[];
+}
+
+export interface ITaskStage {
+  title: string;
+  description: string;
+  id: string;
+  stagePercentage: number;
+  subTasks: ITask[];
 }
 
 export type ITaskStatus = "pending" | "failed" | "done";

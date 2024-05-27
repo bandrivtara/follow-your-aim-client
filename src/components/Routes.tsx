@@ -6,11 +6,22 @@ import AddEditAim from "./Aims/AddEditAim/AddEditAim";
 import AddEditHabit from "./Habits/AddEditHabit/AddEditHabit";
 import Habit from "./Habits/HabitsList/HabitsList";
 import AimsList from "./Aims/AimsList/AimsList";
-import CategoriesList from "./Categories/CategoriesList/CategoriesList";
-import AddEditCategory from "./Categories/AddEditCategory/AddEditCategory";
-import TaskGroupsList from "./TaskGroups/TaskGroupsList/TaskGroupsList";
-import AddEditTaskGroup from "./TaskGroups/AddEditTaskGroups/AddEditTaskGroups";
+import SpheresList from "./Spheres/SpheresList/SpheresList";
+import AddEditSphere from "./Spheres/AddEditSphere/AddEditSphere";
 import TrackerCalendar from "./Calendar/Tracker/TrackerCalendar";
+import AimCalendar from "./Aims/AimsCalendar/AimCalendar";
+import HabitsCategoriesList from "./Habits/HabitsCategories/HabitsCategoriesList/HabitsCategoriesList";
+import AddEditHabitsCategory from "./Habits/HabitsCategories/AddEditHabitsCategory/AddEditHabitsCategory";
+import AddEditAimsCategory from "./Aims/AimsCategories/AddEditAimsCategory/AddEditAimsCategory";
+import AimsCategoriesList from "./Aims/AimsCategories/AimsCategoriesList/AimsCategoriesList";
+import Scheduler from "./Scheduler/Scheduler";
+import TasksGroupsList from "./TasksGroups/TasksGroupsList/TasksGroupsList";
+import AddEditTasksGroup from "./TasksGroups/AddEditTasksGroup/AddEditTasksGroup";
+import AddEditGroup from "./English/Vocabulary/Groups/AddEditGroup/AddEditGroup";
+import GroupsList from "./English/Vocabulary/Groups/GroupsList/GroupsList";
+import AddEditWord from "./English/Vocabulary/Words/AddEditWord/AddEditWord";
+import WordsList from "./English/Vocabulary/Words/WordsList/WordsList";
+import WordsTest from "./English/Tests/WordsTest";
 
 const AppRoutes = () => {
   return (
@@ -19,7 +30,9 @@ const AppRoutes = () => {
         <Routes>
           <Route path={routes.main} element={<Main />} />
 
+          <Route path={routes.calendar.scheduler} element={<Scheduler />} />
           <Route path={routes.calendar.tracker} element={<TrackerCalendar />} />
+          <Route path={routes.calendar.aims} element={<AimCalendar />} />
 
           <Route path={routes.habit.list} element={<Habit />} />
           <Route path={routes.habit.add} element={<AddEditHabit />} />
@@ -27,30 +40,74 @@ const AppRoutes = () => {
             path={`${routes.habit.edit}/:habitId`}
             element={<AddEditHabit />}
           />
+          <Route
+            path={routes.habit.categories.list}
+            element={<HabitsCategoriesList />}
+          />
+          <Route
+            path={routes.habit.categories.add}
+            element={<AddEditHabitsCategory />}
+          />
+          <Route
+            path={`${routes.habit.categories.edit}/:habitsCategoryId`}
+            element={<AddEditHabitsCategory />}
+          />
 
-          <Route path={routes.taskGroups.list} element={<TaskGroupsList />} />
-          <Route path={routes.taskGroups.add} element={<AddEditTaskGroup />} />
+          <Route path={routes.taskGroups.list} element={<TasksGroupsList />} />
+          <Route path={routes.taskGroups.add} element={<AddEditTasksGroup />} />
           <Route
             path={`${routes.taskGroups.edit}/:taskGroupId`}
-            element={<AddEditTaskGroup />}
+            element={<AddEditTasksGroup />}
           />
 
           <Route path={routes.aims.list} element={<AimsList />} />
           <Route path={routes.aims.add} element={<AddEditAim />} />
           <Route path={`${routes.aims.edit}/:aimId`} element={<AddEditAim />} />
+          <Route
+            path={routes.aims.categories.list}
+            element={<AimsCategoriesList />}
+          />
+          <Route
+            path={routes.aims.categories.add}
+            element={<AddEditAimsCategory />}
+          />
+          <Route
+            path={`${routes.aims.categories.edit}/:aimsCategoryId`}
+            element={<AddEditAimsCategory />}
+          />
+
+          <Route path={routes.spheres.list} element={<SpheresList />} />
+          <Route path={routes.spheres.add} element={<AddEditSphere />} />
+          <Route
+            path={`${routes.spheres.edit}/:sphereId`}
+            element={<AddEditSphere />}
+          />
 
           <Route
-            path={routes.lifeCategories.list}
-            element={<CategoriesList />}
+            path={routes.english.vocabulary.group.add}
+            element={<AddEditGroup />}
           />
           <Route
-            path={routes.lifeCategories.add}
-            element={<AddEditCategory />}
+            path={`${routes.english.vocabulary.group.edit}/:groupId`}
+            element={<AddEditGroup />}
           />
           <Route
-            path={`${routes.lifeCategories.edit}/:categoryId`}
-            element={<AddEditCategory />}
+            path={routes.english.vocabulary.group.list}
+            element={<GroupsList />}
           />
+          <Route
+            path={routes.english.vocabulary.word.add}
+            element={<AddEditWord />}
+          />
+          <Route
+            path={`${routes.english.vocabulary.word.edit}/:wordId`}
+            element={<AddEditWord />}
+          />
+          <Route
+            path={routes.english.vocabulary.word.list}
+            element={<WordsList />}
+          />
+          <Route path={routes.english.tests.words} element={<WordsTest />} />
         </Routes>
       </AppLayout>
     </Router>

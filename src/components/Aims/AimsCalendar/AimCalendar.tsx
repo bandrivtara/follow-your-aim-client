@@ -7,14 +7,16 @@ import dayjs, { Dayjs } from "dayjs";
 import { ColDef } from "ag-grid-community";
 import { DatePicker } from "antd";
 import tableConfigs from "./tableConfigs";
+import { useGetAimsListQuery } from "store/services/aims";
 
 export type IAimCalendarState = "tracking" | "planning";
 
 const initConfigs = {
-  currentDate: [dayjs(), dayjs().add(12, "M")],
+  currentDate: [dayjs(dayjs().startOf("y")), dayjs().endOf("y")],
 };
 
 const AimCalendar = () => {
+  const allAims = useGetAimsListQuery();
   const gridRef = useRef<AgGridReact>(null);
   const [rowData, setRowData] = useState<any[]>([]);
   const [columnDefs, setColumnDefs] = useState<ColDef[]>([]);
@@ -24,11 +26,11 @@ const AimCalendar = () => {
 
   useEffect(() => {
     const newColumnDefs = tableConfigs.getColumnDefs(monthsDates);
-    const newRows = tableConfigs.getRows();
+    const newRows = tableConfigs.getRows(allAims.data);
     console.log(newRows);
     setColumnDefs(newColumnDefs);
     setRowData(newRows);
-  }, [monthsDates]);
+  }, [allAims, monthsDates]);
 
   const onChange = (dates: null | (Dayjs | null)[]) => {
     if (dates) {
