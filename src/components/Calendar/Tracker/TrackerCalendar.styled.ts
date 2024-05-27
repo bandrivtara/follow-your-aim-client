@@ -4,6 +4,16 @@ const StyledHabitsCalendar = styled.div`
   .fyi-ag-theme {
     height: calc(100vh - 200px);
     box-sizing: border-box;
+    position: relative;
+  }
+
+  .MuiDrawer-paper {
+    position: absolute;
+  }
+
+  .MuiDrawer-root {
+    overflow: hidden;
+    position: absolute;
   }
 
   .ag-header-cell {

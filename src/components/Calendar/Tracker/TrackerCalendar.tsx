@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-material.css";
-import { ColDef } from "ag-grid-community";
+import { CellClickedEvent, ColDef } from "ag-grid-community";
 import { useGetHabitListQuery } from "store/services/habits";
 import StyledTrackerCalendar from "./TrackerCalendar.styled";
 import dayjs, { Dayjs } from "dayjs";
@@ -13,6 +13,8 @@ import useIsMobile from "share/hooks/useIsMobile";
 import { useGetHistoryBetweenDatesQuery } from "store/services/history";
 import { IHistoryDayRow } from "types/history.types";
 import { useGetTaskGroupListQuery } from "store/services/taskGroups";
+import { Drawer } from "@mui/material";
+import DayCellEditor from "./DayCellEditor/DayCellEditor";
 
 export type ITrackerCalendarState = "tracking" | "planning";
 
@@ -25,7 +27,12 @@ const TrackerCalendar = () => {
   const habitsData = useGetHabitListQuery();
   const taskGroupsData = useGetTaskGroupListQuery();
   const gridRef = useRef<AgGridReact>(null);
+  const gridContainerRef = useRef<HTMLDivElement>(null);
 
+  const [editableCell, setEditableCell] = useState<CellClickedEvent | null>(
+    null
+  );
+  const [isEditOpen, setIsEditOpen] = useState(false);
   const [currentDate, setCurrentDate] = useState<(Dayjs | null)[]>(
     initConfigs.currentDate
   );
@@ -48,7 +55,6 @@ const TrackerCalendar = () => {
   }, [isMobile]);
 
   useEffect(() => {
-    console.log(historyData.data, 555);
     const newColumnDefs = tableConfigs.getColumnDefs(currentDate, calendarMode);
     const newRows = tableConfigs.getRows(
       habitsData.data,
@@ -56,7 +62,6 @@ const TrackerCalendar = () => {
       historyData.data,
       rowSortingType
     );
-    console.log(newRows, 1111);
     setColumnDefs(newColumnDefs);
     setRowData(newRows);
   }, [
@@ -68,6 +73,15 @@ const TrackerCalendar = () => {
     taskGroupsData.data,
     historyData.data,
   ]);
+
+  const onCellDoubleClicked = (event: CellClickedEvent) => {
+    setEditableCell(event);
+    setIsEditOpen(true);
+  };
+
+  const toggleCloseEditCell = () => {
+    setIsEditOpen(false);
+  };
 
   return (
     <StyledTrackerCalendar>
@@ -82,13 +96,25 @@ const TrackerCalendar = () => {
         rowSortingType={rowSortingType}
         setRowSortingType={setRowSortingType}
       />
-      <div className="ag-theme-material fyi-ag-theme">
+      <div className="ag-theme-material fyi-ag-theme" ref={gridContainerRef}>
         <AgGridReact
           rowHeight={30}
           ref={gridRef}
           rowData={rowData}
           columnDefs={columnDefs}
+          onCellDoubleClicked={onCellDoubleClicked}
         ></AgGridReact>
+        <Drawer
+          open={isEditOpen}
+          onClose={toggleCloseEditCell}
+          container={isMobile ? undefined : gridContainerRef.current}
+          elevation={2}
+        >
+          <DayCellEditor
+            editableCell={editableCell}
+            stopEditing={toggleCloseEditCell}
+          />
+        </Drawer>
       </div>
     </StyledTrackerCalendar>
   );

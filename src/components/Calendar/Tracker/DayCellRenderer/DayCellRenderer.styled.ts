@@ -9,7 +9,8 @@ const StyledDayCellRenderer = styled.div<IStyledDayCellRenderer>`
   text-align: center;
   height: 100%;
   background-color: ${({ progressColor }) => progressColor};
-  border: 1px solid ${({ isInPlan }) => (isInPlan ? "#000" : "transparent")};
+  border: 1px solid ${({ isInPlan }) => (isInPlan ? "grey" : "transparent")};
+  border-radius: 4px;
 `;
 
 export default StyledDayCellRenderer;
