@@ -29,7 +29,6 @@ const DayCellEditor = ({ editableCell, stopEditing }: IProps) => {
   useEffect(() => {
     if (editableCell) {
       const { colDef, data } = editableCell;
-      console.log(editableCell, 123123);
       const activityType = data?.details?.type;
       const activityValueType = data?.details?.valueType;
 
