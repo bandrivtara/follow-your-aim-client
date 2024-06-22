@@ -9,13 +9,10 @@ import {
   Button,
   Grid,
   InputAdornment,
-  Select,
-  MenuItem,
   LinearProgress,
   Typography,
 } from "@mui/material";
 import {
-  AccessTime as ClockIcon,
   Close as CloseIcon,
   Check as CheckIcon,
   BorderAll as PendingIcon,
@@ -23,7 +20,6 @@ import {
 import { ColDef } from "ag-grid-community";
 import { useUpdateHistoryMutation } from "store/services/history";
 import FormButtons from "share/components/Form/FormButtons";
-import { getTimeOptions } from "share/functions/getTimeOptions";
 import _ from "lodash";
 import {
   IDayData,
@@ -92,11 +88,10 @@ const Measures = ({ colDef, stopEditing, data }: IProps) => {
   }, [calendarMode, cellData, data]);
 
   const handleConfirm = async (formValues) => {
-    console.log(formValues, 123123);
     if (colDef.field) {
       const measureToUpdate = {
         id: `${dayData.year}-${dayData.month.toString().padStart(2, "0")}`,
-        data: { ...cellData, ...formValues },
+        data: { ...initValues, ...cellData, ...formValues },
         path: `${dayData.day}.${data.id}`,
       };
       await updateHistory(measureToUpdate).unwrap();
@@ -230,7 +225,7 @@ const Measures = ({ colDef, stopEditing, data }: IProps) => {
           )}
 
           {data.details.fields &&
-            data.details.fields.map((field) => (
+            data.details.fields.map((field, index) => (
               <Grid
                 item
                 xs={12}
@@ -244,6 +239,7 @@ const Measures = ({ colDef, stopEditing, data }: IProps) => {
                   render={({ field }) => (
                     <TextField
                       {...field}
+                      autoFocus={index === 0}
                       label={field.name}
                       onKeyDown={handleKeyUp}
                       InputProps={{
@@ -276,8 +272,8 @@ const Measures = ({ colDef, stopEditing, data }: IProps) => {
                   render={({ field }) => (
                     <TextField
                       {...field}
+                      autoFocus={index === 0}
                       label={field.name}
-                      onKeyDown={handleKeyUp}
                       InputProps={{
                         endAdornment: (
                           <InputAdornment position="end">
