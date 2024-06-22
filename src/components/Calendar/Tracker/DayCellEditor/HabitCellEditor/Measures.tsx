@@ -56,7 +56,7 @@ const Measures = ({ colDef, stopEditing, data }: IProps) => {
       progress: 0,
       status: "pending",
     };
-
+    console.log(newInitValues, 123123, cellData);
     if (!data.details.isAllDay) {
       newInitValues.startTime = cellData?.startTime ||
         data.details.startTime || [0, 0];
@@ -89,13 +89,14 @@ const Measures = ({ colDef, stopEditing, data }: IProps) => {
 
   const handleConfirm = async (formValues) => {
     if (colDef.field) {
-      const measureToUpdate = {
-        id: `${dayData.year}-${dayData.month.toString().padStart(2, "0")}`,
-        data: { ...initValues, ...cellData, ...formValues },
-        path: `${dayData.day}.${data.id}`,
-      };
-      await updateHistory(measureToUpdate).unwrap();
-      stopEditing();
+      console.log(formValues, 222);
+      // const measureToUpdate = {
+      //   id: `${dayData.year}-${dayData.month.toString().padStart(2, "0")}`,
+      //   data: { ...initValues, ...cellData, ...formValues },
+      //   path: `${dayData.day}.${data.id}`,
+      // };
+      // await updateHistory(measureToUpdate).unwrap();
+      // stopEditing();
     }
   };
 
@@ -112,12 +113,6 @@ const Measures = ({ colDef, stopEditing, data }: IProps) => {
 
   const handleDecline = () => {
     stopEditing();
-  };
-
-  const handleKeyUp = (event) => {
-    if (event.key === "Alt") {
-      handleSubmit(handleConfirm)();
-    }
   };
 
   const getCurrentProgress = (measures) => {
@@ -236,12 +231,11 @@ const Measures = ({ colDef, stopEditing, data }: IProps) => {
                   name={`measures.${field.id}.value`}
                   control={control}
                   defaultValue={initValues.measures[field.id]?.value || 0}
-                  render={({ field }) => (
+                  render={({ textField }) => (
                     <TextField
-                      {...field}
+                      {...textField}
                       autoFocus={index === 0}
                       label={field.name}
-                      onKeyDown={handleKeyUp}
                       InputProps={{
                         endAdornment: (
                           <InputAdornment position="end">
