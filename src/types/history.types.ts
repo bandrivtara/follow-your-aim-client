@@ -10,22 +10,28 @@ export interface IHistoryData {
 export type IActivityTypes = "tasksGroup" | "habit";
 export type IValueTypes = "boolean" | "measures" | "todoList";
 
-export interface IActivityHistoryData {
-  details: {
-    type: "habit" | "tasksGroup";
-    valueType?: "measures" | "boolean" | "todoList";
-    scheduleTime?: string[] | "allDay";
+export interface IMeasures {
+  [habitId: string]: {
+    plannedValue: number;
+    value: number;
   };
-  measures?: {
-    [habitId: string]: {
-      plannedValue: number;
-      value: number;
-    };
-  };
-  isPlanned?: boolean;
-  tasks?: ITask[];
+}
+
+export interface IActivityData {
+  startTime: number[];
+  endTime: number[];
+  measures: IMeasures;
+  isAllDay: boolean;
   status: "failed" | "pending" | "done";
   progress: number;
+}
+
+export interface IActivityHistoryData extends IActivityData {
+  id: string;
+  type: "habit" | "tasksGroup";
+  valueType?: "measures" | "boolean" | "todoList";
+  isPlanned?: boolean;
+  tasks?: ITask[];
 }
 
 export type IHistoryDayRow = {

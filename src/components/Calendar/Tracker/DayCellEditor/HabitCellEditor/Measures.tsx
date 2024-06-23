@@ -1,12 +1,11 @@
-import React, { useEffect, useState } from "react";
-import { useForm, Controller } from "react-hook-form";
+import React, { useCallback, useEffect, useState } from "react";
+import { useForm, Controller, useWatch, SubmitHandler } from "react-hook-form";
 import {
   FormControlLabel,
   Checkbox,
   TextField,
   RadioGroup,
   Radio,
-  Button,
   Grid,
   InputAdornment,
   LinearProgress,
@@ -17,29 +16,41 @@ import {
   Check as CheckIcon,
   BorderAll as PendingIcon,
 } from "@mui/icons-material";
-import { ColDef } from "ag-grid-community";
 import { useUpdateHistoryMutation } from "store/services/history";
 import FormButtons from "share/components/Form/FormButtons";
 import _ from "lodash";
-import {
-  IDayData,
-  IStopEditing,
-} from "components/Calendar/Tracker/cellConfigs";
+import { IMeasureCellEditor } from "components/Calendar/Tracker/cellConfigs";
 import { TimePicker } from "@mui/x-date-pickers";
 import dayjs from "dayjs";
+import {
+  IActivityData,
+  IActivityHistoryData,
+  IMeasures,
+} from "types/history.types";
+import removeUndefinedDeep from "share/functions/sds";
 
-interface IProps {
-  colDef: ColDef<IDayData>;
-  stopEditing: IStopEditing;
-  data: IDayData;
-}
+const Measures = ({ colDef, stopEditing, data }: IMeasureCellEditor) => {
+  const { control, handleSubmit, setValue, getValues } =
+    useForm<IActivityData>();
 
-const Measures = ({ colDef, stopEditing, data }: IProps) => {
-  const { control, handleSubmit, watch, setValue } = useForm();
   const [updateHistory] = useUpdateHistoryMutation();
-  const [initValues, setInitValues] = useState(null);
+  const [initValues, setInitValues] = useState<IActivityHistoryData | null>(
+    null
+  );
   const cellData = colDef.field && data[+colDef.field];
   const { calendarMode, dayData } = colDef.cellRendererParams;
+
+  const measureValue = useWatch({
+    control,
+    name: "measures",
+    defaultValue: initValues?.measures,
+  });
+
+  const isAllDay = useWatch({
+    control,
+    name: "isAllDay",
+    defaultValue: initValues?.isAllDay,
+  });
 
   useEffect(() => {
     const measureFields: { [fieldId: string]: number } = {};
@@ -47,8 +58,10 @@ const Measures = ({ colDef, stopEditing, data }: IProps) => {
       measureFields[field.id] = field.minToComplete;
     });
 
-    const newInitValues = {
+    const newInitValues: IActivityHistoryData = {
       id: data.details.id,
+      startTime: [0, 0],
+      endTime: [0, 0],
       type: "habit",
       valueType: cellData?.valueType || data.details.valueType,
       isAllDay: data.details.isAllDay,
@@ -56,7 +69,6 @@ const Measures = ({ colDef, stopEditing, data }: IProps) => {
       progress: 0,
       status: "pending",
     };
-    console.log(newInitValues, 123123, cellData);
     if (!data.details.isAllDay) {
       newInitValues.startTime = cellData?.startTime ||
         data.details.startTime || [0, 0];
@@ -66,7 +78,7 @@ const Measures = ({ colDef, stopEditing, data }: IProps) => {
 
     for (const [fieldId, minToComplete] of Object.entries(measureFields)) {
       const cellMeasure = cellData?.measures?.[fieldId];
-
+      if (!newInitValues.measures) return;
       if (calendarMode === "tracking") {
         newInitValues.measures[fieldId] = {
           value:
@@ -83,20 +95,29 @@ const Measures = ({ colDef, stopEditing, data }: IProps) => {
         };
       }
     }
-    console.log(newInitValues, 123123);
     setInitValues(newInitValues);
-  }, [calendarMode, cellData, data]);
+  }, [calendarMode, cellData, data, setValue]);
 
-  const handleConfirm = async (formValues) => {
+  useEffect(() => {
+    setValue("isAllDay", !!initValues?.isAllDay);
+  }, [initValues, setValue]);
+
+  const handleConfirm: SubmitHandler<IActivityData> = async (
+    formValues: IActivityData
+  ) => {
     if (colDef.field) {
-      console.log(formValues, 222);
-      // const measureToUpdate = {
-      //   id: `${dayData.year}-${dayData.month.toString().padStart(2, "0")}`,
-      //   data: { ...initValues, ...cellData, ...formValues },
-      //   path: `${dayData.day}.${data.id}`,
-      // };
-      // await updateHistory(measureToUpdate).unwrap();
-      // stopEditing();
+      const removeUndefinedDormValues: IActivityData =
+        removeUndefinedDeep(formValues);
+      const mergedValues = _.merge(initValues, removeUndefinedDormValues);
+
+      const measureToUpdate = {
+        id: `${dayData.year}-${dayData.month.toString().padStart(2, "0")}`,
+        data: { ...cellData, ...mergedValues },
+        path: `${dayData.day}.${data.id}`,
+      };
+
+      await updateHistory(measureToUpdate).unwrap();
+      stopEditing();
     }
   };
 
@@ -115,25 +136,30 @@ const Measures = ({ colDef, stopEditing, data }: IProps) => {
     stopEditing();
   };
 
-  const getCurrentProgress = (measures) => {
-    const totalProgress = [];
-    for (const [measureId, measure] of Object.entries(measures)) {
-      if (
-        measure.plannedValue &&
-        measure.value &&
-        Number.isInteger(+measure.value)
-      ) {
-        totalProgress.push((measure.value / measure.plannedValue) * 100);
-      } else if (measure.value) {
-        totalProgress.push(100);
+  const getCurrentProgress = useCallback(
+    (measures: IMeasures) => {
+      if (!measures) return;
+      const totalProgress = [];
+      for (const [, measure] of Object.entries(measures)) {
+        if (measure.plannedValue && measure.value) {
+          totalProgress.push((+measure.value / +measure.plannedValue) * 100);
+        } else if (+measure.value) {
+          totalProgress.push(100);
+        }
       }
-    }
+      const progress = totalProgress[0] ? +_.mean(totalProgress).toFixed(0) : 0;
+      setValue("progress", progress);
+      return progress;
+    },
+    [setValue]
+  );
 
-    const progress = totalProgress[0] ? _.mean(totalProgress).toFixed(0) : 0;
-    setValue("progress", progress);
-  };
+  useEffect(() => {
+    getCurrentProgress(measureValue);
+  }, [getCurrentProgress, measureValue, setValue]);
 
-  const parseTime = (timeArray) => {
+  const parseTime = (timeArray: number[]) => {
+    if (isAllDay || !timeArray) return;
     const [hours, minutes] = timeArray;
     const date = dayjs()
       .set("hour", hours)
@@ -143,11 +169,10 @@ const Measures = ({ colDef, stopEditing, data }: IProps) => {
     return date.toDate();
   };
 
-  // Function to format Date object into [hours, minutes]
-  const formatTime = (date) => {
-    if (!date || !date.isValid()) return [0, 0]; // Handle invalid date
-    const hours = date.hour();
-    const minutes = date.minute();
+  const formatTime = (date: Date | null | undefined) => {
+    if (!date) return [0, 0];
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
     return [hours, minutes];
   };
 
@@ -164,7 +189,6 @@ const Measures = ({ colDef, stopEditing, data }: IProps) => {
                 <Controller
                   name="isAllDay"
                   control={control}
-                  defaultValue={initValues.isAllDay}
                   render={({ field }) => (
                     <Checkbox {...field} checked={field.value} />
                   )}
@@ -174,7 +198,7 @@ const Measures = ({ colDef, stopEditing, data }: IProps) => {
             />
           </Grid>
 
-          {!watch("isAllDay") && (
+          {!isAllDay && (
             <>
               <Grid item xs={12}>
                 <Controller
@@ -220,26 +244,26 @@ const Measures = ({ colDef, stopEditing, data }: IProps) => {
           )}
 
           {data.details.fields &&
-            data.details.fields.map((field, index) => (
+            data.details.fields.map((fieldData, index) => (
               <Grid
                 item
                 xs={12}
-                key={field.id}
+                key={fieldData.id}
                 hidden={calendarMode !== "tracking"}
               >
                 <Controller
-                  name={`measures.${field.id}.value`}
+                  name={`measures.${fieldData.id}.value`}
                   control={control}
-                  defaultValue={initValues.measures[field.id]?.value || 0}
-                  render={({ textField }) => (
+                  defaultValue={initValues.measures[fieldData.id]?.value || 0}
+                  render={({ field }) => (
                     <TextField
-                      {...textField}
+                      {...field}
                       autoFocus={index === 0}
-                      label={field.name}
+                      label={fieldData.name}
                       InputProps={{
                         endAdornment: (
                           <InputAdornment position="end">
-                            {field.unit}
+                            {fieldData.unit}
                           </InputAdornment>
                         ),
                       }}
@@ -250,28 +274,28 @@ const Measures = ({ colDef, stopEditing, data }: IProps) => {
             ))}
 
           {data.details.fields &&
-            data.details.fields.map((field, index) => (
+            data.details.fields.map((fieldData, index) => (
               <Grid
                 item
                 xs={12}
-                key={field.id + index}
+                key={fieldData.id + index}
                 hidden={calendarMode === "tracking"}
               >
                 <Controller
-                  name={`measures.${field.id}.plannedValue`}
-                  control={control}
+                  name={`measures.${fieldData.id}.plannedValue`}
                   defaultValue={
-                    initValues.measures[field.id]?.plannedValue || 0
+                    initValues.measures[fieldData.id]?.plannedValue || 0
                   }
+                  control={control}
                   render={({ field }) => (
                     <TextField
                       {...field}
                       autoFocus={index === 0}
-                      label={field.name}
+                      label={fieldData.name}
                       InputProps={{
                         endAdornment: (
                           <InputAdornment position="end">
-                            {field.unit}
+                            {fieldData.unit}
                           </InputAdornment>
                         ),
                       }}
@@ -333,18 +357,6 @@ const Measures = ({ colDef, stopEditing, data }: IProps) => {
               handleDecline={handleDecline}
               handleDelete={handleDelete}
             />
-          </Grid>
-          <Grid item xs={12}>
-            <Button type="submit" variant="contained" color="primary">
-              Confirm
-            </Button>
-            <Button
-              variant="outlined"
-              color="secondary"
-              onClick={handleDecline}
-            >
-              Decline
-            </Button>
           </Grid>
         </Grid>
       </form>

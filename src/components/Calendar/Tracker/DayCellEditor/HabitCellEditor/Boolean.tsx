@@ -244,10 +244,10 @@ const Boolean = ({ colDef, stopEditing, data }: IProps) => {
           </Grid>
           {calendarMode === "tracking" && (
             <Grid item xs={12}>
-              <FormLabel component="legend">Статус</FormLabel>
               <Controller
                 name="status"
                 control={control}
+                defaultValue={initValues.status}
                 render={({ field }) => (
                   <RadioGroup {...field} row>
                     <FormControlLabel

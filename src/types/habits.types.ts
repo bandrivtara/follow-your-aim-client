@@ -10,11 +10,14 @@ export interface IHabitData {
   complexity?: number;
   habitsCategoryId?: string;
   sphereId?: string;
-  measure?: string;
+  measures?: { [measureId: string]: { value: string; plannedValue: string } };
   active?: boolean;
   minToComplete?: number;
   isHidden?: boolean;
   fields?: IHabitField[];
+  isAllDay: boolean;
+  startTime: number[];
+  endTime: number[];
 }
 
 export interface IHabitField {

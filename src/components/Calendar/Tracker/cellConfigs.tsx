@@ -15,34 +15,32 @@ export type IStopEditing = (
   suppressNavigateAfterEdit?: boolean | undefined
 ) => void;
 
-export interface IDayData {
+export interface IHabitDayData {
   id: string;
-  details: IHabitData | ITasksGroup;
+  details: IHabitData;
   currentDate: string;
   [day: number]: any;
 }
 
-type ICellConfig = {
-  [activityType in IActivityTypes]: {
-    [valueType in IValueTypes]?: {
-      cellEditor: (cellEditorData: {
-        data: IDayData;
-        colDef: ColDef<IDayData>;
-        stopEditing: IStopEditing;
-      }) => ReactNode;
-      cellRenderer: (
-        cell: IActivityHistoryData,
-        data?: IDayData
-      ) => {
-        component: ReactNode;
-        progress: number | boolean;
-        isPlanned: boolean;
-      };
-    };
-  };
-};
+export interface IDayData {
+  id: string;
+  details: ITasksGroup;
+  currentDate: string;
+  [day: number]: any;
+}
 
-export const cellConfigs: ICellConfig = {
+export interface IMeasureCellEditor {
+  data: IHabitDayData;
+  colDef: ColDef<IHabitDayData>;
+  stopEditing: IStopEditing;
+}
+
+export interface IMeasureCellRenderer {
+  cell: IActivityHistoryData;
+  data?: IHabitDayData;
+}
+
+export const cellConfigs = {
   habit: {
     boolean: {
       cellEditor: ({ colDef, stopEditing, data }) => (
@@ -57,10 +55,10 @@ export const cellConfigs: ICellConfig = {
       },
     },
     measures: {
-      cellEditor: ({ colDef, stopEditing, data }) => (
+      cellEditor: ({ colDef, stopEditing, data }: IMeasureCellEditor) => (
         <Measures colDef={colDef} stopEditing={stopEditing} data={data} />
       ),
-      cellRenderer: (cell, data) => {
+      cellRenderer: (cell: IActivityHistoryData, data: IHabitDayData) => {
         return {
           component: (
             <>
