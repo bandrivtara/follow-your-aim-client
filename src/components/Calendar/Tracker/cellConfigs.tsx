@@ -1,13 +1,8 @@
-import { ReactNode } from "react";
 import { ColDef } from "ag-grid-community";
-import {
-  IActivityHistoryData,
-  IActivityTypes,
-  IValueTypes,
-} from "types/history.types";
+import { IActivityHistoryData } from "types/history.types";
 import Boolean from "./DayCellEditor/HabitCellEditor/Boolean";
 import Measures from "./DayCellEditor/HabitCellEditor/Measures";
-import { ITask, ITasksGroup } from "types/taskGroups";
+import { ITask } from "types/taskGroups";
 import TodoList from "./DayCellEditor/TasksGroupCellEditor/TodoList";
 import { IHabitData } from "types/habits.types";
 
@@ -18,13 +13,6 @@ export type IStopEditing = (
 export interface IHabitDayData {
   id: string;
   details: IHabitData;
-  currentDate: string;
-  [day: number]: any;
-}
-
-export interface IDayData {
-  id: string;
-  details: ITasksGroup;
   currentDate: string;
   [day: number]: any;
 }
@@ -43,7 +31,7 @@ export interface IMeasureCellRenderer {
 export const cellConfigs = {
   habit: {
     boolean: {
-      cellEditor: ({ colDef, stopEditing, data }) => (
+      cellEditor: ({ colDef, stopEditing, data }: IMeasureCellEditor) => (
         <Boolean colDef={colDef} stopEditing={stopEditing} data={data} />
       ),
       cellRenderer: (cell) => {

@@ -1,24 +1,21 @@
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   FormControlLabel,
-  FormLabel,
   Radio,
   RadioGroup,
   Switch,
   TextField,
-  Button,
   Box,
   Grid,
   LinearProgress,
   Typography,
 } from "@mui/material";
 import { TimePicker } from "@mui/x-date-pickers/TimePicker";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, SubmitHandler } from "react-hook-form";
 import { useUpdateHistoryMutation } from "store/services/history";
 import { ColDef } from "ag-grid-community";
-import { getTimeOptions } from "share/functions/getTimeOptions";
 import {
-  IDayData,
+  IHabitDayData,
   IStopEditing,
 } from "components/Calendar/Tracker/cellConfigs";
 import FormButtons from "share/components/Form/FormButtons";
@@ -28,22 +25,29 @@ import {
   BorderAll as PendingIcon,
 } from "@mui/icons-material";
 import dayjs from "dayjs";
+import { IActivityData, IActivityHistoryData } from "types/history.types";
+import removeUndefinedDeep from "share/functions/sds";
+import _ from "lodash";
 
 interface IProps {
-  colDef: ColDef<IDayData>;
+  colDef: ColDef<IHabitDayData>;
   stopEditing: IStopEditing;
-  data: IDayData;
+  data: IHabitDayData;
 }
+
+interface IFormValues {}
 
 const Boolean = ({ colDef, stopEditing, data }: IProps) => {
   const { control, handleSubmit, setValue, getValues } = useForm();
   const [updateHistory] = useUpdateHistoryMutation();
-  const [initValues, setInitValues] = useState<null | IHabitHistoryData>(null);
+  const [initValues, setInitValues] = useState<IActivityHistoryData | null>(
+    null
+  );
   const cellData = colDef.field && data[+colDef.field];
   const { calendarMode, dayData } = colDef.cellRendererParams;
 
   useEffect(() => {
-    const newInitValues = {
+    const newInitValues: IActivityHistoryData = {
       id: data.details.id,
       type: "habit",
       valueType: cellData?.details?.valueType || data.details.valueType,
@@ -51,6 +55,9 @@ const Boolean = ({ colDef, stopEditing, data }: IProps) => {
       isPlanned: cellData?.isPlanned || calendarMode !== "tracking",
       progress: 0,
       status: cellData?.isPlanned ? "done" : "pending",
+      startTime: [0, 0],
+      endTime: [0, 0],
+      measures: {},
     };
 
     if (!data.details.isAllDay) {
@@ -61,23 +68,25 @@ const Boolean = ({ colDef, stopEditing, data }: IProps) => {
     }
 
     setInitValues(newInitValues);
-
-    for (const key in newInitValues) {
-      setValue(key, newInitValues[key]);
-    }
   }, [calendarMode, cellData, data, setValue]);
 
-  const handleConfirm = useCallback(
-    async (formValues) => {
+  useEffect(() => {
+    setValue("isAllDay", !!initValues?.isAllDay);
+  }, [initValues, setValue]);
+
+  const handleConfirm: SubmitHandler<IFormValues> = useCallback(
+    async (formValues: IFormValues) => {
       if (colDef.field) {
-        console.log(123123, formValues);
+        const removeUndefinedDormValues: IActivityData =
+          removeUndefinedDeep(formValues);
+        const mergedValues = _.merge(initValues, removeUndefinedDormValues);
+
         const valueToUpdate = {
           id: `${dayData.year}-${dayData.month.toString().padStart(2, "0")}`,
           data: {
-            ...initValues,
             ...cellData,
-            ...formValues,
-            progress: calendarMode === "tracking" ? 100 : initValues.progress,
+            ...mergedValues,
+            progress: calendarMode === "tracking" ? 100 : initValues?.progress,
           },
           path: `${dayData.day}.${data.id}`,
         };
@@ -115,14 +124,14 @@ const Boolean = ({ colDef, stopEditing, data }: IProps) => {
     stopEditing();
   };
 
-  const formatTime = (date) => {
-    if (!date || !date.isValid()) return [0, 0]; // Handle invalid date
-    const hours = date.hour();
-    const minutes = date.minute();
+  const formatTime = (date: Date | null | undefined) => {
+    if (!date) return [0, 0];
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
     return [hours, minutes];
   };
 
-  const parseTime = (timeArray) => {
+  const parseTime = (timeArray: number[]) => {
     const [hours, minutes] = timeArray;
     const date = dayjs()
       .set("hour", hours)

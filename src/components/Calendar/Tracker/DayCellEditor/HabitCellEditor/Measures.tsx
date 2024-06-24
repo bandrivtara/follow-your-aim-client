@@ -30,8 +30,7 @@ import {
 import removeUndefinedDeep from "share/functions/sds";
 
 const Measures = ({ colDef, stopEditing, data }: IMeasureCellEditor) => {
-  const { control, handleSubmit, setValue, getValues } =
-    useForm<IActivityData>();
+  const { control, handleSubmit, setValue } = useForm<IActivityData>();
 
   const [updateHistory] = useUpdateHistoryMutation();
   const [initValues, setInitValues] = useState<IActivityHistoryData | null>(
