@@ -11,7 +11,7 @@ import {
   Typography,
 } from "@mui/material";
 import { TimePicker } from "@mui/x-date-pickers/TimePicker";
-import { useForm, Controller, SubmitHandler } from "react-hook-form";
+import { useForm, Controller, SubmitHandler, useWatch } from "react-hook-form";
 import { useUpdateHistoryMutation } from "store/services/history";
 import { ColDef } from "ag-grid-community";
 import {
@@ -73,6 +73,12 @@ const Boolean = ({ colDef, stopEditing, data }: IProps) => {
   useEffect(() => {
     setValue("isAllDay", !!initValues?.isAllDay);
   }, [initValues, setValue]);
+
+  const isAllDay = useWatch({
+    control,
+    name: "isAllDay",
+    defaultValue: initValues?.isAllDay,
+  });
 
   const handleConfirm: SubmitHandler<IFormValues> = useCallback(
     async (formValues: IFormValues) => {
@@ -176,7 +182,7 @@ const Boolean = ({ colDef, stopEditing, data }: IProps) => {
               )}
             />
           </Grid>
-          {!getValues("isAllDay") && (
+          {!isAllDay && (
             <>
               <Grid item xs={6}>
                 <Controller

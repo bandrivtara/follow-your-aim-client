@@ -170,8 +170,8 @@ const Measures = ({ colDef, stopEditing, data }: IMeasureCellEditor) => {
 
   const formatTime = (date: Date | null | undefined) => {
     if (!date) return [0, 0];
-    const hours = date.getHours();
-    const minutes = date.getMinutes();
+    const hours = dayjs(date).hour();
+    const minutes = dayjs(date).minute();
     return [hours, minutes];
   };
 

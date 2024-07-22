@@ -26,6 +26,14 @@ export interface IActivityData {
   progress: number;
 }
 
+export interface ITasksHistoryData {
+  id: string;
+  type: string;
+  valueType: string;
+  tasks: ITask[];
+  tasksStore?: ITask[];
+}
+
 export interface IActivityHistoryData extends IActivityData {
   id: string;
   type: "habit" | "tasksGroup";
