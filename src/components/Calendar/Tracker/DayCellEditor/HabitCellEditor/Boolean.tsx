@@ -1,35 +1,53 @@
-import { Cascader, Form, Radio, Switch } from "antd";
-import { ColDef } from "ag-grid-community";
-import { useEffect, useState } from "react";
-import FormButtons from "share/components/Form/FormButtons";
+import { useCallback, useEffect, useState } from "react";
+import {
+  FormControlLabel,
+  Radio,
+  RadioGroup,
+  Switch,
+  TextField,
+  Box,
+  Grid,
+  LinearProgress,
+  Typography,
+} from "@mui/material";
+import { TimePicker } from "@mui/x-date-pickers/TimePicker";
+import { useForm, Controller, SubmitHandler, useWatch } from "react-hook-form";
 import { useUpdateHistoryMutation } from "store/services/history";
+import { ColDef } from "ag-grid-community";
 import {
-  BorderOutlined,
-  CheckSquareOutlined,
-  ClockCircleOutlined,
-  CloseSquareOutlined,
-} from "@ant-design/icons";
-import { getTimeOptions } from "share/functions/getTimeOptions";
-import {
-  IDayData,
+  IHabitDayData,
   IStopEditing,
 } from "components/Calendar/Tracker/cellConfigs";
+import FormButtons from "share/components/Form/FormButtons";
+import {
+  Close as CloseIcon,
+  Check as CheckIcon,
+  BorderAll as PendingIcon,
+} from "@mui/icons-material";
+import dayjs from "dayjs";
+import { IActivityData, IActivityHistoryData } from "types/history.types";
+import removeUndefinedDeep from "share/functions/sds";
+import _ from "lodash";
 
 interface IProps {
-  colDef: ColDef<IDayData>;
+  colDef: ColDef<IHabitDayData>;
   stopEditing: IStopEditing;
-  data: IDayData;
+  data: IHabitDayData;
 }
 
+interface IFormValues {}
+
 const Boolean = ({ colDef, stopEditing, data }: IProps) => {
-  const [form] = Form.useForm();
+  const { control, handleSubmit, setValue, getValues } = useForm();
   const [updateHistory] = useUpdateHistoryMutation();
-  const [initValues, setInitValues] = useState<null | IHabitHistoryData>(null);
+  const [initValues, setInitValues] = useState<IActivityHistoryData | null>(
+    null
+  );
   const cellData = colDef.field && data[+colDef.field];
   const { calendarMode, dayData } = colDef.cellRendererParams;
 
   useEffect(() => {
-    const newInitValues = {
+    const newInitValues: IActivityHistoryData = {
       id: data.details.id,
       type: "habit",
       valueType: cellData?.details?.valueType || data.details.valueType,
@@ -37,6 +55,9 @@ const Boolean = ({ colDef, stopEditing, data }: IProps) => {
       isPlanned: cellData?.isPlanned || calendarMode !== "tracking",
       progress: 0,
       status: cellData?.isPlanned ? "done" : "pending",
+      startTime: [0, 0],
+      endTime: [0, 0],
+      measures: {},
     };
 
     if (!data.details.isAllDay) {
@@ -47,19 +68,51 @@ const Boolean = ({ colDef, stopEditing, data }: IProps) => {
     }
 
     setInitValues(newInitValues);
-  }, [calendarMode, cellData, data]);
+  }, [calendarMode, cellData, data, setValue]);
 
-  const handleConfirm = async (formValues: IFormValues) => {
-    if (colDef.field) {
-      const valueToUpdate = {
-        id: `${dayData.year}-${dayData.month.toString().padStart(2, "0")}`,
-        data: { ...cellData, ...formValues },
-        path: `${dayData.day}.${data.id}`,
-      };
-      await updateHistory(valueToUpdate).unwrap();
-      stopEditing();
-    }
-  };
+  useEffect(() => {
+    setValue("isAllDay", !!initValues?.isAllDay);
+  }, [initValues, setValue]);
+
+  const isAllDay = useWatch({
+    control,
+    name: "isAllDay",
+    defaultValue: initValues?.isAllDay,
+  });
+
+  const handleConfirm: SubmitHandler<IFormValues> = useCallback(
+    async (formValues: IFormValues) => {
+      if (colDef.field) {
+        const removeUndefinedDormValues: IActivityData =
+          removeUndefinedDeep(formValues);
+        const mergedValues = _.merge(initValues, removeUndefinedDormValues);
+
+        const valueToUpdate = {
+          id: `${dayData.year}-${dayData.month.toString().padStart(2, "0")}`,
+          data: {
+            ...cellData,
+            ...mergedValues,
+            progress: calendarMode === "tracking" ? 100 : initValues?.progress,
+          },
+          path: `${dayData.day}.${data.id}`,
+        };
+        await updateHistory(valueToUpdate).unwrap();
+        stopEditing();
+      }
+    },
+    [
+      calendarMode,
+      cellData,
+      colDef.field,
+      data.id,
+      dayData.day,
+      dayData.month,
+      dayData.year,
+      initValues,
+      stopEditing,
+      updateHistory,
+    ]
+  );
 
   const handleDelete = async () => {
     if (colDef.field) {
@@ -69,6 +122,7 @@ const Boolean = ({ colDef, stopEditing, data }: IProps) => {
         path: `${dayData.day}.${data.id}`,
       };
       await updateHistory(dayToUpdate).unwrap();
+      stopEditing();
     }
   };
 
@@ -76,104 +130,169 @@ const Boolean = ({ colDef, stopEditing, data }: IProps) => {
     stopEditing();
   };
 
-  const handleKeyUp = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === "Alt") {
-      form.submit();
-    }
+  const formatTime = (date: Date | null | undefined) => {
+    if (!date) return [0, 0];
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    return [hours, minutes];
   };
+
+  const parseTime = (timeArray: number[]) => {
+    const [hours, minutes] = timeArray;
+    const date = dayjs()
+      .set("hour", hours)
+      .set("minute", minutes)
+      .set("second", 0)
+      .set("millisecond", 0);
+    return date.toDate();
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        handleSubmit(handleConfirm)();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [handleSubmit, handleConfirm]);
 
   return (
     initValues && (
-      <Form
-        labelCol={{ span: 8 }}
-        wrapperCol={{ span: 14 }}
-        layout="horizontal"
-        style={{ minWidth: 300, margin: 20 }}
-        form={form}
-        name="dayCellEditor"
-        onFinish={handleConfirm}
-        initialValues={initValues}
+      <Box
+        component="form"
+        onSubmit={handleSubmit(handleConfirm)}
+        sx={{ maxWidth: 300, margin: 2 }}
       >
-        <Form.Item valuePropName="checked" name="isAllDay" label="Цілий день">
-          <Switch />
-        </Form.Item>
-        <Form.Item
-          noStyle
-          shouldUpdate={(prevValues, currentValues) =>
-            prevValues.isAllDay !== currentValues.isAllDay
-          }
-        >
-          {({ getFieldValue }) => {
-            if (!getFieldValue("isAllDay")) {
-              return (
+        <Grid container spacing={2}>
+          <Grid item xs={12}>
+            <Controller
+              name="isAllDay"
+              control={control}
+              render={({ field }) => (
+                <FormControlLabel
+                  control={<Switch {...field} checked={field.value} />}
+                  label="Цілий день"
+                />
+              )}
+            />
+          </Grid>
+          {!isAllDay && (
+            <>
+              <Grid item xs={6}>
+                <Controller
+                  name="startTime"
+                  control={control}
+                  defaultValue={initValues.startTime}
+                  render={({ field }) => (
+                    <TimePicker
+                      {...field}
+                      ampm={false}
+                      value={parseTime(field.value)}
+                      onChange={(date) => {
+                        const formattedTime = formatTime(date);
+                        field.onChange(formattedTime);
+                      }}
+                      label="Початок о:"
+                      renderInput={(params) => <TextField {...params} />}
+                    />
+                  )}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <Controller
+                  name="endTime"
+                  control={control}
+                  defaultValue={initValues.endTime}
+                  render={({ field }) => (
+                    <TimePicker
+                      {...field}
+                      ampm={false}
+                      value={parseTime(field.value)}
+                      onChange={(date) => {
+                        const formattedTime = formatTime(date);
+                        field.onChange(formattedTime);
+                      }}
+                      label="Закінчення о:"
+                      renderInput={(params) => <TextField {...params} />}
+                    />
+                  )}
+                />
+              </Grid>
+            </>
+          )}
+          <Grid item xs={12}>
+            <Controller
+              name="isPlanned"
+              control={control}
+              render={({ field }) => (
+                <FormControlLabel
+                  control={<Switch {...field} checked={field.value} />}
+                  label="Запланувати"
+                />
+              )}
+            />
+          </Grid>
+
+          <Grid item xs={12}>
+            <Controller
+              name="progress"
+              control={control}
+              render={({ field }) => (
                 <>
-                  <Form.Item name="startTime" label="Початок о:">
-                    <Cascader
-                      onKeyUp={handleKeyUp}
-                      autoFocus
-                      suffixIcon={<ClockCircleOutlined rev={"value"} />}
-                      style={{ width: "100px" }}
-                      options={getTimeOptions(5)}
-                    />
-                  </Form.Item>
-                  <Form.Item name="endTime" label="Закінчення о:">
-                    <Cascader
-                      suffixIcon={<ClockCircleOutlined rev={"value"} />}
-                      style={{ width: "100px" }}
-                      options={getTimeOptions(5)}
-                    />
-                  </Form.Item>
+                  <Typography color="textSecondary">
+                    {`${Math.round(100)}%`}
+                  </Typography>
+                  <LinearProgress
+                    {...field}
+                    value={100}
+                    variant="determinate"
+                  />
                 </>
-              );
-            }
-          }}
-        </Form.Item>
-
-        <Form.Item valuePropName="checked" name="isPlanned" label="Запланувати">
-          <Switch />
-        </Form.Item>
-
-        <Form.Item name="id" hidden />
-        <Form.Item name="valueType" hidden />
-        <Form.Item name="type" hidden />
-        <Form.Item
-          noStyle
-          shouldUpdate={(prevValues, currentValues) =>
-            prevValues.status !== currentValues.status
-          }
-        >
-          {({ getFieldValue, setFieldValue }) => {
-            const progress = getFieldValue("status") === "done" ? 100 : 0;
-            setFieldValue("progress", progress);
-            return <Form.Item name="progress" hidden />;
-          }}
-        </Form.Item>
-
-        <Form.Item
-          name="status"
-          hidden={calendarMode !== "tracking"}
-          initialValue={initValues.status}
-          label="Статус"
-        >
-          <Radio.Group>
-            <Radio.Button value={"failed"}>
-              <CloseSquareOutlined rev={"value"} />
-            </Radio.Button>
-            <Radio.Button value={"pending"}>
-              <BorderOutlined rev={"value"} />
-            </Radio.Button>
-            <Radio.Button value={"done"}>
-              <CheckSquareOutlined rev={"value"} />
-            </Radio.Button>
-          </Radio.Group>
-        </Form.Item>
-        <Form.Item>
-          <FormButtons
-            handleDecline={handleDecline}
-            handleDelete={handleDelete}
-          />
-        </Form.Item>
-      </Form>
+              )}
+            />
+          </Grid>
+          {calendarMode === "tracking" && (
+            <Grid item xs={12}>
+              <Controller
+                name="status"
+                control={control}
+                defaultValue={initValues.status}
+                render={({ field }) => (
+                  <RadioGroup {...field} row>
+                    <FormControlLabel
+                      value="failed"
+                      control={<Radio icon={<CloseIcon />} />}
+                      label="Failed"
+                    />
+                    <FormControlLabel
+                      value="pending"
+                      control={<Radio icon={<PendingIcon />} />}
+                      label="Pending"
+                    />
+                    <FormControlLabel
+                      value="done"
+                      control={<Radio icon={<CheckIcon />} />}
+                      label="Done"
+                    />
+                  </RadioGroup>
+                )}
+              />
+            </Grid>
+          )}
+          <Grid item xs={12}>
+            <FormButtons
+              handleDecline={handleDecline}
+              handleDelete={handleDelete}
+            />
+          </Grid>
+        </Grid>
+      </Box>
     )
   );
 };

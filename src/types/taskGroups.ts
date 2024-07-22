@@ -22,8 +22,8 @@ export type ITaskStatus = "pending" | "failed" | "done";
 
 export interface ITask {
   title: string;
-  description: string;
+  description?: string;
   status: ITaskStatus;
-  time: string[];
-  link: string;
+  time: number[];
+  isEditOn: boolean;
 }

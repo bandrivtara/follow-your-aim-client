@@ -15,7 +15,6 @@ const DayCellRenderer = ({ value, data }: ICellRendererParams<IDayData>) => {
   const getProgressColor = () => {
     if (!currentCellRendererData) return "transparent";
     const { progress } = currentCellRendererData;
-
     if (progress >= 100) {
       return "#bae637";
     } else if (progress >= 50) {
