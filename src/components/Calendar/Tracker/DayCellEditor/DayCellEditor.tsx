@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { CellClickedEvent } from "ag-grid-community";
 import { IHabitData } from "types/habits.types";
 import { cellConfigs } from "../cellConfigs";

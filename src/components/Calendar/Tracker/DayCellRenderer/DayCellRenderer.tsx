@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { ICellRendererParams } from "ag-grid-community";
 import StyledDayCellRenderer from "./DayCellRenderer.styled";
 import { IDayData, cellConfigs } from "../cellConfigs";

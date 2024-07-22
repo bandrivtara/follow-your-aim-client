@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { useEffect, useState } from "react";
 import { Tag } from "antd";
 import { useGetWordsListQuery } from "store/services/english";

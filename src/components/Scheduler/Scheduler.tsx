@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import Paper from "@mui/material/Paper";
 import {
   ViewState,

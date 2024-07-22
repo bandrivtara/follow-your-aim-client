@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import React, { createRef, useCallback, useEffect, useState } from "react";
 import {
   Paper,

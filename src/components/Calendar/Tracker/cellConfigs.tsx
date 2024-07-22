@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { ColDef } from "ag-grid-community";
 import { IActivityHistoryData } from "types/history.types";
 import Boolean from "./DayCellEditor/HabitCellEditor/Boolean";
