@@ -202,7 +202,6 @@ const TodoList = ({ data, colDef, stopEditing }: IProps) => {
                               ampm={false}
                               value={parseTime(field.value)}
                               onChange={(date) => {
-                                console.log(123123, date);
                                 const formattedTime = formatTime(date);
                                 field.onChange(formattedTime);
                               }}

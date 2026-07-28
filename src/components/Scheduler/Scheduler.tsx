@@ -49,7 +49,6 @@ const Scheduler = () => {
   useEffect(() => {
     const getHistoryData = async () => {
       if (!history.data || !habits.data) return;
-      console.log(history.data, 123);
       const newAppointments = [];
 
       history.data.forEach((monthData) => {
@@ -64,11 +63,9 @@ const Scheduler = () => {
                 (habit) => habit.id === activityId
               );
 
-              console.log(activityValue, 123);
               const parsedDate = dayjs.unix(monthData.unix);
               const year = parsedDate.year();
               const month = parsedDate.month(); // Adding 1 because months are zero-based
-              console.log(activityValue, 444);
               const appointment = {
                 title: currentHabit.title,
                 startDate: new Date(
@@ -87,7 +84,6 @@ const Scheduler = () => {
                 ),
                 id: day + activityId,
               };
-              console.log(dayData, 444);
               newAppointments.push(appointment);
             }
           }

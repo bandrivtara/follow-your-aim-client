@@ -79,7 +79,7 @@ const AddEditAimsCategory = () => {
           data: { aimsCategoryId: currentId },
           path: "",
         };
-        await updateAim(aimToUpdate);
+        await updateAim(aimToUpdate).unwrap();
       })
     );
 

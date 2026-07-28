@@ -47,7 +47,6 @@ const AddEditWord = () => {
       path: currentId,
     };
     await updateWord(wordToUpdate).unwrap();
-    console.log(data.title, "was ADDED");
     // navigate(-1);
   };
 

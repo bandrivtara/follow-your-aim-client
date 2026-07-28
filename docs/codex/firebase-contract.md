@@ -11,8 +11,7 @@ Last verified from client code: 2026-07-28. This describes the existing integrat
 
 ## Initialization
 
-- Active initialization: src/store/api/index.ts, exporting fbApp, db, and the shared RTK Query API.
-- src/firebase.ts contains a duplicate initializer with the same project configuration and appears unused by current imports.
+- Firebase is initialized once in src/store/api/index.ts, exporting fbApp, db, and the shared RTK Query API.
 - No client Auth or App Check setup is present in src/.
 - No firebase.json, .firebaserc, or Firestore/Storage rules were found during verification.
 

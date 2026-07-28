@@ -44,11 +44,9 @@ const WaterCounter = () => {
         waterHabitId.measure
       ].value;
     setWaterCount(currentValue || 0);
-    console.log(history);
   }, [currentDay, history, waterHabitId.details, waterHabitId.measure]);
 
   const onCounterChange = async (newValue: number) => {
-    console.log(newValue, 123123);
     const historyToUpdate = {
       id: currentMonth,
       data: newValue,

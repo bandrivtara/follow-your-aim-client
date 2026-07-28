@@ -124,7 +124,7 @@ const AddEditAim = () => {
       };
       await updateAim(aimToUpdate).unwrap();
     } else {
-      await addAim(data);
+      await addAim(data).unwrap();
     }
 
     navigate(-1);

@@ -1,6 +1,4 @@
-import { doc, getDoc } from "firebase/firestore";
 import { getHistoryBetweenDates } from "share/fireBase/getHistoryBetweenDates";
-import { db } from "store/api";
 import { IAim } from "types/aims.types";
 import { ITasksGroup } from "types/taskGroups";
 import {
@@ -62,14 +60,12 @@ export const aimRendererConfigs = {
       };
     },
   },
-  relatedTaskGroup: async (data: IAim) => {
+  relatedTaskGroup: (data: IAim, taskGroups: ITasksGroup[] = []) => {
     const stagesProgress = [];
 
     for (const [, list] of Object.entries(data.relatedList)) {
-      const taskGroupRef = doc(db, "taskGroup", list[0]);
-      const taskGroupSnapshot = await getDoc(taskGroupRef);
-      if (taskGroupSnapshot.exists()) {
-        const taskGroup = taskGroupSnapshot.data() as ITasksGroup;
+      const taskGroup = taskGroups.find(({ id }) => id === list[0]);
+      if (taskGroup) {
 
         if (list[1]) {
           const taskStage = taskGroup.tasksStages.find(
@@ -81,7 +77,7 @@ export const aimRendererConfigs = {
             ) || [];
           stagesProgress.push({
             donePercentage:
-              doneSubTasks.length / (taskStage?.subTasks?.length || 0),
+              doneSubTasks.length / (taskStage?.subTasks?.length || 1),
             stageMaxPercentage: taskStage?.stagePercentage,
           });
         } else {
@@ -90,7 +86,8 @@ export const aimRendererConfigs = {
               (subTask) => subTask.status === "done",
             );
             stagesProgress.push({
-              donePercentage: doneSubTasks.length / taskStage.subTasks.length,
+              donePercentage:
+                doneSubTasks.length / (taskStage.subTasks.length || 1),
               stageMaxPercentage: taskStage.stagePercentage,
             });
           });
@@ -102,6 +99,13 @@ export const aimRendererConfigs = {
       (sum, stage) => sum + (stage.stageMaxPercentage || 0),
       0,
     );
+
+    if (!totalStageMaxPercentage) {
+      return {
+        currentValue: 100,
+        progress: 0,
+      };
+    }
 
     const resultSum = stagesProgress.reduce((sum, stage) => {
       const individualResult =

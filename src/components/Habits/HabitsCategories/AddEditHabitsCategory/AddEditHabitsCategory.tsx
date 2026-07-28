@@ -84,7 +84,7 @@ const AddEditHabitsCategory = () => {
           data: { habitsCategoryId: currentId },
           path: "",
         };
-        await updateHabit(habitToUpdate);
+        await updateHabit(habitToUpdate).unwrap();
       })
     );
 

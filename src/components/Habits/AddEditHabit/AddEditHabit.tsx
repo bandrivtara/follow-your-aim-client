@@ -77,10 +77,9 @@ const AddEditHabit = () => {
         id: habitId,
         data: newHabitData,
       };
-      console.log(habitToUpdate, 555);
       await updateHabit(habitToUpdate).unwrap();
     } else {
-      await addHabit(newHabitData);
+      await addHabit(newHabitData).unwrap();
     }
 
     navigate(-1);

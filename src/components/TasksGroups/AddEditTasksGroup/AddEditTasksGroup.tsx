@@ -43,7 +43,7 @@ const AddEditTasksGroup = () => {
 
       await updateTaskGroup(taskGroupToUpdate).unwrap();
     } else {
-      await addTaskGroup(newTaskGroupData);
+      await addTaskGroup(newTaskGroupData).unwrap();
     }
 
     navigate(-1);

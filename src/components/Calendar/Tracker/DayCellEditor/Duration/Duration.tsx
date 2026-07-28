@@ -32,7 +32,6 @@ const DurationHabit = ({ data, colDef, stopEditing }: IProps) => {
   }, [cellData, data.details.minToComplete]);
 
   const handleConfirm = async (formValues: IFormValues) => {
-    console.log(formValues, 123123);
     if (colDef.field) {
       const habitToUpdate = {
         id: data.currentDate,

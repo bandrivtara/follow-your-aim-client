@@ -12,16 +12,12 @@ This is a triage aid, not permission to fix items outside the requested scope. R
 
 ## P1 - correctness and incomplete behavior
 
-- Aim progress reads related task groups directly and sequentially, creating repeated reads per rendered aim.
 - Scheduler appointment add/edit/delete actions update local state only and are lost on reload.
-- Mutation handling is inconsistent; several callers do not unwrap results or expose loading/error feedback.
+- Mutation failures now propagate from save flows, but consistent loading and user-visible error feedback is still incomplete.
 
 ## P2 - maintainability and completeness
 
-- Statistics paths exist in route constants/navigation, but corresponding Route elements are not mounted.
-- src/firebase.ts duplicates initialization while active services use src/store/api/index.ts.
 - Several central files use @ts-nocheck/@ts-ignore, allowing runtime shape mismatches past strict TypeScript.
-- Debug console.log statements remain in production paths.
 - Broad RTK Query tags and direct Firestore reads can cause excess refetching or bypass cache state.
 - Accessibility and responsive behavior need focused review, especially grids, drawers, form labels, keyboard use, and status announcements.
 
@@ -29,6 +25,8 @@ This is a triage aid, not permission to fix items outside the requested scope. R
 
 - Tracker activity filters now affect displayed rows and have focused tests (8e8a061, fix(tracker): apply activity filters).
 - Habit-based aim progress now uses YYYY-MM history documents, inclusive date boundaries, and chronological last values (fix(aims): correct habit progress date ranges).
+- Aim task-group progress reuses the RTK Query list, avoids direct renderer reads, and guards empty stages (chore: batch safe client fixes).
+- Unmounted statistics links, duplicate Firebase initialization, and production debug logs were removed; missing mutation unwraps were added (chore: batch safe client fixes).
 
 ## Maintenance rule
 

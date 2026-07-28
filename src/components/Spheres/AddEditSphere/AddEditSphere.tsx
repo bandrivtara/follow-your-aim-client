@@ -116,7 +116,7 @@ const AddEditSphere = () => {
           data: { sphereId: currentId },
           path: "",
         };
-        await updateAim(aimToUpdate);
+        await updateAim(aimToUpdate).unwrap();
       })
     );
 
@@ -127,7 +127,7 @@ const AddEditSphere = () => {
           data: { sphereId: currentId },
           path: "",
         };
-        await updateHabit(habitToUpdate);
+        await updateHabit(habitToUpdate).unwrap();
       })
     );
 

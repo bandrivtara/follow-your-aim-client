@@ -3,6 +3,7 @@ import { ICellRendererParams } from "ag-grid-community";
 import StyledAimCellRenderer from "./AimCellRenderer.styled";
 import dayjs from "dayjs";
 import { IAim } from "types/aims.types";
+import { ITasksGroup } from "types/taskGroups";
 import { aimRendererConfigs } from "./aimRendererConfigs";
 
 interface IProgressBarStyles {
@@ -10,11 +11,13 @@ interface IProgressBarStyles {
   marginLeft: number;
 }
 
+type IAimCellRendererData = IAim & { taskGroupsData?: ITasksGroup[] };
+
 const AimCellRenderer = ({
   value,
   data,
   colDef,
-}: ICellRendererParams<IAim>) => {
+}: ICellRendererParams<IAimCellRendererData>) => {
   const [progressBarStyles, setProgressBarStyles] =
     useState<IProgressBarStyles | null>(null);
   const [progressData, setProgressData] = useState({
@@ -45,7 +48,9 @@ const AimCellRenderer = ({
       if (!data) return;
       let newProgressData = {
         currentValue: data?.currentValue || 0,
-        progress: ((data.currentValue || 0) / data.finalAim) * 100,
+        progress: data.finalAim
+          ? ((data.currentValue || 0) / data.finalAim) * 100
+          : 0,
       };
 
       if (data.isRelatedWithHabit) {
@@ -57,11 +62,13 @@ const AimCellRenderer = ({
           newProgressData = await relatedHobbyConfigs.lastValue(data, "desc");
         }
         if (data.calculationType === "sum") {
-          console.log(data);
           newProgressData = await relatedHobbyConfigs.sumOfValues(data);
         }
       } else if (data.relatedList) {
-        newProgressData = await aimRendererConfigs.relatedTaskGroup(data);
+        newProgressData = await aimRendererConfigs.relatedTaskGroup(
+          data,
+          data.taskGroupsData,
+        );
       }
 
       setProgressData(newProgressData);

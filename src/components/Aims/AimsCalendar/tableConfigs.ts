@@ -2,6 +2,7 @@ import { ColDef } from "ag-grid-community";
 import dayjs, { Dayjs } from "dayjs";
 import AimCellRenderer from "./AimCellRenderer/AimCellRenderer";
 import { IAimData } from "types/aims.types";
+import { ITasksGroup } from "types/taskGroups";
 import AimCellEditor from "./AimCellEditor/AimCellEditor";
 
 const getColumnDefs = (monthsDates: (Dayjs | null)[]): ColDef[] => {
@@ -53,7 +54,10 @@ const getColumnDefs = (monthsDates: (Dayjs | null)[]): ColDef[] => {
   return [aimNamesCol, ...newColDefs];
 };
 
-const getRows = (allAims: IAimData[] | undefined) => {
+const getRows = (
+  allAims: IAimData[] | undefined,
+  taskGroupsData: ITasksGroup[] | undefined,
+) => {
   if (!allAims) return [];
   const rows: any = [];
 
@@ -71,6 +75,7 @@ const getRows = (allAims: IAimData[] | undefined) => {
         aim.dateFrom
       ).month()}`,
       differenceMonths: difference,
+      taskGroupsData,
       ...aim,
     };
 

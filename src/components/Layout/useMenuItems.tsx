@@ -69,12 +69,6 @@ const useMenuItems = () => {
           onClick: () => navigate(routes.taskGroups.add),
           icon: <PlusSquareOutlined rev="string" />,
         },
-        {
-          key: 33,
-          label: "Статистика",
-          onClick: () => navigate(routes.taskGroups.statistic),
-          icon: <LineChartOutlined rev="string" />,
-        },
       ],
     },
     {
@@ -93,12 +87,6 @@ const useMenuItems = () => {
           label: "Категорії",
           onClick: () => navigate(routes.habit.categories.list),
           icon: <UnorderedListOutlined rev="string" />,
-        },
-        {
-          key: 43,
-          label: "Статистика",
-          onClick: () => navigate(routes.habit.statistic),
-          icon: <LineChartOutlined rev="string" />,
         },
       ],
     },
@@ -119,12 +107,6 @@ const useMenuItems = () => {
           onClick: () => navigate(routes.aims.categories.list),
           icon: <UnorderedListOutlined rev="string" />,
         },
-        {
-          key: 53,
-          label: "Статистика",
-          onClick: () => navigate(routes.aims.statistic),
-          icon: <LineChartOutlined rev="string" />,
-        },
       ],
     },
     {
@@ -143,12 +125,6 @@ const useMenuItems = () => {
           label: "Додати сферу життя",
           onClick: () => navigate(routes.spheres.add),
           icon: <PlusSquareOutlined rev="string" />,
-        },
-        {
-          key: 63,
-          label: "Статистика",
-          onClick: () => navigate(routes.spheres.statistic),
-          icon: <LineChartOutlined rev="string" />,
         },
       ],
     },

@@ -61,7 +61,6 @@ export const historyFirestoreApi = api.injectEndpoints({
       async queryFn(dates: number[]) {
         try {
           const [dateFrom, dateTo] = dates;
-          console.log(dates);
           if (!dateFrom || !dateTo) return;
           const dateRef = collection(db, "history");
           const dateQuery = query(

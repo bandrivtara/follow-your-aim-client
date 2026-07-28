@@ -83,16 +83,14 @@ const AddEditGroup = () => {
       data: newGroupData,
       path: currentId,
     };
-    console.log(currentWordsKeys);
     await updateGroup(groupToUpdate).unwrap();
     await Promise.all(
       currentWordsKeys.map(async (wordId) => {
-        console.log(wordId);
         const wordToUpdate = {
           data: currentId,
           path: `${wordId}.group`,
         };
-        await updateWord(wordToUpdate);
+        await updateWord(wordToUpdate).unwrap();
       })
     );
 
