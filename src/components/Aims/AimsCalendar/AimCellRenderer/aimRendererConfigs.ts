@@ -1,99 +1,71 @@
-import dayjs from "dayjs";
 import { doc, getDoc } from "firebase/firestore";
 import { getHistoryBetweenDates } from "share/fireBase/getHistoryBetweenDates";
 import { db } from "store/api";
 import { IAim } from "types/aims.types";
 import { ITasksGroup } from "types/taskGroups";
+import {
+  getLastRelatedHabitValueBetweenDates,
+  IHistoryMonthSnapshot,
+  sumRelatedHabitValuesBetweenDates,
+} from "./aimHistoryCalculations";
+
+const getHistoryMonths = async (
+  data: IAim,
+): Promise<IHistoryMonthSnapshot[]> => {
+  const querySnapshot = await getHistoryBetweenDates(
+    data.dateFrom,
+    data.dateTo,
+  );
+
+  return querySnapshot.docs.map((monthHistoryDoc) => ({
+    id: monthHistoryDoc.id,
+    data: monthHistoryDoc.data(),
+  }));
+};
 
 export const aimRendererConfigs = {
   relatedHobby: {
     sumOfValues: async (data: IAim) => {
-      const querySnapshot = await getHistoryBetweenDates(
+      const historyMonths = await getHistoryMonths(data);
+      const currentValue = sumRelatedHabitValuesBetweenDates(
+        historyMonths,
         data.dateFrom,
-        data.dateTo
+        data.dateTo,
+        data.relatedHabit,
       );
-
-      let currentValue = 0;
-      querySnapshot.forEach(async (monthHistoryDoc) => {
-        for (const [day, habit] of Object.entries(monthHistoryDoc.data())) {
-          console.log(day, habit, 123123);
-          if (monthHistoryDoc.id === dayjs(data.dateFrom).format("MM-YYYY")) {
-            if (+day >= +dayjs(data.dateFrom).format("D")) {
-              currentValue +=
-                habit?.[data.relatedHabit[0]]?.measures?.[data.relatedHabit[1]]
-                  .value || 0;
-            }
-          } else if (
-            monthHistoryDoc.id === dayjs(data.dateTo).format("MM-YYYY")
-          ) {
-            if (+day <= +dayjs(data.dateFrom).format("D")) {
-              currentValue +=
-                habit?.[data.relatedHabit[0]]?.measures?.[data.relatedHabit[1]]
-                  .value || 0;
-            }
-          } else {
-            currentValue +=
-              habit?.[data.relatedHabit[0]]?.measures?.[data.relatedHabit[1]]
-                .value || 0;
-          }
-        }
-      });
 
       return {
         currentValue: +currentValue.toFixed(2),
-        progress: (currentValue / data.finalAim) * 100,
+        progress: data.finalAim ? (currentValue / data.finalAim) * 100 : 0,
       };
     },
     lastValue: async (data: IAim, type: "asc" | "desc") => {
-      const querySnapshot = await getHistoryBetweenDates(
-        data.dateFrom,
-        data.dateTo
-      );
-      let lastValue = 0;
-
-      querySnapshot.forEach(async (monthHistoryDoc) => {
-        for (const [day, habit] of Object.entries(
-          monthHistoryDoc.data()
-        ).reverse()) {
-          if (!lastValue) {
-            if (monthHistoryDoc.id === dayjs(data.dateFrom).format("MM-YYYY")) {
-              if (+day >= +dayjs(data.dateFrom).format("D")) {
-                lastValue =
-                  habit?.[data.relatedHabit[0]]?.measures?.[
-                    data.relatedHabit[1]
-                  ].value;
-              }
-            } else if (
-              monthHistoryDoc.id === dayjs(data.dateTo).format("MM-YYYY")
-            ) {
-              if (+day <= +dayjs(data.dateFrom).format("D")) {
-                lastValue =
-                  habit?.[data.relatedHabit[0]]?.measures?.[
-                    data.relatedHabit[1]
-                  ].value;
-              }
-            } else {
-              lastValue =
-                habit?.[data.relatedHabit[0]]?.measures?.[data.relatedHabit[1]]
-                  .value;
-            }
-          }
-        }
-      });
+      const historyMonths = await getHistoryMonths(data);
+      const lastValue =
+        getLastRelatedHabitValueBetweenDates(
+          historyMonths,
+          data.dateFrom,
+          data.dateTo,
+          data.relatedHabit,
+        ) ?? 0;
 
       return {
         currentValue: lastValue,
         progress:
           type === "asc"
-            ? (lastValue / data.finalAim) * 100
-            : (data.finalAim / lastValue) * 100,
+            ? data.finalAim
+              ? (lastValue / data.finalAim) * 100
+              : 0
+            : lastValue
+              ? (data.finalAim / lastValue) * 100
+              : 0,
       };
     },
   },
   relatedTaskGroup: async (data: IAim) => {
     const stagesProgress = [];
 
-    for (const [_, list] of Object.entries(data.relatedList)) {
+    for (const [, list] of Object.entries(data.relatedList)) {
       const taskGroupRef = doc(db, "taskGroup", list[0]);
       const taskGroupSnapshot = await getDoc(taskGroupRef);
       if (taskGroupSnapshot.exists()) {
@@ -101,11 +73,11 @@ export const aimRendererConfigs = {
 
         if (list[1]) {
           const taskStage = taskGroup.tasksStages.find(
-            (taskStage) => taskStage.id === list[1]
+            (taskStage) => taskStage.id === list[1],
           );
           const doneSubTasks =
             taskStage?.subTasks.filter(
-              (subTask) => subTask.status === "done"
+              (subTask) => subTask.status === "done",
             ) || [];
           stagesProgress.push({
             donePercentage:
@@ -115,7 +87,7 @@ export const aimRendererConfigs = {
         } else {
           taskGroup.tasksStages.forEach((taskStage) => {
             const doneSubTasks = taskStage.subTasks.filter(
-              (subTask) => subTask.status === "done"
+              (subTask) => subTask.status === "done",
             );
             stagesProgress.push({
               donePercentage: doneSubTasks.length / taskStage.subTasks.length,
@@ -128,7 +100,7 @@ export const aimRendererConfigs = {
 
     const totalStageMaxPercentage = stagesProgress.reduce(
       (sum, stage) => sum + (stage.stageMaxPercentage || 0),
-      0
+      0,
     );
 
     const resultSum = stagesProgress.reduce((sum, stage) => {

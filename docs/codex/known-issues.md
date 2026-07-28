@@ -12,8 +12,6 @@ This is a triage aid, not permission to fix items outside the requested scope. R
 
 ## P1 - correctness and incomplete behavior
 
-- Aim history calculations compare history/{YYYY-MM} IDs with MM-YYYY, so first/last-month branches do not match the observed contract.
-- The aim end-boundary check uses the day from dateFrom where dateTo is expected.
 - Aim progress reads related task groups directly and sequentially, creating repeated reads per rendered aim.
 - Scheduler appointment add/edit/delete actions update local state only and are lost on reload.
 - Mutation handling is inconsistent; several callers do not unwrap results or expose loading/error feedback.
@@ -30,6 +28,7 @@ This is a triage aid, not permission to fix items outside the requested scope. R
 ## Recently resolved
 
 - Tracker activity filters now affect displayed rows and have focused tests (8e8a061, fix(tracker): apply activity filters).
+- Habit-based aim progress now uses YYYY-MM history documents, inclusive date boundaries, and chronological last values (fix(aims): correct habit progress date ranges).
 
 ## Maintenance rule
 
