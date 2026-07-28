@@ -4,7 +4,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers";
 
 const App = () => {
   return (
-    <LocalizationProvider dateAdapter={AdapterDayjs}>
+    <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="uk">
       <AppRoutes />
     </LocalizationProvider>
   );

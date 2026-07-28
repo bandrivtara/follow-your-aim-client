@@ -1,7 +1,7 @@
 import { ColDef } from "ag-grid-community";
 import DayCellRenderer from "./DayCellRenderer/DayCellRenderer";
 import { getDaysBetweenDates } from "share/functions/getDaysBetweenDates";
-import { Dayjs } from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 import { ITrackerCalendarState } from "./TrackerCalendar";
 import _ from "lodash";
 import { IHabitData } from "types/habits.types";
@@ -27,28 +27,26 @@ const getColumnDefs = (
   if (!currentDate[0] || !currentDate[1]) return [];
 
   const days = getDaysBetweenDates(currentDate[0], currentDate[1]);
+  const dayColumnWidth = days.length === 1 ? 180 : days.length <= 7 ? 90 : 64;
 
-  const dayCols: ColDef[] = [];
-
-  days.forEach((dayData) => {
-    dayCols.push({
+  const dayCols: ColDef[] = days.map((dayData) => {
+    const isToday = dayjs(dayData.date).isSame(dayjs(), "day");
+    return {
       field: dayData.day,
-      headerName: `${dayData.day} ${dayData.weekday}`,
-      minWidth: 60,
-      // editable: true,
-      // cellEditorPopup: true,
+      headerName: `${dayData.weekday}, ${dayData.day}`,
+      minWidth: dayColumnWidth,
       cellRenderer: DayCellRenderer,
       cellRendererParams: { calendarMode, dayData },
-      // cellEditor: DayCellEditor,
-      cellClass: "day-cell",
-      flex: 1,
-    });
+      cellClass: isToday ? "day-cell day-cell--today" : "day-cell",
+      headerClass: isToday ? "day-header--today" : undefined,
+      flex: days.length <= 7 ? 1 : undefined,
+    };
   });
 
   const habitDetailsCol: ColDef[] = [
     {
       field: "details",
-      headerName: "Назва",
+      headerName: "Активність",
       cellRenderer: RowNameRenderer,
       pinned: "left",
       width: 220,
@@ -75,7 +73,11 @@ const getRows = (
   if (history[0]) {
     history.forEach((historyData) => {
       for (let day in historyData) {
-        for (let id in historyData[day]) {
+        const dayHistory = historyData[day];
+        if (!/^\d{1,2}$/.test(day) || typeof dayHistory !== "object") continue;
+        const normalizedDay = String(Number(day));
+
+        for (let id in dayHistory) {
           if (rowItems && rowItems[id] && !rowItems[id].isHidden) {
             let existingObject: any = rows.find((row) => row.id === id);
             if (!existingObject) {
@@ -86,7 +88,7 @@ const getRows = (
               rows.push(existingObject);
             }
 
-            existingObject[day] = { ...historyData[day][id] };
+            existingObject[normalizedDay] = { ...dayHistory[id] };
           }
         }
       }

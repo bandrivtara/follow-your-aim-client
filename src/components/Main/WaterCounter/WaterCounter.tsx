@@ -23,7 +23,7 @@ const WaterCounter = () => {
   const currentMonth = dayjs().format("YYYY-MM");
   const currentDay = dayjs().format("DD");
   const waterHabitId = habitsConfig.habits.water;
-  const [updateHistory] = useUpdateHistoryMutation();
+  const [updateHistory, { isLoading: isSaving }] = useUpdateHistoryMutation();
   const history = useGetHistoryQuery(currentMonth);
   const habitDetails = useGetHabitQuery(waterHabitId.details);
 
@@ -35,14 +35,14 @@ const WaterCounter = () => {
     setWaterSize(Number(event.target.value));
 
   useEffect(() => {
-    setMinToComplete(habitDetails.data?.fields[0].minToComplete);
-  }, [habitDetails]);
+    setMinToComplete(habitDetails.data?.fields?.[0]?.minToComplete || 0);
+  }, [habitDetails.data]);
 
   useEffect(() => {
     const currentValue =
-      history.data?.[currentDay]?.[waterHabitId.details].measures[
+      history.data?.[currentDay]?.[waterHabitId.details]?.measures?.[
         waterHabitId.measure
-      ].value;
+      ]?.value;
     setWaterCount(currentValue || 0);
   }, [currentDay, history, waterHabitId.details, waterHabitId.measure]);
 
@@ -58,9 +58,9 @@ const WaterCounter = () => {
   };
 
   return (
-    <Card sx={{ maxWidth: 275 }}>
+    <Card sx={{ width: "100%", borderRadius: 4 }}>
       <Box sx={{ textAlign: "center", padding: 2 }}>
-        <Typography variant="h5">Лічильник води</Typography>
+        <Typography variant="h5">Вода сьогодні</Typography>
         <Box
           sx={{
             display: "flex",
@@ -71,6 +71,8 @@ const WaterCounter = () => {
         >
           <Button
             variant="contained"
+            aria-label="Зменшити кількість води"
+            disabled={isSaving}
             onClick={() => {
               if (waterCount - waterSize > 0) {
                 onCounterChange(waterCount - waterSize);
@@ -93,6 +95,8 @@ const WaterCounter = () => {
           </RadioGroup>
           <Button
             variant="contained"
+            aria-label="Збільшити кількість води"
+            disabled={isSaving}
             onClick={() => {
               onCounterChange(+waterCount + +waterSize);
             }}
@@ -101,7 +105,7 @@ const WaterCounter = () => {
           </Button>
         </Box>
         <Gauge
-          value={(waterCount / minToComplete) * 100}
+          value={minToComplete ? (waterCount / minToComplete) * 100 : 0}
           startAngle={0}
           endAngle={360}
           innerRadius="80%"

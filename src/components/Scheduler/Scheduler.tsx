@@ -1,49 +1,59 @@
 // @ts-nocheck
 
-import Paper from "@mui/material/Paper";
-import {
-  ViewState,
-  EditingState,
-  IntegratedEditing,
-  ChangeSet,
-} from "@devexpress/dx-react-scheduler";
+import { ViewState } from "@devexpress/dx-react-scheduler";
 import {
   Scheduler as ReactScheduler,
+  DayView,
   WeekView,
+  MonthView,
   Appointments,
-  AppointmentForm,
   AppointmentTooltip,
-  DragDropProvider,
   DateNavigator,
   Toolbar,
   TodayButton,
   AllDayPanel,
+  ViewSwitcher,
 } from "@devexpress/dx-react-scheduler-material-ui";
-import { memo, useCallback, useEffect, useState } from "react";
+import { Alert, Box, Button, Paper, Stack, Typography } from "@mui/material";
+import { memo, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import dayjs, { Dayjs } from "dayjs";
 import { useGetHistoryBetweenDatesQuery } from "store/services/history";
 import { useGetHabitListQuery } from "store/services/habits";
+import routes from "config/routes";
 
-const PREFIX = "Scheduler";
-export const classes = {
-  container: `${PREFIX}-container`,
-  text: `${PREFIX}-text`,
-  formControlLabel: `${PREFIX}-formControlLabel`,
+type SchedulerViewName = "Day" | "Week" | "Month";
+
+const getMonday = (date: Dayjs) =>
+  date.startOf("day").subtract((date.day() + 6) % 7, "day");
+
+const getHistoryMonthRange = (
+  currentDay: Dayjs,
+  viewName: SchedulerViewName,
+) => {
+  const visibleFrom =
+    viewName === "Week" ? getMonday(currentDay) : currentDay.startOf("month");
+  const visibleTo =
+    viewName === "Week" ? visibleFrom.add(6, "day") : currentDay.endOf("month");
+
+  return [
+    visibleFrom.startOf("month").unix(),
+    visibleTo.startOf("month").unix(),
+  ];
 };
 
 const Scheduler = () => {
+  const navigate = useNavigate();
   const [data, setData] = useState([]);
   const [currentDay, setCurrentDay] = useState<Dayjs>(dayjs());
-
-  const history = useGetHistoryBetweenDatesQuery([
-    dayjs(currentDay.startOf("month")).unix(),
-    dayjs(currentDay.endOf("month")).unix(),
-  ]);
+  const [currentViewName, setCurrentViewName] =
+    useState<SchedulerViewName>("Week");
+  const historyRange = useMemo(
+    () => getHistoryMonthRange(currentDay, currentViewName),
+    [currentDay, currentViewName],
+  );
+  const history = useGetHistoryBetweenDatesQuery(historyRange);
   const habits = useGetHabitListQuery();
-
-  const [addedAppointment, setAddedAppointment] = useState({});
-  const [isAppointmentBeingCreated, setIsAppointmentBeingCreated] =
-    useState(false);
 
   useEffect(() => {
     if (!history.data || !habits.data) return;
@@ -51,7 +61,9 @@ const Scheduler = () => {
 
     history.data.forEach((monthData) => {
       for (const [day, dayData] of Object.entries(monthData)) {
-        if (!dayData || typeof dayData !== "object") continue;
+        if (!/^\d{1,2}$/.test(day) || !dayData || typeof dayData !== "object") {
+          continue;
+        }
 
         for (const [activityId, activityValue] of Object.entries(dayData)) {
           const currentHabit = habits.data.find(
@@ -63,21 +75,38 @@ const Scheduler = () => {
             activityValue.isAllDay ?? currentHabit.isAllDay ?? false;
           const startTime = activityValue.startTime || currentHabit.startTime;
           const endTime = activityValue.endTime || currentHabit.endTime;
-          if (isAllDay || !startTime || !endTime) continue;
 
           const parsedDate = dayjs.unix(monthData.unix);
           const year = parsedDate.year();
           const month = parsedDate.month();
+          const activityDate = new Date(year, month, +day);
+
+          if (isAllDay) {
+            newAppointments.push({
+              title: currentHabit.title,
+              startDate: activityDate,
+              endDate: dayjs(activityDate).add(1, "day").toDate(),
+              allDay: true,
+              id: `${monthData.unix}-${day}-${activityId}`,
+            });
+            continue;
+          }
+          if (!startTime) continue;
+
+          const startDate = new Date(
+            year,
+            month,
+            +day,
+            +startTime[0],
+            +startTime[1],
+          );
+          const endDate = endTime
+            ? new Date(year, month, +day, +endTime[0], +endTime[1])
+            : dayjs(startDate).add(30, "minute").toDate();
           newAppointments.push({
             title: currentHabit.title,
-            startDate: new Date(
-              year,
-              month,
-              +day,
-              +startTime[0],
-              +startTime[1],
-            ),
-            endDate: new Date(year, month, +day, +endTime[0], +endTime[1]),
+            startDate,
+            endDate,
             id: `${monthData.unix}-${day}-${activityId}`,
           });
         }
@@ -87,82 +116,80 @@ const Scheduler = () => {
     setData(newAppointments);
   }, [habits.data, history.data]);
 
-  const onCommitChanges = useCallback(
-    ({ added, changed, deleted }: ChangeSet) => {
-      if (added) {
-        const startingAddedId =
-          data.length > 0 ? data[data.length - 1].id + 1 : 0;
-        setData([...data, { id: startingAddedId, ...added }]);
-      }
-      if (changed) {
-        setData(
-          data.map((appointment) =>
-            changed[appointment.id]
-              ? { ...appointment, ...changed[appointment.id] }
-              : appointment,
-          ),
-        );
-      }
-      if (deleted !== undefined) {
-        setData(data.filter((appointment) => appointment.id !== deleted));
-      }
-      setIsAppointmentBeingCreated(false);
-    },
-    [data],
+  const TimeTableCell = memo(
+    ({ onDoubleClick: _onDoubleClick, ...props }: any) => (
+      <WeekView.TimeTableCell {...props} />
+    ),
   );
 
-  const onAddedAppointmentChange = useCallback((appointment: object) => {
-    setAddedAppointment(appointment);
-    setIsAppointmentBeingCreated(true);
-  }, []);
-
-  const TimeTableCell = memo(({ onDoubleClick, ...restProps }: any) => (
-    <WeekView.TimeTableCell {...restProps} onDoubleClick={onDoubleClick} />
-  ));
-
-  const CommandButton = useCallback(({ id, ...restProps }: any) => {
-    return <AppointmentForm.CommandButton id={id} {...restProps} />;
-  }, []);
-
-  const onCurrentDateChange = (newDate: Date) => {
-    setCurrentDay(dayjs(newDate));
-  };
-
   return (
-    <Paper>
-      <ReactScheduler
-        data={data}
-        height={600}
-        locale="uk-UA"
-        firstDayOfWeek={1}
+    <Stack spacing={2}>
+      <Box
+        display="flex"
+        alignItems={{ xs: "flex-start", sm: "center" }}
+        justifyContent="space-between"
+        flexDirection={{ xs: "column", sm: "row" }}
+        gap={1}
       >
-        <ViewState onCurrentDateChange={onCurrentDateChange} />
-        <EditingState
-          onCommitChanges={onCommitChanges}
-          addedAppointment={addedAppointment}
-          onAddedAppointmentChange={onAddedAppointmentChange}
-        />
+        <Box>
+          <Typography variant="h4" component="h1">
+            Розклад
+          </Typography>
+          <Typography color="text.secondary">
+            Актуальні заплановані звички на день, тиждень або місяць
+          </Typography>
+        </Box>
+        <Button
+          variant="outlined"
+          onClick={() => navigate(routes.calendar.tracker)}
+        >
+          Відкрити трекер
+        </Button>
+      </Box>
 
-        <IntegratedEditing />
-        <WeekView
-          startDayHour={7}
-          endDayHour={24}
-          timeTableCellComponent={TimeTableCell}
-        />
-        <Toolbar />
-        <DateNavigator />
-        <TodayButton />
-        <AllDayPanel />
-        <Appointments />
+      <Alert severity="info">
+        Розклад читає запланований час зі звичок та історії. Редагування й
+        відмітки виконання робляться у трекері, щоб зміни не губилися після
+        перезавантаження.
+      </Alert>
 
-        <AppointmentTooltip showOpenButton showDeleteButton />
-        <AppointmentForm
-          commandButtonComponent={CommandButton}
-          readOnly={isAppointmentBeingCreated}
-        />
-        <DragDropProvider />
-      </ReactScheduler>
-    </Paper>
+      <Paper sx={{ overflow: "hidden", borderRadius: 3 }}>
+        <ReactScheduler
+          data={data}
+          height={currentViewName === "Month" ? 720 : 680}
+          locale="uk-UA"
+          firstDayOfWeek={1}
+        >
+          <ViewState
+            currentDate={currentDay.toDate()}
+            currentViewName={currentViewName}
+            onCurrentDateChange={(date) => setCurrentDay(dayjs(date))}
+            onCurrentViewNameChange={setCurrentViewName}
+          />
+          <DayView
+            name="Day"
+            displayName="День"
+            startDayHour={6}
+            endDayHour={24}
+          />
+          <WeekView
+            name="Week"
+            displayName="Тиждень"
+            startDayHour={6}
+            endDayHour={24}
+            timeTableCellComponent={TimeTableCell}
+          />
+          <MonthView name="Month" displayName="Місяць" />
+          <Toolbar />
+          <DateNavigator />
+          <TodayButton messages={{ today: "Сьогодні" }} />
+          <ViewSwitcher />
+          <AllDayPanel />
+          <Appointments />
+          <AppointmentTooltip />
+        </ReactScheduler>
+      </Paper>
+    </Stack>
   );
 };
 

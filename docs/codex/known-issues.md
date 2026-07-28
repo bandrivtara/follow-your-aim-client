@@ -12,7 +12,6 @@ This is a triage aid, not permission to fix items outside the requested scope. R
 
 ## P1 - correctness and incomplete behavior
 
-- Scheduler appointment add/edit/delete actions update local state only and are lost on reload.
 - Mutation failures now propagate from save flows, but consistent loading and user-visible error feedback is still incomplete.
 - Relationship saves update multiple child documents separately and are not atomic.
 - Live data includes references to a removed habit category and two malformed empty habit documents. The client now shows missing-reference fallbacks and filters malformed habits, but no migration or deletion was performed.
@@ -25,6 +24,8 @@ This is a triage aid, not permission to fix items outside the requested scope. R
 - Accessibility and responsive behavior need focused review, especially grids, drawers, form labels, keyboard use, and status announcements.
 
 ## Recently resolved
+
+- Scheduler is intentionally a read-only projection of timed tracker history; standalone appointments are not supported by the current Firebase contract.
 
 - Tracker activity filters now affect displayed rows and have focused tests (8e8a061, fix(tracker): apply activity filters).
 - Habit-based aim progress now uses YYYY-MM history documents, inclusive date boundaries, and chronological last values (fix(aims): correct habit progress date ranges).

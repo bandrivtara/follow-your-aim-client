@@ -6,7 +6,6 @@ import { CellClickedEvent, ColDef } from "ag-grid-community";
 import { useGetHabitListQuery } from "store/services/habits";
 import StyledTrackerCalendar from "./TrackerCalendar.styled";
 import dayjs, { Dayjs } from "dayjs";
-import { getFirstDayOfWeek } from "share/functions/getFirstDayOfWeek";
 import FiltersBar from "./FiltersBar/FiltersBar";
 import tableConfigs from "./tableConfigs";
 import useIsMobile from "share/hooks/useIsMobile";
@@ -16,12 +15,13 @@ import { useGetTaskGroupListQuery } from "store/services/taskGroups";
 import { Drawer } from "@mui/material";
 import DayCellEditor from "./DayCellEditor/DayCellEditor";
 import { TrackerCategoryFilter } from "./rowFilters";
+import {
+  getTrackerDateRange,
+  isDateInTrackerRange,
+  TrackerRangeMode,
+} from "./calendarRange";
 
 export type ITrackerCalendarState = "tracking" | "planning";
-
-const initConfigs = {
-  currentDate: [getFirstDayOfWeek(), dayjs().endOf("week")],
-};
 
 const TrackerCalendar = () => {
   const isMobile = useIsMobile();
@@ -34,8 +34,13 @@ const TrackerCalendar = () => {
     null,
   );
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const initialRangeMode: Exclude<TrackerRangeMode, "custom"> = isMobile
+    ? "day"
+    : "week";
+  const [rangeMode, setRangeMode] =
+    useState<TrackerRangeMode>(initialRangeMode);
   const [currentDate, setCurrentDate] = useState<(Dayjs | null)[]>(
-    initConfigs.currentDate,
+    getTrackerDateRange(dayjs(), initialRangeMode),
   );
   const historyData = useGetHistoryBetweenDatesQuery([
     dayjs(dayjs(currentDate[0]).format("YYYY-MM")).unix(),
@@ -49,12 +54,6 @@ const TrackerCalendar = () => {
   const [rowSortingType, setRowSortingType] = useState("schedule-time");
   const [calendarMode, setCurrentMode] =
     useState<ITrackerCalendarState>("tracking");
-
-  useEffect(() => {
-    if (isMobile) {
-      setCurrentDate([dayjs(), dayjs()]);
-    }
-  }, [isMobile]);
 
   useEffect(() => {
     const newColumnDefs = tableConfigs.getColumnDefs(currentDate, calendarMode);
@@ -77,7 +76,17 @@ const TrackerCalendar = () => {
     historyData.data,
   ]);
 
-  const onCellDoubleClicked = (event: CellClickedEvent) => {
+  useEffect(() => {
+    if (!isDateInTrackerRange(dayjs(), currentDate)) return;
+
+    const animationFrame = requestAnimationFrame(() => {
+      gridRef.current?.api.ensureColumnVisible(dayjs().format("D"), "middle");
+    });
+    return () => cancelAnimationFrame(animationFrame);
+  }, [columnDefs, currentDate, rowData]);
+
+  const onCellClicked = (event: CellClickedEvent) => {
+    if (!event.colDef.field || event.colDef.field === "details") return;
     setEditableCell(event);
     setIsEditOpen(true);
   };
@@ -98,6 +107,8 @@ const TrackerCalendar = () => {
         setFilteredCategory={setFilteredCategory}
         rowSortingType={rowSortingType}
         setRowSortingType={setRowSortingType}
+        rangeMode={rangeMode}
+        setRangeMode={setRangeMode}
       />
       <div className="ag-theme-material fyi-ag-theme" ref={gridContainerRef}>
         <AgGridReact
@@ -105,7 +116,8 @@ const TrackerCalendar = () => {
           ref={gridRef}
           rowData={rowData}
           columnDefs={columnDefs}
-          onCellDoubleClicked={onCellDoubleClicked}
+          onCellClicked={onCellClicked}
+          overlayNoRowsTemplate="Немає активностей для вибраного фільтра"
         ></AgGridReact>
         <Drawer
           open={isEditOpen}

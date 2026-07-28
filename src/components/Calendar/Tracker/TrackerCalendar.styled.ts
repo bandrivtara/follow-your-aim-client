@@ -6,7 +6,7 @@ const StyledHabitsCalendar = styled.div`
   }
 
   .fyi-ag-theme {
-    height: calc(100vh - 200px);
+    height: calc(100vh - 245px);
     box-sizing: border-box;
     position: relative;
   }
@@ -35,6 +35,22 @@ const StyledHabitsCalendar = styled.div`
     white-space: normal;
   }
 
+  .day-header--today {
+    background: #fff1dc;
+    font-weight: 700;
+  }
+
+  .day-cell--today {
+    background: rgba(250, 173, 20, 0.08);
+    box-shadow:
+      inset 2px 0 #faad14,
+      inset -2px 0 #faad14;
+  }
+
+  .ag-row:hover .day-cell {
+    background-color: rgba(82, 196, 26, 0.08);
+  }
+
   .ag-root.ag-layout-normal,
   .ag-root-wrapper {
     overflow: visible;
@@ -60,6 +76,10 @@ const StyledHabitsCalendar = styled.div`
       top: -1px !important;
       transform: translate(-50%, 0) !important;
       width: calc(100vw - 50px);
+    }
+
+    .fyi-ag-theme {
+      height: calc(100vh - 330px);
     }
   }
 `;

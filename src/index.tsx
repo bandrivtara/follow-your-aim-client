@@ -6,7 +6,10 @@ import { store } from "./store/store";
 import "./globalStyles.css";
 import { ConfigProvider } from "antd";
 import locale from "antd/locale/uk_UA";
+import dayjs from "dayjs";
 import "dayjs/locale/uk";
+
+dayjs.locale("uk");
 handleError();
 
 const root = ReactDOM.createRoot(

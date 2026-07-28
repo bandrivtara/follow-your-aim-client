@@ -8,7 +8,7 @@ Last verified: 2026-07-28.
 - Build system: Create React App / react-scripts 5.
 - TypeScript: strict mode, no emit.
 - Node/npm versions are not pinned; report local versions for environment failures.
-- The repository currently has one focused Jest suite for tracker row filters.
+- Focused Jest suites cover tracker filters/date ranges, dashboard calculations, aim progress/date history, relationship updates, and malformed domain-data guards.
 
 ## Safe checks
 

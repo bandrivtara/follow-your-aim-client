@@ -11,13 +11,9 @@ import { useGetAimsListQuery } from "store/services/aims";
 import { useGetTaskGroupListQuery } from "store/services/taskGroups";
 import { useGetAimsCategoriesListQuery } from "store/services/aimsCategories";
 import { useGetSpheresListQuery } from "store/services/spheres";
-import { getAimsDateRange, isAimInRange } from "./aimCalendarCalculations";
+import { getAimsDateRange } from "./aimCalendarCalculations";
 
 export type IAimCalendarState = "tracking" | "planning";
-
-const initConfigs = {
-  currentDate: [dayjs().startOf("year"), dayjs().endOf("year")],
-};
 
 const AimCalendar = () => {
   const allAims = useGetAimsListQuery();
@@ -25,25 +21,12 @@ const AimCalendar = () => {
   const aimCategories = useGetAimsCategoriesListQuery();
   const spheres = useGetSpheresListQuery();
   const gridRef = useRef<AgGridReact>(null);
-  const isInitialRangeResolved = useRef(false);
   const [rowData, setRowData] = useState<any[]>([]);
   const [columnDefs, setColumnDefs] = useState<ColDef[]>([]);
-  const [monthsDates, setMonthsDates] = useState<(Dayjs | null)[]>(
-    initConfigs.currentDate,
-  );
-
-  useEffect(() => {
-    if (isInitialRangeResolved.current || !allAims.data) return;
-    isInitialRangeResolved.current = true;
-
-    const hasAimInCurrentRange = allAims.data.some((aim) =>
-      isAimInRange(aim, monthsDates),
-    );
-    if (!hasAimInCurrentRange) {
-      const aimsRange = getAimsDateRange(allAims.data);
-      aimsRange && setMonthsDates(aimsRange);
-    }
-  }, [allAims.data, monthsDates]);
+  const [monthsDates, setMonthsDates] = useState<(Dayjs | null)[]>(() => [
+    dayjs().startOf("year"),
+    dayjs().endOf("year"),
+  ]);
 
   useEffect(() => {
     const newColumnDefs = tableConfigs.getColumnDefs(monthsDates);

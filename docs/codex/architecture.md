@@ -29,9 +29,9 @@ Typical flow: screen/component -> generated query or mutation hook -> service qu
 
 ## Feature domains
 
-- Main: dashboard and water counter.
-- Calendar tracker: planning and completion history for habits and task groups.
-- Scheduler: calendar projection of timed habit history entries, with fallback to the current habit schedule for legacy history; appointment edits are currently local UI state.
+- Main: current-day dashboard, weekly completion chart, activity streak, active aims, timed habits, quick navigation, and water counter.
+- Calendar tracker: current day/week/month navigation plus planning and completion history for habits and task groups.
+- Scheduler: read-only day/week/month projection of timed habit history entries, with fallback to the current habit schedule for legacy history. Persistent editing remains in the tracker.
 - Aims: CRUD, categories, life spheres, calendar spans, and progress from direct values, measured habits, or task-group stages.
 - Habits: CRUD, categories, measures, schedules, and relationships.
 - Task groups: reusable task store, optional stages/subtasks, and per-day todo instances in tracker history.

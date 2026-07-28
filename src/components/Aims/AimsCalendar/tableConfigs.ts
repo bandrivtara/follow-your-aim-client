@@ -21,6 +21,7 @@ const getColumnDefs = (monthsDates: (Dayjs | null)[]): ColDef[] => {
     const startMonth = monthsDates[0].month();
     months.push({
       name: dayjs(monthsDates[0])
+        .locale("uk")
         .month(startMonth + i)
         .format("MMMM"),
       monthIndex: dayjs(monthsDates[0])
