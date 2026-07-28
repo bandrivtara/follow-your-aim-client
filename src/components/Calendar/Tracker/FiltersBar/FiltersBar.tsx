@@ -6,13 +6,14 @@ import StyledFiltersBarRow from "./FiltersBar.styled";
 import { getFirstDayOfWeek } from "share/functions/getFirstDayOfWeek";
 import useIsMobile from "share/hooks/useIsMobile";
 import { ITrackerCalendarState } from "../TrackerCalendar";
+import { TrackerCategoryFilter } from "../rowFilters";
 
 interface IProps {
   gridRef: RefObject<AgGridReact<any>>;
   setCurrentDate: (date: (Dayjs | null)[]) => void;
   currentDate: (Dayjs | null)[];
-  setFilteredCategory: (filteredCategory: string) => void;
-  filteredCategory: string;
+  setFilteredCategory: (filteredCategory: TrackerCategoryFilter) => void;
+  filteredCategory: TrackerCategoryFilter;
   setRowSortingType: (rowSortingType: string) => void;
   rowSortingType: string;
   setCurrentMode: (mode: ITrackerCalendarState) => void;
@@ -42,7 +43,7 @@ const FiltersBar = ({
         }
       }
     },
-    [gridRef]
+    [gridRef],
   );
 
   const onChange = (dates: null | (Dayjs | null)[]) => {
@@ -51,20 +52,9 @@ const FiltersBar = ({
     }
   };
 
-  const handleCategoryChange = (value: string) => {
+  const handleCategoryChange = (value: TrackerCategoryFilter) => {
     setFilteredCategory(value);
   };
-
-  const disabledDate = useCallback(
-    (current: Dayjs) => {
-      if (!currentDate[0]) {
-        return false;
-      }
-
-      return currentDate[0].month() !== current.month();
-    },
-    [currentDate]
-  );
 
   const handleTrackingMode = () => {
     setCurrentMode("tracking");
@@ -98,11 +88,7 @@ const FiltersBar = ({
           onChange={onChange}
           onSelect={onPickerSelect}
         />
-        <Select
-          defaultValue={"only-planned"}
-          onChange={handleCategoryChange}
-          value={filteredCategory}
-        >
+        <Select onChange={handleCategoryChange} value={filteredCategory}>
           <Select.Option value="all">Усі активності</Select.Option>
           <Select.Option value="only-planned">Тільки заплановані</Select.Option>
           <Select.Option value="grouped">Погруповані</Select.Option>

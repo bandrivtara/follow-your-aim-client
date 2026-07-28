@@ -8,6 +8,7 @@ export interface IHabitData {
   valueType: IHabitValueTypes;
   description?: string;
   complexity?: number;
+  category?: string | string[];
   habitsCategoryId?: string;
   sphereId?: string;
   measures?: { [measureId: string]: { value: string; plannedValue: string } };

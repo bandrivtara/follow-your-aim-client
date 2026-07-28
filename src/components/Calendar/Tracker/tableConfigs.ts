@@ -1,8 +1,7 @@
 import { ColDef } from "ag-grid-community";
-import DayCellEditor from "./DayCellEditor/DayCellEditor";
 import DayCellRenderer from "./DayCellRenderer/DayCellRenderer";
 import { getDaysBetweenDates } from "share/functions/getDaysBetweenDates";
-import dayjs, { Dayjs } from "dayjs";
+import { Dayjs } from "dayjs";
 import { ITrackerCalendarState } from "./TrackerCalendar";
 import _ from "lodash";
 import { IHabitData } from "types/habits.types";
@@ -10,6 +9,7 @@ import { IHistoryData, IHistoryDayRow } from "types/history.types";
 import RowNameRenderer from "./RowNameRenderer/RowNameRenderer";
 import compareTime from "share/functions/compareTime";
 import { ITasksGroup } from "types/taskGroups";
+import { filterTrackerRows, TrackerCategoryFilter } from "./rowFilters";
 
 export interface IHabitRow {
   habitDetails: IHabitData;
@@ -22,14 +22,13 @@ export interface IHabitRow {
 
 const getColumnDefs = (
   currentDate: (Dayjs | null)[],
-  calendarMode: ITrackerCalendarState
+  calendarMode: ITrackerCalendarState,
 ): ColDef[] => {
   if (!currentDate[0] || !currentDate[1]) return [];
 
   const days = getDaysBetweenDates(currentDate[0], currentDate[1]);
 
   const dayCols: ColDef[] = [];
-  console.log(days);
 
   days.forEach((dayData) => {
     dayCols.push({
@@ -63,7 +62,8 @@ const getRows = (
   habitsData: IHabitData[] = [],
   taskGroupsData: ITasksGroup[] = [],
   history: IHistoryData[] = [],
-  rowSortingType: string
+  rowSortingType: string,
+  filteredCategory: TrackerCategoryFilter,
 ) => {
   const rowItems: any = {};
   const rowsToShow = [...habitsData, ...taskGroupsData];
@@ -102,14 +102,18 @@ const getRows = (
     }
   });
 
+  const filteredRows = filterTrackerRows(rows, filteredCategory);
+
   if (rowSortingType === "alphabetic") {
     // @ts-ignore
-    return _.orderBy(rows, [(row) => row.details.title]);
+    return _.orderBy(filteredRows, [(row) => row.details.title]);
   } else if (rowSortingType === "schedule-time") {
     // @ts-ignore
-    return _.orderBy(rows, [(row) => row.details.title]).sort(compareTime);
+    return _.orderBy(filteredRows, [(row) => row.details.title]).sort(
+      compareTime,
+    );
   }
-  return rows;
+  return filteredRows;
 };
 
 const tableConfigs = {

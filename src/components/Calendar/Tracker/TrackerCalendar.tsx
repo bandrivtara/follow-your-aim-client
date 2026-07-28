@@ -15,6 +15,7 @@ import { IHistoryDayRow } from "types/history.types";
 import { useGetTaskGroupListQuery } from "store/services/taskGroups";
 import { Drawer } from "@mui/material";
 import DayCellEditor from "./DayCellEditor/DayCellEditor";
+import { TrackerCategoryFilter } from "./rowFilters";
 
 export type ITrackerCalendarState = "tracking" | "planning";
 
@@ -30,11 +31,11 @@ const TrackerCalendar = () => {
   const gridContainerRef = useRef<HTMLDivElement>(null);
 
   const [editableCell, setEditableCell] = useState<CellClickedEvent | null>(
-    null
+    null,
   );
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [currentDate, setCurrentDate] = useState<(Dayjs | null)[]>(
-    initConfigs.currentDate
+    initConfigs.currentDate,
   );
   const historyData = useGetHistoryBetweenDatesQuery([
     dayjs(dayjs(currentDate[0]).format("YYYY-MM")).unix(),
@@ -43,7 +44,8 @@ const TrackerCalendar = () => {
 
   const [rowData, setRowData] = useState<IHistoryDayRow[]>([]);
   const [columnDefs, setColumnDefs] = useState<ColDef[]>([]);
-  const [filteredCategory, setFilteredCategory] = useState("all");
+  const [filteredCategory, setFilteredCategory] =
+    useState<TrackerCategoryFilter>("all");
   const [rowSortingType, setRowSortingType] = useState("schedule-time");
   const [calendarMode, setCurrentMode] =
     useState<ITrackerCalendarState>("tracking");
@@ -60,7 +62,8 @@ const TrackerCalendar = () => {
       habitsData.data,
       taskGroupsData.data,
       historyData.data,
-      rowSortingType
+      rowSortingType,
+      filteredCategory,
     );
     setColumnDefs(newColumnDefs);
     setRowData(newRows);
