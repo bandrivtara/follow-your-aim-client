@@ -18,7 +18,6 @@ import {
 } from "@mui/material";
 import {
   ExpandMore as ExpandMoreIcon,
-  MoreHoriz as MoreHorizIcon,
   Delete as DeleteIcon,
   Done as DoneIcon,
   Close as CloseIcon,
@@ -33,7 +32,6 @@ import { useGetTaskGroupQuery } from "store/services/taskGroups";
 import { TimePicker } from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import { ITasksHistoryData } from "types/history.types";
-import _ from "lodash";
 import { ITask } from "types/taskGroups";
 
 interface IProps {
@@ -51,15 +49,16 @@ const initTask: ITask = {
 };
 
 const TodoList = ({ data, colDef, stopEditing }: IProps) => {
-  const { control, handleSubmit, setValue, getValues } = useForm({
-    defaultValues: {
-      id: "",
-      type: "tasksGroup",
-      valueType: "todoList",
-      progress: 0,
-      tasks: [initTask],
-    },
-  });
+  const { control, handleSubmit, setValue, getValues } =
+    useForm<ITasksHistoryData>({
+      defaultValues: {
+        id: "",
+        type: "tasksGroup",
+        valueType: "todoList",
+        progress: 0,
+        tasks: [] as ITask[],
+      },
+    });
 
   const { fields, append, remove } = useFieldArray({
     control,
@@ -73,33 +72,26 @@ const TodoList = ({ data, colDef, stopEditing }: IProps) => {
   const cellData = colDef.field && data[+colDef.field];
 
   useEffect(() => {
-    const initTasksGroup = {
-      id: taskGroupDetails?.data?.id,
-      type: "tasksGroup",
-      valueType: "todoList",
-      progress: 0,
-      tasks: [initTask],
-    };
-
-    if (taskGroupDetails && taskGroupDetails.data) {
-      Object.keys(taskGroupDetails.data).forEach((key: any) => {
-        // @ts-ignore
-        setValue(key, taskGroupDetails.data[key]);
-      });
-    }
-    if (cellData && cellData.tasks) {
-      setValue("tasks", cellData.tasks);
-    } else {
-      setValue("tasks", initTasksGroup.tasks);
-    }
-  }, [cellData, data, dayData.date, setValue, taskGroupDetails]);
+    setValue("id", data.id);
+    setValue("type", "tasksGroup");
+    setValue("valueType", "todoList");
+    setValue("progress", cellData?.progress || 0);
+    setValue("tasks", cellData?.tasks || []);
+  }, [cellData, data.id, setValue]);
 
   const handleConfirm: SubmitHandler<ITasksHistoryData> = async (
-    formValues: ITasksHistoryData
+    formValues: ITasksHistoryData,
   ) => {
     if (!formValues?.tasks) return;
-    // @ts-ignore
-    const validatedTasks = formValues.tasks.filter((task: ITask) => task.title);
+    const validatedTasks = formValues.tasks.filter((task) =>
+      task.title?.trim(),
+    );
+    const completedTasks = validatedTasks.filter(
+      (task) => task.status === "done",
+    );
+    const progress = validatedTasks.length
+      ? (completedTasks.length / validatedTasks.length) * 100
+      : 0;
 
     if (colDef.field) {
       const dataToUpdate = { ...formValues };
@@ -107,7 +99,7 @@ const TodoList = ({ data, colDef, stopEditing }: IProps) => {
 
       const historyToUpdate = {
         id: `${dayData.year}-${dayData.month.toString().padStart(2, "0")}`,
-        data: { ...dataToUpdate, tasks: validatedTasks },
+        data: { ...dataToUpdate, tasks: validatedTasks, progress },
         path: `${dayData.day}.${data.id}`,
       };
 
@@ -119,8 +111,6 @@ const TodoList = ({ data, colDef, stopEditing }: IProps) => {
 
   const handleDelete = async () => {
     if (colDef.field) {
-      const newMonthHistory = _.pickBy(data, (_value, key) => !isNaN(+key));
-      delete newMonthHistory[colDef.field];
       const habitToUpdate = {
         id: `${dayData.year}-${dayData.month.toString().padStart(2, "0")}`,
         data: {},
@@ -135,12 +125,12 @@ const TodoList = ({ data, colDef, stopEditing }: IProps) => {
     stopEditing();
   };
 
-  const parseTime = (timeArray?: number[]) => {
+  const parseTime = (timeArray?: Array<number | string>) => {
     if (!timeArray) return;
     const [hours, minutes] = timeArray;
     const date = dayjs()
-      .set("hour", hours)
-      .set("minute", minutes)
+      .set("hour", Number(hours))
+      .set("minute", Number(minutes))
       .set("second", 0)
       .set("millisecond", 0);
     return date.toDate();
@@ -153,11 +143,16 @@ const TodoList = ({ data, colDef, stopEditing }: IProps) => {
     return [hours, minutes];
   };
 
-  useWatch({
+  const watchedTasks = useWatch({
     control,
     name: "tasks",
     defaultValue: [],
   });
+  const storedTasks = taskGroupDetails.data?.tasksStore || [];
+
+  const addTaskFromStore = (task: ITask) => {
+    append({ ...task, status: "pending", isEditOn: false });
+  };
 
   return (
     initTask && (
@@ -166,6 +161,23 @@ const TodoList = ({ data, colDef, stopEditing }: IProps) => {
           <Box sx={{ minWidth: 300, margin: 2 }}>
             <Grid container spacing={2}>
               <Grid item xs={12}>
+                {!!storedTasks.length && (
+                  <Box marginBottom={2}>
+                    <strong>Сховище завдань</strong>
+                    <Box display="flex" flexWrap="wrap" gap={1} marginTop={1}>
+                      {storedTasks.map((task, index) => (
+                        <Button
+                          key={task.id || `${task.title}-${index}`}
+                          variant="outlined"
+                          size="small"
+                          onClick={() => addTaskFromStore(task)}
+                        >
+                          + {task.title}
+                        </Button>
+                      ))}
+                    </Box>
+                  </Box>
+                )}
                 {fields.map((task, index) => (
                   <Fragment key={task.id}>
                     <Grid container spacing={2} marginBottom={2}>
@@ -223,8 +235,8 @@ const TodoList = ({ data, colDef, stopEditing }: IProps) => {
                               {...field}
                               size="large"
                               value={field.value}
-                              onChange={(event, newValue) =>
-                                field.onChange(newValue)
+                              onChange={(_event, newValue) =>
+                                newValue && field.onChange(newValue)
                               }
                               color="primary"
                               exclusive
@@ -249,14 +261,12 @@ const TodoList = ({ data, colDef, stopEditing }: IProps) => {
                           variant="outlined"
                           aria-label="Basic button group"
                         >
-                          <Button>
-                            <MoreHorizIcon />
-                          </Button>
                           <Button
                             onClick={() =>
                               setValue(
                                 `tasks.${index}.isEditOn`,
-                                !getValues(`tasks.${index}.isEditOn`)
+                                !getValues(`tasks.${index}.isEditOn`),
+                                { shouldDirty: true },
                               )
                             }
                           >
@@ -269,11 +279,7 @@ const TodoList = ({ data, colDef, stopEditing }: IProps) => {
                       </Grid>
                     </Grid>
 
-                    <Grid
-                      item
-                      xs={12}
-                      hidden={!getValues(`tasks.${index}.isEditOn`)}
-                    >
+                    <Grid item xs={12} hidden={!watchedTasks[index]?.isEditOn}>
                       <Controller
                         name={`tasks.${index}.description`}
                         control={control}
@@ -294,7 +300,10 @@ const TodoList = ({ data, colDef, stopEditing }: IProps) => {
                 ))}
                 <Grid container>
                   <Grid item md={6}>
-                    <Button variant="outlined" onClick={() => append(initTask)}>
+                    <Button
+                      variant="outlined"
+                      onClick={() => append({ ...initTask })}
+                    >
                       Додати завдання
                     </Button>
                   </Grid>

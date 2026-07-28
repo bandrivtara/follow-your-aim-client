@@ -1,5 +1,5 @@
 import { Form, Input, Button, Transfer } from "antd";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   useGetHabitsCategoryQuery,
   useUpdateHabitsCategoryMutation,
@@ -12,84 +12,68 @@ import {
   useUpdateHabitMutation,
 } from "store/services/habits";
 import uniqid from "uniqid";
+import { getRelationshipUpdates } from "share/functions/getRelationshipUpdates";
 
 const formInitialValues = {
   title: "",
   description: "",
-  relatedHabits: [],
-  relatedAims: [],
 };
 
 const AddEditHabitsCategory = () => {
   const [form] = Form.useForm();
-  let { habitsCategoryId } = useParams();
+  const navigate = useNavigate();
+  const { habitsCategoryId } = useParams();
   const [updateHabitsCategory] = useUpdateHabitsCategoryMutation();
   const [updateHabit] = useUpdateHabitMutation();
-  const habitsCategoryDetails = useGetHabitsCategoryQuery(habitsCategoryId);
+  const habitsCategoryDetails = useGetHabitsCategoryQuery(habitsCategoryId, {
+    skip: !habitsCategoryId,
+  });
   const habitData = useGetHabitListQuery();
 
   const [currentHabitsKeys, setCurrentHabitsKeys] = useState<string[]>([]);
   const [selectedHabitsKeys, setSelectedHabitsKeys] = useState<string[]>([]);
-  const [notSelectedHabits, setNotSelectedHabits] = useState<any[]>([]);
+  const [habitsTransferItems, setHabitsTransferItems] = useState<any[]>([]);
 
   useEffect(() => {
-    if (habitsCategoryDetails && habitData.data) {
-      form.setFieldsValue(habitsCategoryDetails.data);
-
-      const relatedHabits = habitData.data
+    if (!habitData.data) return;
+    setCurrentHabitsKeys(
+      habitData.data
         .filter((habit) => habit.habitsCategoryId === habitsCategoryId)
-        .map((habit) => habit.id);
+        .map((habit) => habit.id),
+    );
+    setHabitsTransferItems(
+      habitData.data.map((habit) => ({ key: habit.id, title: habit.title })),
+    );
+  }, [habitData.data, habitsCategoryId]);
 
-      setCurrentHabitsKeys(relatedHabits);
+  useEffect(() => {
+    if (habitsCategoryDetails.data) {
+      form.setFieldsValue(habitsCategoryDetails.data);
     }
-
-    if (habitData.data) {
-      const allHabits = [];
-      for (let i = 0; i < habitData?.data?.length; i++) {
-        const data = {
-          key: habitData?.data[i].id,
-          title: habitData?.data[i].title,
-        };
-
-        allHabits.push(data);
-      }
-      setNotSelectedHabits(allHabits);
-    }
-  }, [habitsCategoryDetails, form, habitData.data, habitsCategoryId]);
-
-  const onHabitsTransferChange = (nextTargetKeys: string[]) => {
-    setCurrentHabitsKeys(nextTargetKeys);
-  };
-
-  const onHabitsTransferSelectChange = (
-    sourceSelectedKeys: string[],
-    targetSelectedKeys: string[]
-  ) => {
-    setSelectedHabitsKeys([...sourceSelectedKeys, ...targetSelectedKeys]);
-  };
+  }, [form, habitsCategoryDetails.data]);
 
   const onFinish = async (newHabitsCategoryData: IHabitsCategory) => {
     const currentId = habitsCategoryId || uniqid();
-    const aimsCategoryToUpdate = {
+    const previousHabitIds =
+      habitData.data
+        ?.filter((habit) => habit.habitsCategoryId === habitsCategoryId)
+        .map((habit) => habit.id) || [];
+
+    await updateHabitsCategory({
       id: currentId,
       data: newHabitsCategoryData,
-      path: "",
-    };
-    await updateHabitsCategory(aimsCategoryToUpdate).unwrap();
-
+    }).unwrap();
     await Promise.all(
-      currentHabitsKeys.map(async (habitId) => {
-        const habitToUpdate = {
-          id: habitId,
-          data: { habitsCategoryId: currentId },
-          path: "",
-        };
-        await updateHabit(habitToUpdate).unwrap();
-      })
+      getRelationshipUpdates(
+        previousHabitIds,
+        currentHabitsKeys,
+        currentId,
+      ).map(({ id, relationId }) =>
+        updateHabit({ id, data: { habitsCategoryId: relationId } }).unwrap(),
+      ),
     );
 
-    // navigate(routes.habit.categories.list);
-    // navigate(0);
+    navigate(-1);
   };
 
   return (
@@ -105,23 +89,24 @@ const AddEditHabitsCategory = () => {
       <Form.Item rules={[{ required: true }]} name="title" label="Назва">
         <Input />
       </Form.Item>
-
       <Form.Item name="description" label="Опис">
         <TextArea rows={2} />
       </Form.Item>
-
-      <Form.Item label="Повязані активності">
+      <Form.Item label="Пов’язані звички">
         <Transfer
-          dataSource={notSelectedHabits}
-          titles={["Source", "Target"]}
+          dataSource={habitsTransferItems}
+          titles={["Доступні", "Пов’язані"]}
           targetKeys={currentHabitsKeys}
           selectedKeys={selectedHabitsKeys}
-          onChange={onHabitsTransferChange}
-          onSelectChange={onHabitsTransferSelectChange}
+          onChange={(nextTargetKeys) =>
+            setCurrentHabitsKeys(nextTargetKeys as string[])
+          }
+          onSelectChange={(sourceKeys, targetKeys) =>
+            setSelectedHabitsKeys([...sourceKeys, ...targetKeys] as string[])
+          }
           render={(item) => item.title}
         />
       </Form.Item>
-
       <Form.Item>
         <Button htmlType="submit">
           {habitsCategoryId ? "Записати зміни" : "Додати категорію"}

@@ -20,7 +20,7 @@ The application is a client-only Create React App deployment. HashRouter support
 
 - src/store/store.ts configures one RTK Query reducer and middleware.
 - src/store/api/index.ts initializes Firebase and defines a shared createApi instance with fakeBaseQuery.
-- src/store/services/*.ts inject Firestore-backed queries and mutations.
+- src/store/services/\*.ts inject Firestore-backed queries and mutations.
 - RTK Query tags cache server-derived data. Most view and form state remains local React state.
 - There is no separate application backend or client authentication flow in the checked-in source.
 - Some calculation helpers bypass RTK Query and read Firestore directly, notably aim progress and shared history lookup.
@@ -31,11 +31,11 @@ Typical flow: screen/component -> generated query or mutation hook -> service qu
 
 - Main: dashboard and water counter.
 - Calendar tracker: planning and completion history for habits and task groups.
-- Scheduler: calendar projection of timed history entries; appointment edits are currently local UI state.
-- Aims: CRUD, categories, calendar spans, and progress from direct values, habits, or task groups.
+- Scheduler: calendar projection of timed habit history entries, with fallback to the current habit schedule for legacy history; appointment edits are currently local UI state.
+- Aims: CRUD, categories, life spheres, calendar spans, and progress from direct values, measured habits, or task-group stages.
 - Habits: CRUD, categories, measures, schedules, and relationships.
-- Task groups: task store, stages, subtasks, and tracker integration.
-- Spheres: life-area records with related habit and aim IDs.
+- Task groups: reusable task store, optional stages/subtasks, and per-day todo instances in tracker history.
+- Spheres: life-area records whose related habits and aims are derived from child sphereId fields.
 - English: vocabulary groups, words, and word tests.
 
 ## UI composition

@@ -1,16 +1,20 @@
 import { Link } from "react-router-dom";
 import routes from "config/routes";
 import { ColDef, ICellRendererParams } from "ag-grid-community";
-import RelatedHabits from "./CellRenderer/RelatedHabits";
-import RelatedAims from "./CellRenderer/RelatedAims";
+import { Tag } from "antd";
+import { IHabitData } from "types/habits.types";
+import { IAimData } from "types/aims.types";
+import { ISphereData } from "types/spheres.types";
 
-const tableConfigs: ColDef[] = [
+const getColDefs = (
+  habits: IHabitData[],
+  aims: IAimData[],
+): ColDef<ISphereData>[] => [
   {
     headerName: "Назва",
     field: "title",
-    cellRenderer: ({ data, value }: ICellRendererParams) => (
-      <Link to={`${routes.spheres.edit}/${data.id}`}>{value}</Link>
-    ),
+    cellRenderer: ({ data, value }: ICellRendererParams<ISphereData>) =>
+      data && <Link to={`${routes.spheres.edit}/${data.id}`}>{value}</Link>,
   },
   {
     headerName: "Опис",
@@ -18,21 +22,35 @@ const tableConfigs: ColDef[] = [
     flex: 1,
   },
   {
-    headerName: "Повязані звички",
-    field: "relatedHabits",
-    cellRenderer: RelatedHabits,
+    headerName: "Пов’язані звички",
+    cellRenderer: ({ data }: ICellRendererParams<ISphereData>) =>
+      habits
+        .filter((habit) => habit.sphereId === data?.id)
+        .map((habit) => (
+          <Tag key={habit.id} color="processing">
+            {habit.title}
+          </Tag>
+        )),
     flex: 1,
     wrapText: true,
     autoHeight: true,
   },
   {
-    headerName: "Повязані цілі",
-    field: "relatedAims",
-    cellRenderer: RelatedAims,
+    headerName: "Пов’язані цілі",
+    cellRenderer: ({ data }: ICellRendererParams<ISphereData>) =>
+      aims
+        .filter((aim) => aim.sphereId === data?.id)
+        .map((aim) => (
+          <Tag key={aim.id} color="processing">
+            {aim.title}
+          </Tag>
+        )),
     flex: 1,
     wrapText: true,
     autoHeight: true,
   },
 ];
+
+const tableConfigs = { getColDefs };
 
 export default tableConfigs;

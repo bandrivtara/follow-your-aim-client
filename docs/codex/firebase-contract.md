@@ -17,17 +17,17 @@ Last verified from client code: 2026-07-28. This describes the existing integrat
 
 ## Locations
 
-| Firestore location | Storage pattern | Client service |
-| --- | --- | --- |
-| habit/{habitId} | one habit per document | src/store/services/habits.ts |
-| taskGroup/{taskGroupId} | one task group per document | src/store/services/taskGroups.ts |
-| aim/{aimId} | one aim per document | src/store/services/aims.ts |
-| habitsCategories/{categoryId} | one category per document | src/store/services/habitsCategories.ts |
-| aimsCategories/{categoryId} | one category per document | src/store/services/aimsCategories.ts |
-| spheres/{sphereId} | one sphere per document | src/store/services/spheres.ts |
-| history/{monthId} | month with nested day/activity data and unix | src/store/services/history.ts |
-| english/groups | map fields keyed by group ID | src/store/services/english.ts |
-| english/words | map fields keyed by word ID | src/store/services/english.ts |
+| Firestore location            | Storage pattern                              | Client service                         |
+| ----------------------------- | -------------------------------------------- | -------------------------------------- |
+| habit/{habitId}               | one habit per document                       | src/store/services/habits.ts           |
+| taskGroup/{taskGroupId}       | one task group per document                  | src/store/services/taskGroups.ts       |
+| aim/{aimId}                   | one aim per document                         | src/store/services/aims.ts             |
+| habitsCategories/{categoryId} | one category per document                    | src/store/services/habitsCategories.ts |
+| aimsCategories/{categoryId}   | one category per document                    | src/store/services/aimsCategories.ts   |
+| spheres/{sphereId}            | one sphere per document                      | src/store/services/spheres.ts          |
+| history/{monthId}             | month with nested day/activity data and unix | src/store/services/history.ts          |
+| english/groups                | map fields keyed by group ID                 | src/store/services/english.ts          |
+| english/words                 | map fields keyed by word ID                  | src/store/services/english.ts          |
 
 List services usually attach Firestore document IDs as id. English differs: IDs are dynamic field names inside fixed documents.
 
@@ -45,10 +45,18 @@ Any date fix must keep both read paths consistent and test first/last-day and cr
 
 ## Relationships
 
-- Habits and aims may reference category and sphere IDs.
-- Spheres store related habit and aim ID arrays.
+- The effective relationship source is the child record: habits use habitsCategoryId and sphereId; aims use aimsCategoryId and sphereId.
+- Category and sphere related-habit/aim arrays are optional legacy data and are not reliable enough to drive lists or initial form selection.
+- Relationship screens therefore derive their displayed and selected items from child IDs. Saving a relationship updates selected children and clears the same relationship on deselected children.
+- Missing referenced IDs must remain visible as a fallback such as "Не знайдено (ID)" instead of rendering a raw unexplained ID or crashing.
 - Aims can reference a habit/measure pair through relatedHabit or task-group/stage selections through relatedList.
-- Before changing relationship logic, inspect updates on both sides and missing-reference behavior.
+- Relationship saves currently issue multiple document updates and are not atomic. Do not replace this with a schema migration or new Firebase integration without explicit approval.
+
+Observed live-data compatibility notes from the read-only audit on 2026-07-28:
+
+- Some habits reference a category document that no longer exists.
+- Two habit documents have no usable habit fields and are filtered from client lists rather than deleted.
+- Some legacy history activities omit type; tracker and scheduler readers fall back to the current habit/task-group definition.
 
 ## Service behavior
 

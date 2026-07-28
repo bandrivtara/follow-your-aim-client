@@ -1,5 +1,5 @@
 import { Form, Input, Button, Transfer } from "antd";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   useGetAimsCategoryQuery,
   useUpdateAimsCategoryMutation,
@@ -9,82 +9,65 @@ import TextArea from "antd/es/input/TextArea";
 import { useEffect, useState } from "react";
 import { useGetAimsListQuery, useUpdateAimMutation } from "store/services/aims";
 import uniqid from "uniqid";
+import { getRelationshipUpdates } from "share/functions/getRelationshipUpdates";
 
 const formInitialValues = {
   title: "",
   description: "",
-  relatedAims: [],
 };
 
 const AddEditAimsCategory = () => {
   const [form] = Form.useForm();
-  let { aimsCategoryId } = useParams();
+  const navigate = useNavigate();
+  const { aimsCategoryId } = useParams();
   const [updateAimsCategory] = useUpdateAimsCategoryMutation();
   const [updateAim] = useUpdateAimMutation();
-  const aimsCategoryDetails = useGetAimsCategoryQuery(aimsCategoryId);
+  const aimsCategoryDetails = useGetAimsCategoryQuery(aimsCategoryId, {
+    skip: !aimsCategoryId,
+  });
   const aimData = useGetAimsListQuery();
 
   const [currentAimsKeys, setCurrentAimsKeys] = useState<string[]>([]);
   const [selectedAimsKeys, setSelectedAimsKeys] = useState<string[]>([]);
-  const [notSelectedAims, setNotSelectedAims] = useState<any[]>([]);
+  const [aimsTransferItems, setAimsTransferItems] = useState<any[]>([]);
 
   useEffect(() => {
-    if (aimData.data) {
-      const relatedAims = aimData.data
+    if (!aimData.data) return;
+    setCurrentAimsKeys(
+      aimData.data
         .filter((aim) => aim.aimsCategoryId === aimsCategoryId)
-        .map((aim) => aim.id);
+        .map((aim) => aim.id),
+    );
+    setAimsTransferItems(
+      aimData.data.map((aim) => ({ key: aim.id, title: aim.title })),
+    );
+  }, [aimData.data, aimsCategoryId]);
 
-      const allAims = [];
-      for (let i = 0; i < aimData?.data?.length; i++) {
-        const data = {
-          key: aimData?.data[i].id,
-          title: aimData?.data[i].title,
-        };
-
-        allAims.push(data);
-      }
-
-      setCurrentAimsKeys(relatedAims);
-      setNotSelectedAims(allAims);
-    }
-
+  useEffect(() => {
     if (aimsCategoryDetails.data) {
       form.setFieldsValue(aimsCategoryDetails.data);
     }
-  }, [aimsCategoryDetails, form, aimData.data, aimsCategoryId]);
-
-  const onAimsTransferChange = (nextTargetKeys: string[]) => {
-    setCurrentAimsKeys(nextTargetKeys);
-  };
-
-  const onAimsTransferSelectChange = (
-    sourceSelectedKeys: string[],
-    targetSelectedKeys: string[]
-  ) => {
-    setSelectedAimsKeys([...sourceSelectedKeys, ...targetSelectedKeys]);
-  };
+  }, [aimsCategoryDetails.data, form]);
 
   const onFinish = async (newAimsCategoryData: IAimsCategory) => {
     const currentId = aimsCategoryId || uniqid();
-    const aimsCategoryToUpdate = {
+    const previousAimIds =
+      aimData.data
+        ?.filter((aim) => aim.aimsCategoryId === aimsCategoryId)
+        .map((aim) => aim.id) || [];
+
+    await updateAimsCategory({
       id: currentId,
       data: newAimsCategoryData,
-      path: "",
-    };
-    await updateAimsCategory(aimsCategoryToUpdate).unwrap();
+    }).unwrap();
     await Promise.all(
-      currentAimsKeys.map(async (aimId) => {
-        const aimToUpdate = {
-          id: aimId,
-          data: { aimsCategoryId: currentId },
-          path: "",
-        };
-        await updateAim(aimToUpdate).unwrap();
-      })
+      getRelationshipUpdates(previousAimIds, currentAimsKeys, currentId).map(
+        ({ id, relationId }) =>
+          updateAim({ id, data: { aimsCategoryId: relationId } }).unwrap(),
+      ),
     );
 
-    // navigate(routes.aim.categories.list);
-    // navigate(0);
+    navigate(-1);
   };
 
   return (
@@ -100,23 +83,24 @@ const AddEditAimsCategory = () => {
       <Form.Item rules={[{ required: true }]} name="title" label="Назва">
         <Input />
       </Form.Item>
-
       <Form.Item name="description" label="Опис">
         <TextArea rows={2} />
       </Form.Item>
-
-      <Form.Item label="Повязані ">
+      <Form.Item label="Пов’язані цілі">
         <Transfer
-          dataSource={notSelectedAims}
-          titles={["Source", "Target"]}
+          dataSource={aimsTransferItems}
+          titles={["Доступні", "Пов’язані"]}
           targetKeys={currentAimsKeys}
           selectedKeys={selectedAimsKeys}
-          onChange={onAimsTransferChange}
-          onSelectChange={onAimsTransferSelectChange}
+          onChange={(nextTargetKeys) =>
+            setCurrentAimsKeys(nextTargetKeys as string[])
+          }
+          onSelectChange={(sourceKeys, targetKeys) =>
+            setSelectedAimsKeys([...sourceKeys, ...targetKeys] as string[])
+          }
           render={(item) => item.title}
         />
       </Form.Item>
-
       <Form.Item>
         <Button htmlType="submit">
           {aimsCategoryId ? "Записати зміни" : "Додати категорію"}

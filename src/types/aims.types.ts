@@ -2,8 +2,10 @@ export interface IAimData extends IAim {
   id: string;
 }
 
+export type IAimRelatedList = Record<string, string[]> | string[][];
+
 export interface IAim {
-  id: string;
+  id?: string;
   title: string;
   description: string;
   complexity: number;
@@ -13,12 +15,12 @@ export interface IAim {
   dateTo: string;
   progress: number;
   value: any;
-  aimType: "number" | "boolean";
+  aimType: "number" | "boolean" | "list";
   calculationType: "sum" | "lastMeasureAsc" | "lastMeasureDesc";
   isRelatedWithHabit: boolean;
   finalAim: number;
   startedPoint: number;
   currentValue?: number;
   relatedHabit: string[];
-  relatedList: string[];
+  relatedList: IAimRelatedList;
 }

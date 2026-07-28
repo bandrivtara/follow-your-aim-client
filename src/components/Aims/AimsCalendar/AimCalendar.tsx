@@ -5,33 +5,64 @@ import "ag-grid-community/styles/ag-theme-material.css";
 import StyledAimCalendar from "./AimCalendar.styled";
 import dayjs, { Dayjs } from "dayjs";
 import { ColDef } from "ag-grid-community";
-import { DatePicker } from "antd";
+import { Button, DatePicker, Space } from "antd";
 import tableConfigs from "./tableConfigs";
 import { useGetAimsListQuery } from "store/services/aims";
 import { useGetTaskGroupListQuery } from "store/services/taskGroups";
+import { useGetAimsCategoriesListQuery } from "store/services/aimsCategories";
+import { useGetSpheresListQuery } from "store/services/spheres";
+import { getAimsDateRange, isAimInRange } from "./aimCalendarCalculations";
 
 export type IAimCalendarState = "tracking" | "planning";
 
 const initConfigs = {
-  currentDate: [dayjs(dayjs().startOf("y")), dayjs().endOf("y")],
+  currentDate: [dayjs().startOf("year"), dayjs().endOf("year")],
 };
 
 const AimCalendar = () => {
   const allAims = useGetAimsListQuery();
   const taskGroups = useGetTaskGroupListQuery();
+  const aimCategories = useGetAimsCategoriesListQuery();
+  const spheres = useGetSpheresListQuery();
   const gridRef = useRef<AgGridReact>(null);
+  const isInitialRangeResolved = useRef(false);
   const [rowData, setRowData] = useState<any[]>([]);
   const [columnDefs, setColumnDefs] = useState<ColDef[]>([]);
   const [monthsDates, setMonthsDates] = useState<(Dayjs | null)[]>(
-    initConfigs.currentDate
+    initConfigs.currentDate,
   );
 
   useEffect(() => {
+    if (isInitialRangeResolved.current || !allAims.data) return;
+    isInitialRangeResolved.current = true;
+
+    const hasAimInCurrentRange = allAims.data.some((aim) =>
+      isAimInRange(aim, monthsDates),
+    );
+    if (!hasAimInCurrentRange) {
+      const aimsRange = getAimsDateRange(allAims.data);
+      aimsRange && setMonthsDates(aimsRange);
+    }
+  }, [allAims.data, monthsDates]);
+
+  useEffect(() => {
     const newColumnDefs = tableConfigs.getColumnDefs(monthsDates);
-    const newRows = tableConfigs.getRows(allAims.data, taskGroups.data);
+    const newRows = tableConfigs.getRows(
+      allAims.data,
+      taskGroups.data,
+      monthsDates,
+      aimCategories.data,
+      spheres.data,
+    );
     setColumnDefs(newColumnDefs);
     setRowData(newRows);
-  }, [allAims, monthsDates, taskGroups.data]);
+  }, [
+    aimCategories.data,
+    allAims.data,
+    monthsDates,
+    spheres.data,
+    taskGroups.data,
+  ]);
 
   const onChange = (dates: null | (Dayjs | null)[]) => {
     if (dates) {
@@ -39,15 +70,30 @@ const AimCalendar = () => {
     }
   };
 
+  const showAllAims = () => {
+    const aimsRange = getAimsDateRange(allAims.data);
+    aimsRange && setMonthsDates(aimsRange);
+  };
+
+  const showCurrentYear = () => {
+    setMonthsDates([dayjs().startOf("year"), dayjs().endOf("year")]);
+  };
+
   return (
     <StyledAimCalendar>
-      <DatePicker.RangePicker
-        picker="month"
-        // @ts-ignore
-        value={monthsDates}
-        onChange={onChange}
-        format={"MMM YYYY"}
-      />
+      <Space wrap>
+        <DatePicker.RangePicker
+          picker="month"
+          // @ts-ignore
+          value={monthsDates}
+          onChange={onChange}
+          format="MMM YYYY"
+        />
+        <Button onClick={showAllAims} disabled={!allAims.data?.length}>
+          Показати всі цілі
+        </Button>
+        <Button onClick={showCurrentYear}>Поточний рік</Button>
+      </Space>
 
       <div className="ag-theme-material fyi-ag-theme">
         <AgGridReact
@@ -55,7 +101,8 @@ const AimCalendar = () => {
           ref={gridRef}
           rowData={rowData}
           columnDefs={columnDefs}
-        ></AgGridReact>
+          overlayNoRowsTemplate="У вибраному періоді цілей немає"
+        />
       </div>
     </StyledAimCalendar>
   );

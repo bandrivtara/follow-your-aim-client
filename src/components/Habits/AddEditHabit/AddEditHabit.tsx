@@ -53,7 +53,7 @@ const AddEditHabit = () => {
   let { habitId } = useParams();
   const [addHabit] = useAddHabitMutation();
   const [updateHabit] = useUpdateHabitMutation();
-  const habitDetails = useGetHabitQuery(habitId);
+  const habitDetails = useGetHabitQuery(habitId, { skip: !habitId });
   const habitsCategories = useGetHabitsCategoriesListQuery();
   const spheres = useGetSpheresListQuery();
   const navigate = useNavigate();

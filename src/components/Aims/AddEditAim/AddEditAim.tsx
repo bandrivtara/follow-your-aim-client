@@ -62,7 +62,7 @@ const AddEditAim = () => {
   let { aimId } = useParams();
   const [addAim] = useAddAimMutation();
   const [updateAim] = useUpdateAimMutation();
-  const aimDetails = useGetAimQuery(aimId);
+  const aimDetails = useGetAimQuery(aimId, { skip: !aimId });
   const aimsCategories = useGetAimsCategoriesListQuery();
   const spheres = useGetSpheresListQuery();
   const relatedHabit = useWatch("relatedHabit", form);
@@ -112,7 +112,7 @@ const AddEditAim = () => {
       dateFrom: dayjs(newAimData.dateFrom).format("YYYY/MM/DD"),
       dateTo: dayjs(newAimData.dateTo).format("YYYY/MM/DD"),
     };
-    if (newAimData.relatedList) {
+    if (Array.isArray(newAimData.relatedList)) {
       data.relatedList = convertToObject(newAimData.relatedList);
     }
 
@@ -174,7 +174,7 @@ const AddEditAim = () => {
       (option) =>
         (option.label as string)
           .toLowerCase()
-          .indexOf(inputValue.toLowerCase()) > -1
+          .indexOf(inputValue.toLowerCase()) > -1,
     );
 
   return (
@@ -324,7 +324,7 @@ const AddEditAim = () => {
                       ? habitsList.data
                           ?.find((habit) => relatedHabit[0] === habit.id)
                           ?.fields?.find(
-                            (field) => field.id === relatedHabit[1]
+                            (field) => field.id === relatedHabit[1],
                           )?.unit
                       : ""
                   }
@@ -379,7 +379,7 @@ const AddEditAim = () => {
                       ? habitsList.data
                           ?.find((habit) => relatedHabit[0] === habit.id)
                           ?.fields?.find(
-                            (field) => field.id === relatedHabit[1]
+                            (field) => field.id === relatedHabit[1],
                           )?.unit
                       : ""
                   }

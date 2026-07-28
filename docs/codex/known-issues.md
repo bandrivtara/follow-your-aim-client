@@ -14,6 +14,9 @@ This is a triage aid, not permission to fix items outside the requested scope. R
 
 - Scheduler appointment add/edit/delete actions update local state only and are lost on reload.
 - Mutation failures now propagate from save flows, but consistent loading and user-visible error feedback is still incomplete.
+- Relationship saves update multiple child documents separately and are not atomic.
+- Live data includes references to a removed habit category and two malformed empty habit documents. The client now shows missing-reference fallbacks and filters malformed habits, but no migration or deletion was performed.
+- Some legacy history activities omit type; readers require current-domain fallbacks until or unless a separately approved data migration is performed.
 
 ## P2 - maintainability and completeness
 

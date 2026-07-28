@@ -23,7 +23,9 @@ const AddEditTasksGroup = () => {
   let { taskGroupId } = useParams();
   const [addTaskGroup] = useAddTaskGroupMutation();
   const [updateTaskGroup] = useUpdateTaskGroupMutation();
-  const taskGroupDetails = useGetTaskGroupQuery(taskGroupId);
+  const taskGroupDetails = useGetTaskGroupQuery(taskGroupId, {
+    skip: !taskGroupId,
+  });
 
   useEffect(() => {
     if (taskGroupDetails) {

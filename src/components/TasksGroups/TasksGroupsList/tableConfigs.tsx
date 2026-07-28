@@ -1,26 +1,29 @@
 import { Link } from "react-router-dom";
 import routes from "config/routes";
 import { ColDef, ICellRendererParams } from "ag-grid-community";
+import { ITasksGroup } from "types/taskGroups";
 
-const tableConfigs: ColDef[] = [
+const tableConfigs: ColDef<ITasksGroup>[] = [
   {
     headerName: "Назва",
     field: "title",
-    cellRenderer: ({ data, value }: ICellRendererParams) => (
-      <Link to={`${routes.taskGroups.edit}/${data.id}`}>{value}</Link>
-    ),
+    cellRenderer: ({ data, value }: ICellRendererParams<ITasksGroup>) =>
+      data && <Link to={`${routes.taskGroups.edit}/${data.id}`}>{value}</Link>,
   },
   {
     headerName: "Опис",
     field: "description",
-    minWidth: 500,
+    flex: 1,
   },
   {
-    headerName: "Кількість",
-    field: "tasksStore",
-    cellRenderer: ({ value }: ICellRendererParams) =>
-      value && value[0] && value.length,
-    minWidth: 500,
+    headerName: "Завдань у сховищі",
+    valueGetter: ({ data }) => data?.tasksStore?.length || 0,
+    flex: 1,
+  },
+  {
+    headerName: "Етапів",
+    valueGetter: ({ data }) => data?.tasksStages?.length || 0,
+    flex: 1,
   },
 ];
 

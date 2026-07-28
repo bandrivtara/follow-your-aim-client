@@ -1,19 +1,20 @@
 import { Link } from "react-router-dom";
 import routes from "config/routes";
 import { ColDef, ICellRendererParams } from "ag-grid-community";
-import HabitCategoryCellRenderer from "./CellRenderer/HabitCategoryCellRenderer";
-import { IHabitsCategory } from "types/habitsCategories.types";
+import { IHabitsCategoryData } from "types/habitsCategories.types";
 import { IHabitData } from "types/habits.types";
+import { ISphereData } from "types/spheres.types";
+import { getRelationTitle } from "share/functions/getRelationshipUpdates";
 
 const getColDefs = (
-  habitsCategories: IHabitsCategory[]
+  habitsCategories: IHabitsCategoryData[],
+  spheres: ISphereData[],
 ): ColDef<IHabitData>[] => [
   {
     headerName: "Назва",
     field: "title",
-    cellRenderer: ({ data, value }: ICellRendererParams) => (
-      <Link to={`${routes.habit.edit}/${data.id}`}>{value}</Link>
-    ),
+    cellRenderer: ({ data, value }: ICellRendererParams<IHabitData>) =>
+      data && <Link to={`${routes.habit.edit}/${data.id}`}>{value}</Link>,
   },
   {
     headerName: "Опис",
@@ -22,23 +23,38 @@ const getColDefs = (
   },
   {
     headerName: "Категорія",
-    field: "category",
-    cellRenderer: HabitCategoryCellRenderer,
-    cellRendererParams: {
-      habitsCategories,
-    },
+    valueGetter: ({ data }) =>
+      getRelationTitle(
+        data?.habitsCategoryId,
+        habitsCategories,
+        "Без категорії",
+      ),
+    flex: 1,
+  },
+  {
+    headerName: "Сфера життя",
+    valueGetter: ({ data }) =>
+      getRelationTitle(data?.sphereId, spheres, "Без сфери"),
     flex: 1,
   },
   {
     headerName: "Тип звички",
     field: "valueType",
+    valueFormatter: ({ value }) =>
+      value === "measures" ? "Вимірювана" : "Так / ні",
     flex: 1,
   },
   {
     headerName: "Запланований час",
     field: "scheduleTime",
     flex: 1,
-    cellRenderer: ({ value }: any) => value && `${value[0]}:${value[1]}`,
+    valueFormatter: ({ value }) =>
+      Array.isArray(value) && value.length >= 2
+        ? `${String(value[0]).padStart(2, "0")}:${String(value[1]).padStart(
+            2,
+            "0",
+          )}`
+        : "—",
   },
 ];
 

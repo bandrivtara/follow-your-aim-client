@@ -4,6 +4,10 @@ import AimCellRenderer from "./AimCellRenderer/AimCellRenderer";
 import { IAimData } from "types/aims.types";
 import { ITasksGroup } from "types/taskGroups";
 import AimCellEditor from "./AimCellEditor/AimCellEditor";
+import { IAimsCategoryData } from "types/aimsCategories.types";
+import { ISphereData } from "types/spheres.types";
+import { getRelationTitle } from "share/functions/getRelationshipUpdates";
+import { isAimInRange } from "./aimCalendarCalculations";
 
 const getColumnDefs = (monthsDates: (Dayjs | null)[]): ColDef[] => {
   if (!monthsDates[0] || !monthsDates[1]) return [{}];
@@ -44,52 +48,66 @@ const getColumnDefs = (monthsDates: (Dayjs | null)[]): ColDef[] => {
     cellRenderer: AimCellRenderer,
   }));
 
-  const aimNamesCol: ColDef = {
-    field: "aim-names-col",
-    headerName: "Сфери життя",
+  const aimCategoryCol: ColDef = {
+    field: "aim-category-col",
+    headerName: "Категорія цілі",
     pinned: "left",
     width: 220,
   };
 
-  return [aimNamesCol, ...newColDefs];
+  const sphereCol: ColDef = {
+    field: "sphere-col",
+    headerName: "Сфера життя",
+    pinned: "left",
+    width: 180,
+  };
+
+  return [aimCategoryCol, sphereCol, ...newColDefs];
 };
 
 const getRows = (
   allAims: IAimData[] | undefined,
   taskGroupsData: ITasksGroup[] | undefined,
+  monthsDates: (Dayjs | null)[],
+  aimCategories: IAimsCategoryData[] = [],
+  spheres: ISphereData[] = [],
 ) => {
   if (!allAims) return [];
-  const rows: any = [];
+  const [rangeFrom, rangeTo] = monthsDates;
+  if (!rangeFrom || !rangeTo) return [];
 
-  allAims.forEach((aim) => {
-    const monthDiff =
-      dayjs(aim.dateTo).month() - dayjs(aim.dateFrom).month() + 1;
-    const yearDiff = dayjs(aim.dateTo).year() - dayjs(aim.dateFrom).year();
-    const difference = monthDiff + yearDiff * 12;
+  return allAims
+    .filter((aim) => isAimInRange(aim, monthsDates))
+    .map((aim) => {
+      const aimDateFrom = dayjs(aim.dateFrom);
+      const aimDateTo = dayjs(aim.dateTo);
+      const calendarDateFrom = aimDateFrom.isBefore(rangeFrom.startOf("month"))
+        ? rangeFrom.startOf("month")
+        : aimDateFrom;
+      const calendarDateTo = aimDateTo.isAfter(rangeTo.endOf("month"))
+        ? rangeTo.endOf("month")
+        : aimDateTo;
+      const monthDiff = calendarDateTo.month() - calendarDateFrom.month() + 1;
+      const yearDiff = calendarDateTo.year() - calendarDateFrom.year();
+      const difference = monthDiff + yearDiff * 12;
 
-    const row = {
-      [`col-${dayjs(aim.dateFrom).year()}-${dayjs(aim.dateFrom).month()}`]:
-        aim.title,
-      "aim-names-col": aim.aimsCategoryId,
-      colName: `col-${dayjs(aim.dateFrom).year()}-${dayjs(
-        aim.dateFrom
-      ).month()}`,
-      differenceMonths: difference,
-      taskGroupsData,
-      ...aim,
-    };
-
-    if (
-      rows[0] &&
-      rows.some((row: any) => row["aim-names-col"] === aim.aimsCategoryId)
-    ) {
-      delete row["aim-names-col"];
-    }
-
-    rows.push(row);
-  });
-
-  return [...rows];
+      return {
+        ...aim,
+        [`col-${calendarDateFrom.year()}-${calendarDateFrom.month()}`]:
+          aim.title,
+        "aim-category-col": getRelationTitle(
+          aim.aimsCategoryId,
+          aimCategories,
+          "Без категорії",
+        ),
+        "sphere-col": getRelationTitle(aim.sphereId, spheres, "Без сфери"),
+        colName: `col-${calendarDateFrom.year()}-${calendarDateFrom.month()}`,
+        differenceMonths: difference,
+        calendarDateFrom: calendarDateFrom.format("YYYY/MM/DD"),
+        calendarDateTo: calendarDateTo.format("YYYY/MM/DD"),
+        taskGroupsData,
+      };
+    });
 };
 
 const tableConfigs = {

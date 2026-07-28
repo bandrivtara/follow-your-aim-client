@@ -25,7 +25,6 @@ import { useGetHistoryBetweenDatesQuery } from "store/services/history";
 import { useGetHabitListQuery } from "store/services/habits";
 
 const PREFIX = "Scheduler";
-// #FOLD_BLOCK
 export const classes = {
   container: `${PREFIX}-container`,
   text: `${PREFIX}-text`,
@@ -47,54 +46,46 @@ const Scheduler = () => {
     useState(false);
 
   useEffect(() => {
-    const getHistoryData = async () => {
-      if (!history.data || !habits.data) return;
-      const newAppointments = [];
+    if (!history.data || !habits.data) return;
+    const newAppointments = [];
 
-      history.data.forEach((monthData) => {
-        for (const [day, dayData] of Object.entries(monthData)) {
-          for (const [activityId, activityValue] of Object.entries(dayData)) {
-            if (
-              activityValue.type === "habit" &&
-              !activityValue.isAllDay &&
-              activityValue.startTime
-            ) {
-              const currentHabit = habits.data?.find(
-                (habit) => habit.id === activityId
-              );
+    history.data.forEach((monthData) => {
+      for (const [day, dayData] of Object.entries(monthData)) {
+        if (!dayData || typeof dayData !== "object") continue;
 
-              const parsedDate = dayjs.unix(monthData.unix);
-              const year = parsedDate.year();
-              const month = parsedDate.month(); // Adding 1 because months are zero-based
-              const appointment = {
-                title: currentHabit.title,
-                startDate: new Date(
-                  year,
-                  month,
-                  day,
-                  activityValue.startTime[0],
-                  activityValue.startTime[1]
-                ),
-                endDate: new Date(
-                  year,
-                  month,
-                  day,
-                  activityValue.endTime[0],
-                  activityValue.endTime[1]
-                ),
-                id: day + activityId,
-              };
-              newAppointments.push(appointment);
-            }
-          }
+        for (const [activityId, activityValue] of Object.entries(dayData)) {
+          const currentHabit = habits.data.find(
+            (habit) => habit.id === activityId,
+          );
+          if (!currentHabit) continue;
+
+          const isAllDay =
+            activityValue.isAllDay ?? currentHabit.isAllDay ?? false;
+          const startTime = activityValue.startTime || currentHabit.startTime;
+          const endTime = activityValue.endTime || currentHabit.endTime;
+          if (isAllDay || !startTime || !endTime) continue;
+
+          const parsedDate = dayjs.unix(monthData.unix);
+          const year = parsedDate.year();
+          const month = parsedDate.month();
+          newAppointments.push({
+            title: currentHabit.title,
+            startDate: new Date(
+              year,
+              month,
+              +day,
+              +startTime[0],
+              +startTime[1],
+            ),
+            endDate: new Date(year, month, +day, +endTime[0], +endTime[1]),
+            id: `${monthData.unix}-${day}-${activityId}`,
+          });
         }
-      });
+      }
+    });
 
-      setData(newAppointments);
-    };
-
-    getHistoryData();
-  }, [habits.data, history]);
+    setData(newAppointments);
+  }, [habits.data, history.data]);
 
   const onCommitChanges = useCallback(
     ({ added, changed, deleted }: ChangeSet) => {
@@ -108,8 +99,8 @@ const Scheduler = () => {
           data.map((appointment) =>
             changed[appointment.id]
               ? { ...appointment, ...changed[appointment.id] }
-              : appointment
-          )
+              : appointment,
+          ),
         );
       }
       if (deleted !== undefined) {
@@ -117,7 +108,7 @@ const Scheduler = () => {
       }
       setIsAppointmentBeingCreated(false);
     },
-    [setData, setIsAppointmentBeingCreated, data]
+    [data],
   );
 
   const onAddedAppointmentChange = useCallback((appointment: object) => {
@@ -130,9 +121,6 @@ const Scheduler = () => {
   ));
 
   const CommandButton = useCallback(({ id, ...restProps }: any) => {
-    if (id === "deleteButton") {
-      return <AppointmentForm.CommandButton id={id} {...restProps} />;
-    }
     return <AppointmentForm.CommandButton id={id} {...restProps} />;
   }, []);
 
@@ -145,7 +133,7 @@ const Scheduler = () => {
       <ReactScheduler
         data={data}
         height={600}
-        locale={"ua-Uk"}
+        locale="uk-UA"
         firstDayOfWeek={1}
       >
         <ViewState onCurrentDateChange={onCurrentDateChange} />

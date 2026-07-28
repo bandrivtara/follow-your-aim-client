@@ -3,8 +3,8 @@ export interface IAimsCategoryData extends IAimsCategory {
 }
 
 export interface IAimsCategory {
-  id: string;
+  id?: string;
   title: string;
   description: string;
-  relatedAims: string[];
+  relatedAims?: string[];
 }

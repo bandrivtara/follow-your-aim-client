@@ -3,8 +3,8 @@ export interface IHabitsCategoryData extends IHabitsCategory {
 }
 
 export interface IHabitsCategory {
-  id: string;
+  id?: string;
   title: string;
   description: string;
-  relatedHabits: string[];
+  relatedHabits?: string[];
 }

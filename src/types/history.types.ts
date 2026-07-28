@@ -31,6 +31,7 @@ export interface ITasksHistoryData {
   type: string;
   valueType: string;
   tasks: ITask[];
+  progress: number;
   tasksStore?: ITask[];
 }
 

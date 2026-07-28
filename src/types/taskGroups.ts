@@ -6,8 +6,9 @@ export interface ITasksGroup {
   description: string;
   isHidden?: boolean;
   category?: string;
-  tasksStore: ITask[];
-  tasksStages: ITaskStage[];
+  isDividedIntoStages?: boolean;
+  tasksStore?: ITask[];
+  tasksStages?: ITaskStage[];
 }
 
 export interface ITaskStage {
@@ -21,9 +22,11 @@ export interface ITaskStage {
 export type ITaskStatus = "pending" | "failed" | "done";
 
 export interface ITask {
+  id?: string;
   title: string;
   description?: string;
+  link?: string;
   status: ITaskStatus;
-  time: number[];
-  isEditOn: boolean;
+  time: Array<number | string>;
+  isEditOn?: boolean;
 }

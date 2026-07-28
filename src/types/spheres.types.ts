@@ -3,9 +3,9 @@ export interface ISphereData extends ISphere {
 }
 
 export interface ISphere {
-  id: string;
+  id?: string;
   title: string;
   description: string;
-  relatedHabits: string[];
-  relatedAims: string[];
+  relatedHabits?: string[];
+  relatedAims?: string[];
 }

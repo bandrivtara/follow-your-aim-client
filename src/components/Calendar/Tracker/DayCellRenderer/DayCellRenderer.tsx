@@ -2,17 +2,17 @@
 
 import { ICellRendererParams } from "ag-grid-community";
 import StyledDayCellRenderer from "./DayCellRenderer.styled";
-import { IDayData, cellConfigs } from "../cellConfigs";
+import { cellConfigs } from "../cellConfigs";
 
-const DayCellRenderer = ({ value, data }: ICellRendererParams<IDayData>) => {
-  const activityType = value?.type;
-  const activityValueType = value?.valueType;
-
+const DayCellRenderer = ({ value, data }: ICellRendererParams) => {
+  const activityType = value?.type || data?.details?.type;
+  const activityValueType = value?.valueType || data?.details?.valueType;
+  const rendererConfig =
+    activityType && activityValueType
+      ? cellConfigs[activityType]?.[activityValueType]
+      : undefined;
   const currentCellRendererData =
-    value &&
-    data &&
-    activityType &&
-    cellConfigs[activityType][activityValueType]?.cellRenderer(value, data);
+    value && data && rendererConfig?.cellRenderer(value, data);
 
   const getProgressColor = () => {
     if (!currentCellRendererData) return "transparent";
@@ -23,9 +23,8 @@ const DayCellRenderer = ({ value, data }: ICellRendererParams<IDayData>) => {
       return "#fffb8f";
     } else if (progress > 0) {
       return "#ff9c6e";
-    } else {
-      return "transparent";
     }
+    return "transparent";
   };
 
   return (
