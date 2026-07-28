@@ -1,6 +1,10 @@
 import styled from "@emotion/styled";
 
 const StyledHabitsCalendar = styled.div`
+  & * {
+    color: #403023 !important;
+  }
+
   .fyi-ag-theme {
     height: calc(100vh - 200px);
     box-sizing: border-box;

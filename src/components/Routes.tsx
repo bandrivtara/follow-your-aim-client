@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Routes, Route, HashRouter } from "react-router-dom";
 import routes from "../config/routes";
 import AppLayout from "./Layout/AppLayout";
 import Main from "./Main/Main";
@@ -25,7 +25,7 @@ import WordsTest from "./English/Tests/WordsTest";
 
 const AppRoutes = () => {
   return (
-    <Router>
+    <HashRouter>
       <AppLayout>
         <Routes>
           <Route path={routes.main} element={<Main />} />
@@ -110,7 +110,7 @@ const AppRoutes = () => {
           <Route path={routes.english.tests.words} element={<WordsTest />} />
         </Routes>
       </AppLayout>
-    </Router>
+    </HashRouter>
   );
 };
 

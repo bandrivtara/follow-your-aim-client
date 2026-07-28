@@ -33,7 +33,7 @@ const routes = {
     path: "/aims",
     list: "/aims/list",
     add: "/aims/add",
-    edit: "aims/edit",
+    edit: "/aims/edit",
     statistic: "/aims/statistic",
     categories: {
       path: "/aims/categories",
@@ -66,7 +66,7 @@ const routes = {
         statistic: "/english/vocabulary/words/statistic",
       },
     },
-    tests: { words: "english/tests/words" },
+    tests: { words: "/english/tests/words" },
   },
 };
 
