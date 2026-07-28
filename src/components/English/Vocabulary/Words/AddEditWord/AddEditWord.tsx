@@ -1,5 +1,5 @@
 import { Form, Input, Button, Select } from "antd";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useGetWordQuery, useUpdateWordMutation } from "store/services/english";
 import TextArea from "antd/es/input/TextArea";
 import { IGroupData, IWord } from "types/english.types";
@@ -17,7 +17,6 @@ const formInitialValues: IWord = {
 };
 
 const AddEditWord = () => {
-  const navigate = useNavigate();
   const [form] = Form.useForm();
   let { wordId } = useParams();
   const [updateWord] = useUpdateWordMutation();

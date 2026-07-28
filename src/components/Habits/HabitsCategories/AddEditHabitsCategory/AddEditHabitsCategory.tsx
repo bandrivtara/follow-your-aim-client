@@ -1,5 +1,5 @@
 import { Form, Input, Button, Transfer } from "antd";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import {
   useGetHabitsCategoryQuery,
   useUpdateHabitsCategoryMutation,
@@ -22,7 +22,6 @@ const formInitialValues = {
 
 const AddEditHabitsCategory = () => {
   const [form] = Form.useForm();
-  const navigate = useNavigate();
   let { habitsCategoryId } = useParams();
   const [updateHabitsCategory] = useUpdateHabitsCategoryMutation();
   const [updateHabit] = useUpdateHabitMutation();

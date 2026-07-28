@@ -14,7 +14,6 @@ import { Gauge } from "@mui/x-charts/Gauge";
 import { useGetHabitQuery } from "store/services/habits";
 import habitsConfig from "config/habitsIds.json";
 import dayjs from "dayjs";
-import _ from "lodash";
 import {
   useGetHistoryQuery,
   useUpdateHistoryMutation,

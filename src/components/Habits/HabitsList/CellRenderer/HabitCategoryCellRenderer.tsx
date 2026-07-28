@@ -1,6 +1,5 @@
 import { ICellRendererParams } from "ag-grid-community";
 import { useEffect, useState } from "react";
-import { IAim } from "types/aims.types";
 import { IHabitData } from "types/habits.types";
 import { IHabitsCategory } from "types/habitsCategories.types";
 

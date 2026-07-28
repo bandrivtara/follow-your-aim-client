@@ -19,11 +19,8 @@ import {
   TodayButton,
   AllDayPanel,
 } from "@devexpress/dx-react-scheduler-material-ui";
-import { appointments } from "./appointments";
 import { memo, useCallback, useEffect, useState } from "react";
 import dayjs, { Dayjs } from "dayjs";
-import { db } from "store/api";
-import { doc, getDoc } from "firebase/firestore";
 import { useGetHistoryBetweenDatesQuery } from "store/services/history";
 import { useGetHabitListQuery } from "store/services/habits";
 

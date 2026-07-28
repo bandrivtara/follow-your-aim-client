@@ -1,5 +1,5 @@
 import { Form, Input, Button, Transfer } from "antd";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import {
   useGetAimsCategoryQuery,
   useUpdateAimsCategoryMutation,
@@ -18,7 +18,6 @@ const formInitialValues = {
 
 const AddEditAimsCategory = () => {
   const [form] = Form.useForm();
-  const navigate = useNavigate();
   let { aimsCategoryId } = useParams();
   const [updateAimsCategory] = useUpdateAimsCategoryMutation();
   const [updateAim] = useUpdateAimMutation();

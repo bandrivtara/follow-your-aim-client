@@ -1,22 +1,12 @@
 // @ts-nocheck
 
 import {
-  collection,
   doc,
-  getDocs,
-  addDoc,
   getDoc,
   setDoc,
   updateDoc,
-  query,
-  where,
 } from "firebase/firestore";
-import {
-  IGroup,
-  IGroupData,
-  IWord,
-  IWordData,
-} from "../../types/english.types";
+import { IGroupData, IWordData } from "../../types/english.types";
 import { api, db } from "../api";
 
 export const groupsFirestoreApi = api.injectEndpoints({

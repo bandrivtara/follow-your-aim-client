@@ -38,7 +38,7 @@ interface IProps {
 interface IFormValues {}
 
 const Boolean = ({ colDef, stopEditing, data }: IProps) => {
-  const { control, handleSubmit, setValue, getValues } = useForm();
+  const { control, handleSubmit, setValue } = useForm();
   const [updateHistory] = useUpdateHistoryMutation();
   const [initValues, setInitValues] = useState<IActivityHistoryData | null>(
     null

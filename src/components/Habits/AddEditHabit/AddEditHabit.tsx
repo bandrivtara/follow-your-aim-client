@@ -31,7 +31,6 @@ import { getTimeOptions } from "share/functions/getTimeOptions";
 import { useWatch } from "antd/es/form/Form";
 import StyledAddEditHabit from "./AddEditHabit.styled";
 import { useGetHabitsCategoriesListQuery } from "store/services/habitsCategories";
-import _ from "lodash";
 import { useGetSpheresListQuery } from "store/services/spheres";
 
 const formInitialValues = {

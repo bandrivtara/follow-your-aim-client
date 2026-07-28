@@ -4,7 +4,7 @@ import { CellClickedEvent } from "ag-grid-community";
 import { IHabitData } from "types/habits.types";
 import { cellConfigs } from "../cellConfigs";
 import { ReactNode, useEffect, useState } from "react";
-import { Box, CardContent, Grid, IconButton, Typography } from "@mui/material";
+import { Box, CardContent, IconButton, Typography } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 
 export interface IDayCellEditor {

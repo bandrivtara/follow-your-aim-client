@@ -1,12 +1,10 @@
 import { Form, Input, Button, Transfer } from "antd";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import {
-  useAddSphereMutation,
   useGetSphereQuery,
   useUpdateSphereMutation,
 } from "store/services/spheres";
 import { ISphere } from "types/spheres.types";
-import routes from "config/routes";
 import TextArea from "antd/es/input/TextArea";
 import { useEffect, useState } from "react";
 import {
@@ -25,7 +23,6 @@ const formInitialValues = {
 
 const AddEditSphere = () => {
   const [form] = Form.useForm();
-  const navigate = useNavigate();
   let { sphereId } = useParams();
 
   const [updateSphere] = useUpdateSphereMutation();
