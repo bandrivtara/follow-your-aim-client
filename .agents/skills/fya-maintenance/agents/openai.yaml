@@ -1,0 +1,4 @@
+interface:
+  display_name: "Follow Your Aim Maintenance"
+  short_description: "Safely audit and maintain Follow Your Aim"
+  default_prompt: "Use $fya-maintenance to inspect and improve this Follow Your Aim module safely."
