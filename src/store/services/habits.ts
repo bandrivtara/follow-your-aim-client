@@ -8,6 +8,7 @@ import {
 } from "firebase/firestore";
 import { IHabitData } from "../../types/habits.types";
 import { api, db } from "../api";
+import { isHabitData } from "share/functions/domainData";
 
 export const habitFirestoreApi = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -17,11 +18,14 @@ export const habitFirestoreApi = api.injectEndpoints({
           const ref = collection(db, "habit");
           const querySnapshot = await getDocs(ref);
           let habitList: IHabitData[] = [];
-          querySnapshot?.forEach((doc) => {
+          querySnapshot?.forEach((habitDocument) => {
+            const habitData = habitDocument.data();
+            if (!isHabitData(habitData)) return;
+
             habitList.push({
-              id: doc.id,
-              ...doc.data(),
-            } as IHabitData);
+              id: habitDocument.id,
+              ...habitData,
+            });
           });
 
           return { data: habitList };

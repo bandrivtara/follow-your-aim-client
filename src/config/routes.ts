@@ -9,19 +9,23 @@ const routes = {
     tracker: "/calendar/tracker",
     aims: "/calendar/aims",
   },
+  review: {
+    daily: "/review/daily",
+    weekly: "/review/weekly",
+    codex: "/review/codex",
+  },
+  career: "/career",
   taskGroups: {
     path: "/task-groups",
     list: "/task-groups/list",
     add: "/task-groups/add",
     edit: "/task-groups/edit",
-    statistic: "/task-groups/statistic",
   },
   habit: {
     path: "/habit",
     list: "/habit/list",
     add: "/habit/add",
     edit: "/habit/edit",
-    statistic: "/habit/statistic",
     categories: {
       path: "/habit/categories",
       list: "/habit/categories/list",
@@ -33,8 +37,7 @@ const routes = {
     path: "/aims",
     list: "/aims/list",
     add: "/aims/add",
-    edit: "aims/edit",
-    statistic: "/aims/statistic",
+    edit: "/aims/edit",
     categories: {
       path: "/aims/categories",
       list: "/aims/categories/list",
@@ -47,7 +50,6 @@ const routes = {
     list: "/spheres/list",
     add: "/spheres/add",
     edit: "/spheres/edit",
-    statistic: "/spheres/statistic",
   },
   english: {
     vocabulary: {
@@ -56,17 +58,15 @@ const routes = {
         list: "/english/vocabulary/groups/list",
         add: "/english/vocabulary/groups/add",
         edit: "/english/vocabulary/groups/edit",
-        statistic: "/english/vocabulary/groups/statistic",
       },
       word: {
         path: "/english/vocabulary/words",
         list: "/english/vocabulary/words/list",
         add: "/english/vocabulary/words/add",
         edit: "/english/vocabulary/words/edit",
-        statistic: "/english/vocabulary/words/statistic",
       },
     },
-    tests: { words: "english/tests/words" },
+    tests: { words: "/english/tests/words" },
   },
 };
 

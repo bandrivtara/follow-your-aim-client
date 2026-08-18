@@ -12,15 +12,13 @@ import {
   Button,
   Cascader,
   Col,
-  Collapse,
-  Divider,
   Form,
   Input,
   Radio,
   Row,
   Space,
 } from "antd";
-import { Fragment, useCallback, useState } from "react";
+import { useCallback, useState } from "react";
 import { ITask } from "types/taskGroups";
 import { FormInstance, useWatch } from "antd/es/form/Form";
 import { getTimeOptions } from "share/functions/getTimeOptions";
@@ -84,19 +82,12 @@ const TasksGroupStore = ({ dayForm, form }: IProps) => {
           prevValues !== currentValues
         }
       >
-        <div
-          style={{
-            maxHeight: "400px",
-            overflowY: "auto",
-            overflowX: "hidden",
-            paddingLeft: "4px",
-          }}
-        >
+        <div className="tasks-scroll">
           <Form.List name="tasksStore">
             {(fields, { add, remove }) => (
               <>
                 {fields.map((task, index) => (
-                  <Fragment key={task.key}>
+                  <div className="task-item" key={task.key}>
                     <Row gutter={8} justify="space-between">
                       <Col md={24} xs={24}>
                         <Form.Item
@@ -193,11 +184,12 @@ const TasksGroupStore = ({ dayForm, form }: IProps) => {
                         </Form.Item>
                       </Col>
                     </Row>
-                    <Divider style={{ margin: "12px 0" }} />
-                  </Fragment>
+                  </div>
                 ))}
                 <Form.Item className="add-btn">
-                  <Button onClick={() => add()}>Додати завдання</Button>
+                  <Button type="dashed" block onClick={() => add()}>
+                    Додати завдання
+                  </Button>
                 </Form.Item>
               </>
             )}

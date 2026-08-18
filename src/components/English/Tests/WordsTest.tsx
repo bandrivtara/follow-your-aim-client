@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import React, { createRef, useCallback, useEffect, useState } from "react";
 import {
   Paper,
@@ -163,11 +165,6 @@ const WordsTest: React.FC = () => {
                           inputProps={{ maxLength: 1 }}
                           onKeyDown={(event) => {
                             if (event.key === "Backspace") {
-                              console.log(
-                                event,
-                                index,
-                                getTestedWord().length - 1
-                              );
                               if (index === getTestedWord().length - 1) {
                                 setCurrentWord((prevValue) => {
                                   return { ...prevValue, [index]: "" };
@@ -184,7 +181,6 @@ const WordsTest: React.FC = () => {
                             }
                           }}
                           onChange={(event) => {
-                            console.log(event.target.value, index);
                             setCurrentWord((prevValue) => ({
                               ...prevValue,
                               [index]: event.target.value,

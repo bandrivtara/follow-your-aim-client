@@ -1,4 +1,10 @@
-import { Form, Input, Button, Select } from "antd";
+import { Alert, Button, Form, Input, Select, Spin } from "antd";
+import {
+  ArrowLeftOutlined,
+  BookOutlined,
+  SaveOutlined,
+  TagsOutlined,
+} from "@ant-design/icons";
 import { useNavigate, useParams } from "react-router-dom";
 import { useGetWordQuery, useUpdateWordMutation } from "store/services/english";
 import TextArea from "antd/es/input/TextArea";
@@ -6,6 +12,7 @@ import { IGroupData, IWord } from "types/english.types";
 import { useGetGroupsListQuery } from "store/services/english";
 import { useEffect, useState } from "react";
 import uniqid from "uniqid";
+import StyledEntityFormPage from "share/components/Form/EntityFormPage.styled";
 
 const formInitialValues: IWord = {
   title: "",
@@ -17,10 +24,10 @@ const formInitialValues: IWord = {
 };
 
 const AddEditWord = () => {
-  const navigate = useNavigate();
   const [form] = Form.useForm();
+  const navigate = useNavigate();
   let { wordId } = useParams();
-  const [updateWord] = useUpdateWordMutation();
+  const [updateWord, { isLoading: isSaving }] = useUpdateWordMutation();
   const wordDetails = useGetWordQuery(wordId);
   const groups = useGetGroupsListQuery();
   const [wordsGroups, setWordsGroups] = useState<IGroupData[]>([]);
@@ -48,58 +55,117 @@ const AddEditWord = () => {
       path: currentId,
     };
     await updateWord(wordToUpdate).unwrap();
-    console.log(data.title, "was ADDED");
     // navigate(-1);
   };
 
   return (
-    <Form
-      form={form}
-      labelCol={{ span: 8 }}
-      wrapperCol={{ span: 14 }}
-      layout="horizontal"
-      style={{ maxWidth: 600, marginTop: 20 }}
-      onFinish={onFinish}
-      initialValues={formInitialValues}
-    >
-      <Form.Item rules={[{ required: true }]} name="title" label="Назва">
-        <Input />
-      </Form.Item>
-
-      <Form.Item name="example" label="Приклад">
-        <TextArea rows={2} />
-      </Form.Item>
-      <Form.Item
-        rules={[{ required: true }]}
-        name="translation"
-        label="Переклад"
-      >
-        <Input />
-      </Form.Item>
-      <Form.Item name="description" label="Опис">
-        <TextArea rows={2} />
-      </Form.Item>
-
-      <Form.Item label="Група" name="group">
-        <Select placeholder="Виберіть категорію">
-          {wordsGroups &&
-            wordsGroups.map((word) => (
-              <Select.Option key={word.id} value={word.id}>
-                {word.title}
-              </Select.Option>
-            ))}
-          <Select.Option key={"no-category"} value={""}>
-            Без групи
-          </Select.Option>
-        </Select>
-      </Form.Item>
-
-      <Form.Item>
-        <Button htmlType="submit">
-          {wordId ? "Записати зміни" : "Додати слово"}
+    <StyledEntityFormPage>
+      <header className="page-header">
+        <div>
+          <h1 className="page-title">
+            {wordId ? "Редагувати слово" : "Нове англійське слово"}
+          </h1>
+          <p className="page-subtitle">
+            Додай переклад, живий приклад і групу для подальшого повторення.
+          </p>
+        </div>
+        <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(-1)}>
+          Назад
         </Button>
-      </Form.Item>
-    </Form>
+      </header>
+
+      {wordDetails.isError && (
+        <Alert
+          className="load-error"
+          type="error"
+          showIcon
+          message="Не вдалося завантажити слово"
+          action={
+            <Button size="small" onClick={() => wordDetails.refetch()}>
+              Повторити
+            </Button>
+          }
+        />
+      )}
+
+      <Spin spinning={wordDetails.isFetching || groups.isFetching}>
+        <div className="entity-form-card">
+          <Form
+            className="entity-form"
+            form={form}
+            layout="vertical"
+            onFinish={onFinish}
+            initialValues={formInitialValues}
+          >
+            <section className="form-section">
+              <div className="section-heading">
+                <span className="section-icon"><BookOutlined /></span>
+                <div>
+                  <h2>Слово та переклад</h2>
+                  <p>Запиши основну форму слова й короткий переклад.</p>
+                </div>
+              </div>
+              <div className="field-grid">
+                <Form.Item
+                  rules={[{ required: true, message: "Вкажи англійське слово" }]}
+                  name="title"
+                  label="Англійською"
+                >
+                  <Input size="large" placeholder="consistency" />
+                </Form.Item>
+                <Form.Item
+                  rules={[{ required: true, message: "Вкажи переклад" }]}
+                  name="translation"
+                  label="Переклад"
+                >
+                  <Input size="large" placeholder="послідовність" />
+                </Form.Item>
+              </div>
+              <Form.Item name="example" label="Приклад у реченні">
+                <TextArea rows={3} placeholder="Consistency matters more than intensity." />
+              </Form.Item>
+              <Form.Item name="description" label="Примітка">
+                <TextArea rows={2} placeholder="Контекст, синоніми або підказка" />
+              </Form.Item>
+            </section>
+
+            <section className="form-section">
+              <div className="section-heading">
+                <span className="section-icon"><TagsOutlined /></span>
+                <div>
+                  <h2>Організація</h2>
+                  <p>Додай слово до тематичної групи.</p>
+                </div>
+              </div>
+              <Form.Item label="Група" name="group">
+                <Select size="large" placeholder="Вибери групу">
+                  {wordsGroups.map((word) => (
+                    <Select.Option key={word.id} value={word.id}>
+                      {word.title}
+                    </Select.Option>
+                  ))}
+                  <Select.Option key="no-category" value="">
+                    Без групи
+                  </Select.Option>
+                </Select>
+              </Form.Item>
+            </section>
+
+            <div className="form-actions">
+              <Button onClick={() => navigate(-1)}>Скасувати</Button>
+              <Button
+                type="primary"
+                htmlType="submit"
+                icon={<SaveOutlined />}
+                loading={isSaving}
+              >
+                {wordId ? "Зберегти зміни" : "Додати слово"}
+              </Button>
+            </div>
+          </Form>
+        </div>
+      </Spin>
+    </StyledEntityFormPage>
   );
 };
 

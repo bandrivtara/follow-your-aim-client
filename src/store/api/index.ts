@@ -27,6 +27,7 @@ export const api = createApi({
     "HabitsCategories",
     "AimsCategories",
     "English",
+    "DailyReview",
   ],
   reducerPath: "splitApi",
   baseQuery: fakeBaseQuery(),

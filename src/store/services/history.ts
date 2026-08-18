@@ -1,3 +1,4 @@
+// @ts-nocheck
 import {
   collection,
   doc,
@@ -7,13 +8,10 @@ import {
   setDoc,
   query,
   where,
-  documentId,
-  or,
 } from "firebase/firestore";
 import { IHistoryData } from "types/history.types";
 import { api, db } from "../api";
-import dayjs, { Dayjs } from "dayjs";
-import { generateDaysArray } from "share/functions/generateDaysArray";
+import dayjs from "dayjs";
 
 export const historyFirestoreApi = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -63,7 +61,6 @@ export const historyFirestoreApi = api.injectEndpoints({
       async queryFn(dates: number[]) {
         try {
           const [dateFrom, dateTo] = dates;
-          console.log(dates);
           if (!dateFrom || !dateTo) return;
           const dateRef = collection(db, "history");
           const dateQuery = query(

@@ -2,9 +2,16 @@ import { ColDef } from "ag-grid-community";
 import dayjs, { Dayjs } from "dayjs";
 import AimCellRenderer from "./AimCellRenderer/AimCellRenderer";
 import { IAimData } from "types/aims.types";
+import { ITasksGroup } from "types/taskGroups";
 import AimCellEditor from "./AimCellEditor/AimCellEditor";
+import { IAimsCategoryData } from "types/aimsCategories.types";
+import { getRelationTitle } from "share/functions/getRelationshipUpdates";
+import { isAimInRange } from "./aimCalendarCalculations";
 
-const getColumnDefs = (monthsDates: (Dayjs | null)[]): ColDef[] => {
+const getColumnDefs = (
+  monthsDates: (Dayjs | null)[],
+  isMobile = false,
+): ColDef[] => {
   if (!monthsDates[0] || !monthsDates[1]) return [{}];
   const monthDiff = monthsDates[1].month() - monthsDates[0].month();
   const yearDiff = monthsDates[1].year() - monthsDates[0].year();
@@ -16,6 +23,7 @@ const getColumnDefs = (monthsDates: (Dayjs | null)[]): ColDef[] => {
     const startMonth = monthsDates[0].month();
     months.push({
       name: dayjs(monthsDates[0])
+        .locale("uk")
         .month(startMonth + i)
         .format("MMMM"),
       monthIndex: dayjs(monthsDates[0])
@@ -27,10 +35,15 @@ const getColumnDefs = (monthsDates: (Dayjs | null)[]): ColDef[] => {
     });
   }
 
+  const showsSeveralYears = monthsDates[0].year() !== monthsDates[1].year();
+  const monthWidth = isMobile ? 128 : 164;
+
   const newColDefs: ColDef[] = months.map((month) => ({
     field: `col-${month.year}-${month.monthIndex}`,
-    headerName: month.name,
-    width: 150,
+    headerName: showsSeveralYears ? `${month.name} ${month.year}` : month.name,
+    width: monthWidth,
+    minWidth: monthWidth,
+    cellClass: "day-cell",
     editable: ({ data }) => !data.isRelatedWithHabit,
     cellEditorPopup: true,
     cellEditor: AimCellEditor,
@@ -43,48 +56,60 @@ const getColumnDefs = (monthsDates: (Dayjs | null)[]): ColDef[] => {
     cellRenderer: AimCellRenderer,
   }));
 
-  const aimNamesCol: ColDef = {
-    field: "aim-names-col",
-    headerName: "Сфери життя",
+  const aimCategoryCol: ColDef = {
+    field: "aim-category-col",
+    headerName: "Категорія цілі",
     pinned: "left",
-    width: 220,
+    width: isMobile ? 150 : 220,
+    minWidth: isMobile ? 150 : 220,
+    cellClass: "aim-category-cell",
+    tooltipField: "aim-category-col",
   };
 
-  return [aimNamesCol, ...newColDefs];
+  return [aimCategoryCol, ...newColDefs];
 };
 
-const getRows = (allAims: IAimData[] | undefined) => {
+const getRows = (
+  allAims: IAimData[] | undefined,
+  taskGroupsData: ITasksGroup[] | undefined,
+  monthsDates: (Dayjs | null)[],
+  aimCategories: IAimsCategoryData[] = [],
+) => {
   if (!allAims) return [];
-  const rows: any = [];
+  const [rangeFrom, rangeTo] = monthsDates;
+  if (!rangeFrom || !rangeTo) return [];
 
-  allAims.forEach((aim) => {
-    const monthDiff =
-      dayjs(aim.dateTo).month() - dayjs(aim.dateFrom).month() + 1;
-    const yearDiff = dayjs(aim.dateTo).year() - dayjs(aim.dateFrom).year();
-    const difference = monthDiff + yearDiff * 12;
+  return allAims
+    .filter((aim) => !aim.isArchived && isAimInRange(aim, monthsDates))
+    .map((aim) => {
+      const aimDateFrom = dayjs(aim.dateFrom);
+      const aimDateTo = dayjs(aim.dateTo);
+      const calendarDateFrom = aimDateFrom.isBefore(rangeFrom.startOf("month"))
+        ? rangeFrom.startOf("month")
+        : aimDateFrom;
+      const calendarDateTo = aimDateTo.isAfter(rangeTo.endOf("month"))
+        ? rangeTo.endOf("month")
+        : aimDateTo;
+      const monthDiff = calendarDateTo.month() - calendarDateFrom.month() + 1;
+      const yearDiff = calendarDateTo.year() - calendarDateFrom.year();
+      const difference = monthDiff + yearDiff * 12;
 
-    const row = {
-      [`col-${dayjs(aim.dateFrom).year()}-${dayjs(aim.dateFrom).month()}`]:
-        aim.title,
-      "aim-names-col": aim.aimsCategoryId,
-      colName: `col-${dayjs(aim.dateFrom).year()}-${dayjs(
-        aim.dateFrom
-      ).month()}`,
-      differenceMonths: difference,
-      ...aim,
-    };
-
-    if (
-      rows[0] &&
-      rows.some((row: any) => row["aim-names-col"] === aim.aimsCategoryId)
-    ) {
-      delete row["aim-names-col"];
-    }
-
-    rows.push(row);
-  });
-
-  return [...rows];
+      return {
+        ...aim,
+        [`col-${calendarDateFrom.year()}-${calendarDateFrom.month()}`]:
+          aim.title,
+        "aim-category-col": getRelationTitle(
+          aim.aimsCategoryId,
+          aimCategories,
+          "Без категорії",
+        ),
+        colName: `col-${calendarDateFrom.year()}-${calendarDateFrom.month()}`,
+        differenceMonths: difference,
+        calendarDateFrom: calendarDateFrom.format("YYYY/MM/DD"),
+        calendarDateTo: calendarDateTo.format("YYYY/MM/DD"),
+        taskGroupsData,
+      };
+    });
 };
 
 const tableConfigs = {

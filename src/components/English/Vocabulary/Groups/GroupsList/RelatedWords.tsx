@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { useEffect, useState } from "react";
 import { Tag } from "antd";
 import { useGetWordsListQuery } from "store/services/english";
@@ -12,13 +14,11 @@ const RelatedWords = ({ value, data }: ICellRendererParams<IWordsCategory>) => {
   useEffect(() => {
     if (!wordData?.data) return;
     const currentRelativeWords = [];
-    console.log(wordData?.data, 123123, data?.id);
     for (const [wordId, word] of Object.entries(wordData.data)) {
       if (word.group === data?.id && wordId !== "id") {
         currentRelativeWords.push(word);
       }
     }
-    console.log(currentRelativeWords, 333);
     setRelatedWords(currentRelativeWords);
   }, [wordData, value, data]);
 

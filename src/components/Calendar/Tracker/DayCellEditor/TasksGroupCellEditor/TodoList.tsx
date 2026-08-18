@@ -1,168 +1,123 @@
-import { Fragment, useCallback, useEffect, useState } from "react";
-import _ from "lodash";
+import { Fragment, useEffect } from "react";
+import {
+  useForm,
+  Controller,
+  useFieldArray,
+  useWatch,
+  SubmitHandler,
+} from "react-hook-form";
 import {
   Button,
-  Cascader,
-  Col,
-  Collapse,
+  Grid,
   Divider,
-  Form,
-  Input,
-  InputNumber,
-  Radio,
-  Row,
-  Space,
-  Tabs,
-  TabsProps,
-} from "antd";
+  Box,
+  TextField,
+  ToggleButtonGroup,
+  ToggleButton,
+  ButtonGroup,
+} from "@mui/material";
 import {
-  BorderOutlined,
-  CheckSquareOutlined,
-  ClockCircleOutlined,
-  CloseSquareOutlined,
-  DeleteOutlined,
-  DownCircleOutlined,
-  LinkOutlined,
-  MoreOutlined,
-} from "@ant-design/icons";
-import { useWatch } from "antd/es/form/Form";
+  ExpandMore as ExpandMoreIcon,
+  Delete as DeleteIcon,
+  Done as DoneIcon,
+  Close as CloseIcon,
+  Pause as PauseIcon,
+} from "@mui/icons-material";
 import FormButtons from "share/components/Form/FormButtons";
 import { ColDef } from "ag-grid-community";
-import { IDayCellEditor } from "../DayCellEditor";
-import { getTimeOptions } from "share/functions/getTimeOptions";
-import { IDayData, IStopEditing } from "../../cellConfigs";
+import { IHabitDayData, IStopEditing } from "../../cellConfigs";
 import StyledTodoList from "./TodoList.styled";
 import { useUpdateHistoryMutation } from "store/services/history";
-import {
-  useGetTaskGroupQuery,
-  useUpdateTaskGroupMutation,
-} from "store/services/taskGroups";
-import TasksGroupStages from "components/TasksGroups/AddEditTasksGroup/TasksGroupStages/TasksGroupStages";
-import TasksGroupStore from "components/TasksGroups/AddEditTasksGroup/TasksGroupStore/TasksGroupStore";
+import { useGetTaskGroupQuery } from "store/services/taskGroups";
+import { TimePicker } from "@mui/x-date-pickers";
+import dayjs from "dayjs";
+import { ITasksHistoryData } from "types/history.types";
+import { ITask } from "types/taskGroups";
 
 interface IProps {
-  colDef: ColDef<IDayData>;
+  colDef: ColDef<ITasksHistoryData>;
   stopEditing: IStopEditing;
-  data: IDayData;
+  data: IHabitDayData;
 }
 
-interface ITask {
-  title: string;
-  description?: string;
-  link?: string;
-  status: "pending" | "failed" | "done";
-  time?: string[];
-  isEditOn?: boolean;
-}
-
-const initTask = {
+const initTask: ITask = {
   title: "",
   description: "",
-  link: "",
   status: "pending",
-  time: ["", ""],
+  time: [0, 0],
   isEditOn: false,
 };
 
 const TodoList = ({ data, colDef, stopEditing }: IProps) => {
-  const [form] = Form.useForm();
-  const [storeForm] = Form.useForm();
-  const [stageForm] = Form.useForm();
+  const { control, handleSubmit, setValue, getValues } =
+    useForm<ITasksHistoryData>({
+      defaultValues: {
+        id: "",
+        type: "tasksGroup",
+        valueType: "todoList",
+        progress: 0,
+        isPlanned: false,
+        tasks: [] as ITask[],
+      },
+    });
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "tasks",
+  });
+
   const [updateHistory] = useUpdateHistoryMutation();
-  const formTasks: ITask[] = useWatch("tasks", form);
-  const [editFiledIndex, setEditFiledIndex] = useState<null | number>(null);
-  const [isStoreOpened, setIsStoreOpened] = useState(false);
-  const [activeTab, setActiveTab] = useState("1");
-  const [updateTaskGroup] = useUpdateTaskGroupMutation();
   const taskGroupDetails = useGetTaskGroupQuery(data.id);
 
-  const { dayData } = colDef.cellRendererParams;
-
+  const { dayData, calendarMode } = colDef.cellRendererParams;
   const cellData = colDef.field && data[+colDef.field];
 
   useEffect(() => {
-    const initTasksGroup = {
-      id: taskGroupDetails?.data?.id,
-      type: "tasksGroup",
-      valueType: "todoList",
-      progress: 0,
-      tasks: [initTask],
-    };
+    setValue("id", data.id);
+    setValue("type", "tasksGroup");
+    setValue("valueType", "todoList");
+    setValue("progress", cellData?.progress || 0);
+    setValue("tasks", cellData?.tasks || []);
+    setValue(
+      "isPlanned",
+      typeof cellData?.isPlanned === "boolean"
+        ? cellData.isPlanned
+        : calendarMode === "planning" || Boolean(cellData?.tasks?.length),
+    );
+  }, [calendarMode, cellData, data.id, setValue]);
 
-    if (taskGroupDetails && taskGroupDetails.data) {
-      storeForm.setFieldsValue(taskGroupDetails.data);
-      stageForm.setFieldsValue(taskGroupDetails.data);
-    }
+  const handleConfirm: SubmitHandler<ITasksHistoryData> = async (
+    formValues: ITasksHistoryData,
+  ) => {
+    if (!formValues?.tasks) return;
+    const validatedTasks = formValues.tasks.filter((task) =>
+      task.title?.trim(),
+    );
+    const completedTasks = validatedTasks.filter(
+      (task) => task.status === "done",
+    );
+    const progress = validatedTasks.length
+      ? (completedTasks.length / validatedTasks.length) * 100
+      : 0;
 
-    if (cellData && cellData.tasks) {
-      form.setFieldsValue(cellData);
-    } else {
-      form.setFieldsValue(initTasksGroup);
-    }
-  }, [
-    cellData,
-    data,
-    dayData.date,
-    form,
-    stageForm,
-    storeForm,
-    taskGroupDetails,
-  ]);
-
-  const handleConfirm = async () => {
-    const formValues = form.getFieldsValue();
-    const validatedTasks = formValues.tasks.filter((task: ITask) => task.title);
-    console.log(dayData);
     if (colDef.field) {
+      const dataToUpdate = { ...formValues };
+      delete dataToUpdate.tasksStore;
+
       const historyToUpdate = {
         id: `${dayData.year}-${dayData.month.toString().padStart(2, "0")}`,
-        data: { ...formValues, tasks: validatedTasks },
+        data: { ...dataToUpdate, tasks: validatedTasks, progress },
         path: `${dayData.day}.${data.id}`,
       };
 
-      const storeValues = storeForm.getFieldsValue();
-      const taskGroupToUpdate = {
-        id: data.id,
-        data: storeValues,
-        path: "",
-      };
-      await updateTaskGroup(taskGroupToUpdate).unwrap();
+      await updateHistory(historyToUpdate).unwrap();
 
-      if (!validatedTasks[0]) {
-        await handleDelete();
-      } else {
-        await updateHistory(historyToUpdate).unwrap();
-      }
-      return stopEditing();
-    }
-  };
-
-  const isTaskFieldVisible = useCallback(
-    (taskIndex: number, name: string) => {
-      if (formTasks) {
-        const value = formTasks[taskIndex];
-        // @ts-ignore
-        const initValue = value?.[name];
-        let valueExists = Array.isArray(initValue) ? initValue[0] : initValue;
-        return valueExists || taskIndex === editFiledIndex;
-      }
-      return true;
-    },
-    [editFiledIndex, formTasks]
-  );
-
-  const handleEditTask = (taskIndex: number) => {
-    if (editFiledIndex !== taskIndex) {
-      setEditFiledIndex(taskIndex);
-    } else {
-      setEditFiledIndex(null);
+      stopEditing();
     }
   };
 
   const handleDelete = async () => {
     if (colDef.field) {
-      const newMonthHistory = _.pickBy(data, (_value, key) => !isNaN(+key));
-      delete newMonthHistory[colDef.field];
       const habitToUpdate = {
         id: `${dayData.year}-${dayData.month.toString().padStart(2, "0")}`,
         data: {},
@@ -177,238 +132,205 @@ const TodoList = ({ data, colDef, stopEditing }: IProps) => {
     stopEditing();
   };
 
-  const addToStore = (taskIndex: number) => {
-    const storeTasks = [
-      ...storeForm.getFieldsValue().tasksStore,
-      formTasks[taskIndex],
-    ];
-    storeForm.setFieldValue("tasksStore", storeTasks);
+  const parseTime = (timeArray?: Array<number | string>) => {
+    if (!timeArray) return;
+    const [hours, minutes] = timeArray;
+    const date = dayjs()
+      .set("hour", Number(hours))
+      .set("minute", Number(minutes))
+      .set("second", 0)
+      .set("millisecond", 0);
+    return date.toDate();
   };
 
-  const tabItems: TabsProps["items"] = [
-    {
-      key: "1",
-      label: "Вибрати з етапів",
-      children: (
-        <Form layout="horizontal" form={stageForm} name="tasksStages">
-          <TasksGroupStages dayForm={form} form={stageForm} />
-        </Form>
-      ),
-    },
-    {
-      key: "2",
-      label: "Сховище",
-      children: (
-        <Form layout="horizontal" form={storeForm} name="storeForm">
-          <TasksGroupStore dayForm={form} form={storeForm} />
-        </Form>
-      ),
-    },
-  ];
+  const formatTime = (date: Date | null | undefined) => {
+    if (!date) return [0, 0];
+    const hours = dayjs(date).hour();
+    const minutes = dayjs(date).minute();
+    return [hours, minutes];
+  };
+
+  const watchedTasks = useWatch({
+    control,
+    name: "tasks",
+    defaultValue: [],
+  });
+  const storedTasks = taskGroupDetails.data?.tasksStore || [];
+
+  const addTaskFromStore = (task: ITask) => {
+    append({ ...task, status: "pending", isEditOn: false });
+  };
 
   return (
     initTask && (
       <StyledTodoList>
-        <Form
-          labelCol={{ md: 8 }}
-          wrapperCol={{ md: 14 }}
-          layout="horizontal"
-          style={{ minWidth: 300, margin: 20 }}
-          form={form}
-          name="dayCellEditor"
-        >
-          <Form.Item
-            noStyle
-            shouldUpdate={(prevValues, currentValues) => {
-              return prevValues !== currentValues;
-            }}
-          >
-            <div
-              style={{
-                maxHeight: "400px",
-                overflowY: "auto",
-                overflowX: "hidden",
-                paddingLeft: "4px",
-              }}
-            >
-              <Form.Item name="id" hidden />
-              <Form.Item name="valueType" hidden />
-              <Form.Item name="type" hidden />
-
-              <Form.Item
-                noStyle
-                shouldUpdate={(prevValues, currentValues) =>
-                  prevValues.tasks !== currentValues.tasks
-                }
-              >
-                {({ getFieldValue, setFieldValue }) => {
-                  const tasksList = getFieldValue("tasks");
-                  if (!tasksList) return;
-                  const doneTasks = tasksList.filter(
-                    (task) => task.status === "done"
-                  );
-                  const progress = (doneTasks.length / tasksList.length) * 100;
-                  setFieldValue("progress", +progress.toFixed(0));
-                  return (
-                    <Form.Item label="Прогрес" name="progress">
-                      <InputNumber disabled />
-                    </Form.Item>
-                  );
-                }}
-              </Form.Item>
-
-              <Form.List name="tasks">
-                {(fields, { add, remove }) => (
-                  <>
-                    {fields.map((task, index) => (
-                      <Fragment key={task.key}>
-                        <Row gutter={8}>
-                          <Col md={24} xs={24}>
-                            <Form.Item
-                              name={[index, "title"]}
-                              noStyle
-                              rules={[{ required: true }]}
-                              initialValue={initTask.title}
-                            >
-                              <Input placeholder="Назва завдання" />
-                            </Form.Item>
-                          </Col>
-                          <Col md={12} xs={14}>
-                            <Form.Item
-                              name={[index, "status"]}
-                              initialValue={initTask.status}
-                              noStyle
-                            >
-                              <Radio.Group>
-                                <Radio.Button value={"failed"}>
-                                  <CloseSquareOutlined rev={"value"} />
-                                </Radio.Button>
-                                <Radio.Button value={"pending"}>
-                                  <BorderOutlined rev={"value"} />
-                                </Radio.Button>
-                                <Radio.Button value={"done"}>
-                                  <CheckSquareOutlined rev={"value"} />
-                                </Radio.Button>
-                              </Radio.Group>
-                            </Form.Item>
-                          </Col>
-                          <Col md={12} xs={10} className="action-buttons">
-                            <Form.Item noStyle>
-                              <Space.Compact>
-                                <Button
-                                  type={
-                                    index === editFiledIndex
-                                      ? "primary"
-                                      : "default"
-                                  }
-                                  onClick={() => handleEditTask(index)}
-                                >
-                                  <MoreOutlined rev={"value"} />
-                                </Button>
-                                <Button
-                                  onClick={() => {
-                                    setIsStoreOpened(true);
-                                    addToStore(task.name);
-                                    remove(task.name);
-                                  }}
-                                >
-                                  <DownCircleOutlined rev={"value"} />
-                                </Button>
-                                <Button
-                                  danger
-                                  disabled={fields.length <= 1}
-                                  onClick={() => remove(task.name)}
-                                >
-                                  <DeleteOutlined rev={"value"} />
-                                </Button>
-                              </Space.Compact>
-                            </Form.Item>
-                          </Col>
-                        </Row>
-                        <Row>
-                          <Col style={{ marginRight: "10px" }}>
-                            <Form.Item
-                              name={[index, "time"]}
-                              hidden={!isTaskFieldVisible(index, "time")}
-                              initialValue={initTask.time}
-                              noStyle
-                            >
-                              <Cascader
-                                suffixIcon={
-                                  <ClockCircleOutlined rev={"value"} />
-                                }
-                                style={{ width: "100px" }}
-                                options={getTimeOptions(15)}
-                              />
-                            </Form.Item>
-                          </Col>
-                          <Col flex="auto">
-                            <Form.Item
-                              required={false}
-                              name={[index, "link"]}
-                              hidden={!isTaskFieldVisible(index, "link")}
-                              initialValue={initTask.link}
-                              noStyle
-                            >
-                              <Input
-                                addonAfter={<LinkOutlined rev={"value"} />}
-                                placeholder="Посилання"
-                              />
-                            </Form.Item>
-                          </Col>
-                        </Row>
-                        <Row>
-                          <Col md={24} xs={24}>
-                            <Form.Item
-                              required={false}
-                              name={[index, "description"]}
-                              initialValue={initTask.description}
-                              hidden={!isTaskFieldVisible(index, "description")}
-                              noStyle
-                            >
-                              <Input.TextArea placeholder="Опис" />
-                            </Form.Item>
-                          </Col>
-                        </Row>
-                        <Divider style={{ margin: "12px 0" }} />
-                      </Fragment>
-                    ))}
-                    <Form.Item className="add-btn">
-                      <Button onClick={() => add()}>Додати завдання</Button>
-                    </Form.Item>
-                  </>
+        <form onSubmit={handleSubmit(handleConfirm)}>
+          <Box sx={{ minWidth: 300, margin: 2 }}>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                {!!storedTasks.length && (
+                  <Box marginBottom={2}>
+                    <strong>Сховище завдань</strong>
+                    <Box display="flex" flexWrap="wrap" gap={1} marginTop={1}>
+                      {storedTasks.map((task, index) => (
+                        <Button
+                          key={task.id || `${task.title}-${index}`}
+                          variant="outlined"
+                          size="small"
+                          onClick={() => addTaskFromStore(task)}
+                        >
+                          + {task.title}
+                        </Button>
+                      ))}
+                    </Box>
+                  </Box>
                 )}
-              </Form.List>
-            </div>
-          </Form.Item>
-        </Form>
-        <Collapse
-          collapsible="header"
-          activeKey={isStoreOpened ? 1 : 0}
-          items={[
-            {
-              key: "1",
-              label: "Завдання",
-              onItemClick: () => setIsStoreOpened(!isStoreOpened),
-              forceRender: true,
-              children: (
-                <Tabs
-                  defaultActiveKey="1"
-                  items={tabItems}
-                  onChange={(key: string) => setActiveTab(key)}
-                  activeKey={activeTab}
-                />
-              ),
-            },
-          ]}
-        />
-        <div className="form-buttons">
-          <FormButtons
-            handleDecline={handleDecline}
-            handleDelete={handleDelete}
-            handleConfirm={handleConfirm}
-          />
-        </div>
+                {fields.map((task, index) => (
+                  <Fragment key={task.id}>
+                    <Grid container spacing={2} marginBottom={2}>
+                      <Grid item xs={12} md={12}>
+                        <Controller
+                          name={`tasks.${index}.title`}
+                          control={control}
+                          defaultValue={initTask.title}
+                          rules={{ required: true }}
+                          render={({ field }) => (
+                            <TextField
+                              {...field}
+                              label="Назва завдання"
+                              fullWidth
+                              required
+                            />
+                          )}
+                        />
+                      </Grid>
+                    </Grid>
+                    <Grid
+                      container
+                      spacing={2}
+                      justifyContent={"space-between"}
+                    >
+                      <Grid item xs={12} md={4} marginBottom={2}>
+                        <Controller
+                          name={`tasks.${index}.time`}
+                          control={control}
+                          defaultValue={initTask.time}
+                          render={({ field }) => (
+                            <TimePicker
+                              {...field}
+                              ampm={false}
+                              value={parseTime(field.value)}
+                              onChange={(date) => {
+                                const formattedTime = formatTime(date);
+                                field.onChange(formattedTime);
+                              }}
+                              label="Початок о:"
+                              renderInput={(params) => (
+                                <TextField {...params} />
+                              )}
+                            />
+                          )}
+                        />
+                      </Grid>
+                      <Grid item xs={12} md={4} marginBottom={2}>
+                        <Controller
+                          name={`tasks.${index}.status`}
+                          control={control}
+                          defaultValue={initTask.status}
+                          render={({ field }) => (
+                            <ToggleButtonGroup
+                              {...field}
+                              size="large"
+                              value={field.value}
+                              onChange={(_event, newValue) =>
+                                newValue && field.onChange(newValue)
+                              }
+                              color="primary"
+                              exclusive
+                              aria-label="text alignment"
+                            >
+                              <ToggleButton value="failed">
+                                <CloseIcon />
+                              </ToggleButton>
+                              <ToggleButton value="pending">
+                                <PauseIcon />
+                              </ToggleButton>
+                              <ToggleButton value="done">
+                                <DoneIcon />
+                              </ToggleButton>
+                            </ToggleButtonGroup>
+                          )}
+                        />
+                      </Grid>
+                      <Grid item xs={12} md={4}>
+                        <ButtonGroup
+                          size="large"
+                          variant="outlined"
+                          aria-label="Basic button group"
+                        >
+                          <Button
+                            onClick={() =>
+                              setValue(
+                                `tasks.${index}.isEditOn`,
+                                !getValues(`tasks.${index}.isEditOn`),
+                                { shouldDirty: true },
+                              )
+                            }
+                          >
+                            <ExpandMoreIcon />
+                          </Button>
+                          <Button onClick={() => remove(index)}>
+                            <DeleteIcon />
+                          </Button>
+                        </ButtonGroup>
+                      </Grid>
+                    </Grid>
+
+                    <Grid item xs={12} hidden={!watchedTasks[index]?.isEditOn}>
+                      <Controller
+                        name={`tasks.${index}.description`}
+                        control={control}
+                        defaultValue={initTask.description}
+                        render={({ field }) => (
+                          <TextField
+                            {...field}
+                            fullWidth
+                            multiline
+                            rows={2}
+                            label="Опис"
+                          />
+                        )}
+                      />
+                    </Grid>
+                    <Divider style={{ margin: "12px 0" }} />
+                  </Fragment>
+                ))}
+                <Grid container>
+                  <Grid item md={6}>
+                    <Button
+                      variant="outlined"
+                      onClick={() => append({ ...initTask })}
+                    >
+                      Додати завдання
+                    </Button>
+                  </Grid>
+                  <Grid
+                    item
+                    md={6}
+                    display={"flex"}
+                    justifyContent={"flex-end"}
+                  >
+                    <FormButtons
+                      handleDecline={handleDecline}
+                      handleDelete={handleDelete}
+                      handleConfirm={handleSubmit(handleConfirm)}
+                    />
+                  </Grid>
+                </Grid>
+              </Grid>
+            </Grid>
+          </Box>
+        </form>
       </StyledTodoList>
     )
   );

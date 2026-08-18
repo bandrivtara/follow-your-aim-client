@@ -1,4 +1,10 @@
-import { Form, Input, Button, Transfer } from "antd";
+import { Alert, Button, Form, Input, Spin, Transfer } from "antd";
+import {
+  ArrowLeftOutlined,
+  FolderOpenOutlined,
+  LinkOutlined,
+  SaveOutlined,
+} from "@ant-design/icons";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   useGetHabitsCategoryQuery,
@@ -12,123 +18,173 @@ import {
   useUpdateHabitMutation,
 } from "store/services/habits";
 import uniqid from "uniqid";
+import { getRelationshipUpdates } from "share/functions/getRelationshipUpdates";
+import StyledEntityFormPage from "share/components/Form/EntityFormPage.styled";
 
 const formInitialValues = {
   title: "",
   description: "",
-  relatedHabits: [],
-  relatedAims: [],
 };
 
 const AddEditHabitsCategory = () => {
   const [form] = Form.useForm();
   const navigate = useNavigate();
-  let { habitsCategoryId } = useParams();
-  const [updateHabitsCategory] = useUpdateHabitsCategoryMutation();
+  const { habitsCategoryId } = useParams();
+  const [updateHabitsCategory, { isLoading: isSavingCategory }] =
+    useUpdateHabitsCategoryMutation();
   const [updateHabit] = useUpdateHabitMutation();
-  const habitsCategoryDetails = useGetHabitsCategoryQuery(habitsCategoryId);
+  const habitsCategoryDetails = useGetHabitsCategoryQuery(habitsCategoryId, {
+    skip: !habitsCategoryId,
+  });
   const habitData = useGetHabitListQuery();
 
   const [currentHabitsKeys, setCurrentHabitsKeys] = useState<string[]>([]);
   const [selectedHabitsKeys, setSelectedHabitsKeys] = useState<string[]>([]);
-  const [notSelectedHabits, setNotSelectedHabits] = useState<any[]>([]);
+  const [habitsTransferItems, setHabitsTransferItems] = useState<any[]>([]);
 
   useEffect(() => {
-    if (habitsCategoryDetails && habitData.data) {
-      form.setFieldsValue(habitsCategoryDetails.data);
-
-      const relatedHabits = habitData.data
+    if (!habitData.data) return;
+    setCurrentHabitsKeys(
+      habitData.data
         .filter((habit) => habit.habitsCategoryId === habitsCategoryId)
-        .map((habit) => habit.id);
+        .map((habit) => habit.id),
+    );
+    setHabitsTransferItems(
+      habitData.data.map((habit) => ({ key: habit.id, title: habit.title })),
+    );
+  }, [habitData.data, habitsCategoryId]);
 
-      setCurrentHabitsKeys(relatedHabits);
+  useEffect(() => {
+    if (habitsCategoryDetails.data) {
+      form.setFieldsValue(habitsCategoryDetails.data);
     }
-
-    if (habitData.data) {
-      const allHabits = [];
-      for (let i = 0; i < habitData?.data?.length; i++) {
-        const data = {
-          key: habitData?.data[i].id,
-          title: habitData?.data[i].title,
-        };
-
-        allHabits.push(data);
-      }
-      setNotSelectedHabits(allHabits);
-    }
-  }, [habitsCategoryDetails, form, habitData.data, habitsCategoryId]);
-
-  const onHabitsTransferChange = (nextTargetKeys: string[]) => {
-    setCurrentHabitsKeys(nextTargetKeys);
-  };
-
-  const onHabitsTransferSelectChange = (
-    sourceSelectedKeys: string[],
-    targetSelectedKeys: string[]
-  ) => {
-    setSelectedHabitsKeys([...sourceSelectedKeys, ...targetSelectedKeys]);
-  };
+  }, [form, habitsCategoryDetails.data]);
 
   const onFinish = async (newHabitsCategoryData: IHabitsCategory) => {
     const currentId = habitsCategoryId || uniqid();
-    const aimsCategoryToUpdate = {
+    const previousHabitIds =
+      habitData.data
+        ?.filter((habit) => habit.habitsCategoryId === habitsCategoryId)
+        .map((habit) => habit.id) || [];
+
+    await updateHabitsCategory({
       id: currentId,
       data: newHabitsCategoryData,
-      path: "",
-    };
-    await updateHabitsCategory(aimsCategoryToUpdate).unwrap();
-
+    }).unwrap();
     await Promise.all(
-      currentHabitsKeys.map(async (habitId) => {
-        const habitToUpdate = {
-          id: habitId,
-          data: { habitsCategoryId: currentId },
-          path: "",
-        };
-        await updateHabit(habitToUpdate);
-      })
+      getRelationshipUpdates(
+        previousHabitIds,
+        currentHabitsKeys,
+        currentId,
+      ).map(({ id, relationId }) =>
+        updateHabit({ id, data: { habitsCategoryId: relationId } }).unwrap(),
+      ),
     );
 
-    // navigate(routes.habit.categories.list);
-    // navigate(0);
+    navigate(-1);
   };
 
   return (
-    <Form
-      form={form}
-      labelCol={{ span: 8 }}
-      wrapperCol={{ span: 14 }}
-      layout="horizontal"
-      style={{ maxWidth: 600, marginTop: 20 }}
-      onFinish={onFinish}
-      initialValues={formInitialValues}
-    >
-      <Form.Item rules={[{ required: true }]} name="title" label="Назва">
-        <Input />
-      </Form.Item>
-
-      <Form.Item name="description" label="Опис">
-        <TextArea rows={2} />
-      </Form.Item>
-
-      <Form.Item label="Повязані активності">
-        <Transfer
-          dataSource={notSelectedHabits}
-          titles={["Source", "Target"]}
-          targetKeys={currentHabitsKeys}
-          selectedKeys={selectedHabitsKeys}
-          onChange={onHabitsTransferChange}
-          onSelectChange={onHabitsTransferSelectChange}
-          render={(item) => item.title}
-        />
-      </Form.Item>
-
-      <Form.Item>
-        <Button htmlType="submit">
-          {habitsCategoryId ? "Записати зміни" : "Додати категорію"}
+    <StyledEntityFormPage>
+      <header className="page-header">
+        <div>
+          <h1 className="page-title">
+            {habitsCategoryId
+              ? "Редагувати категорію звичок"
+              : "Нова категорія звичок"}
+          </h1>
+          <p className="page-subtitle">
+            Організуй звички за контекстом або частиною щоденної рутини.
+          </p>
+        </div>
+        <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(-1)}>
+          Назад
         </Button>
-      </Form.Item>
-    </Form>
+      </header>
+
+      {habitsCategoryDetails.isError && (
+        <Alert
+          className="load-error"
+          type="error"
+          showIcon
+          message="Не вдалося завантажити категорію"
+          action={
+            <Button size="small" onClick={() => habitsCategoryDetails.refetch()}>
+              Повторити
+            </Button>
+          }
+        />
+      )}
+
+      <Spin spinning={habitsCategoryDetails.isFetching || habitData.isFetching}>
+        <div className="entity-form-card">
+          <Form
+            className="entity-form"
+            form={form}
+            layout="vertical"
+            onFinish={onFinish}
+            initialValues={formInitialValues}
+          >
+            <section className="form-section">
+              <div className="section-heading">
+                <span className="section-icon"><FolderOpenOutlined /></span>
+                <div>
+                  <h2>Основна інформація</h2>
+                  <p>Назва має швидко пояснювати, які звички тут зібрані.</p>
+                </div>
+              </div>
+              <Form.Item
+                rules={[{ required: true, message: "Вкажи назву категорії" }]}
+                name="title"
+                label="Назва"
+              >
+                <Input size="large" placeholder="Наприклад, Ранкова рутина" />
+              </Form.Item>
+              <Form.Item name="description" label="Опис">
+                <TextArea rows={3} maxLength={400} showCount />
+              </Form.Item>
+            </section>
+
+            <section className="form-section">
+              <div className="section-heading">
+                <span className="section-icon"><LinkOutlined /></span>
+                <div>
+                  <h2>Пов’язані звички</h2>
+                  <p>Перемісти до правого списку звички цієї категорії.</p>
+                </div>
+              </div>
+              <div className="transfer-scroll">
+                <Transfer
+                  dataSource={habitsTransferItems}
+                  titles={["Доступні", "Пов’язані"]}
+                  targetKeys={currentHabitsKeys}
+                  selectedKeys={selectedHabitsKeys}
+                  onChange={(nextTargetKeys) =>
+                    setCurrentHabitsKeys(nextTargetKeys as string[])
+                  }
+                  onSelectChange={(sourceKeys, targetKeys) =>
+                    setSelectedHabitsKeys([...sourceKeys, ...targetKeys] as string[])
+                  }
+                  render={(item) => item.title}
+                />
+              </div>
+            </section>
+
+            <div className="form-actions">
+              <Button onClick={() => navigate(-1)}>Скасувати</Button>
+              <Button
+                type="primary"
+                htmlType="submit"
+                icon={<SaveOutlined />}
+                loading={isSavingCategory}
+              >
+                {habitsCategoryId ? "Зберегти зміни" : "Додати категорію"}
+              </Button>
+            </div>
+          </Form>
+        </div>
+      </Spin>
+    </StyledEntityFormPage>
   );
 };
 

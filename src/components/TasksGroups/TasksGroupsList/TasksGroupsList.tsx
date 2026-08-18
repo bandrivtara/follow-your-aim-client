@@ -1,27 +1,26 @@
-import { useEffect, useState } from "react";
-import tableConfigs from "./tableConfigs";
 import { AgGridReact } from "ag-grid-react";
 import { useGetTaskGroupListQuery } from "store/services/taskGroups";
-import { ITasksGroup } from "types/taskGroups";
+import { Button } from "antd";
+import { useNavigate } from "react-router-dom";
+import routes from "config/routes";
+import tableConfigs from "./tableConfigs";
 
 const TasksGroupsList = () => {
-  const { data } = useGetTaskGroupListQuery();
-  const [rowData, setRowData] = useState<ITasksGroup[]>([]);
-
-  useEffect(() => {
-    if (data) {
-      setRowData(data);
-    }
-  }, [data]);
+  const { data = [] } = useGetTaskGroupListQuery();
+  const navigate = useNavigate();
 
   return (
     <div>
+      <Button onClick={() => navigate(routes.taskGroups.add)}>
+        Додати групу завдань
+      </Button>
       <div className="ag-theme-material fyi-ag-theme">
         <AgGridReact
           rowHeight={30}
-          rowData={rowData}
+          rowData={data}
           columnDefs={tableConfigs}
-        ></AgGridReact>
+          overlayNoRowsTemplate="Груп завдань поки немає"
+        />
       </div>
     </div>
   );

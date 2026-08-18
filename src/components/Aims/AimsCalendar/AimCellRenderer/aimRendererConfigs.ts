@@ -1,146 +1,77 @@
-import dayjs from "dayjs";
-import { doc, getDoc } from "firebase/firestore";
 import { getHistoryBetweenDates } from "share/fireBase/getHistoryBetweenDates";
-import { db } from "store/api";
 import { IAim } from "types/aims.types";
 import { ITasksGroup } from "types/taskGroups";
+import {
+  calculateTargetProgress,
+  calculateTaskGroupProgress,
+  getAimProgressDateTo,
+} from "./aimProgressCalculations";
+import {
+  getLastRelatedHabitValueBetweenDates,
+  IHistoryMonthSnapshot,
+  sumRelatedHabitValuesBetweenDates,
+} from "./aimHistoryCalculations";
+
+const getHistoryMonths = async (
+  dateFrom: string,
+  dateTo: string,
+): Promise<IHistoryMonthSnapshot[]> => {
+  const querySnapshot = await getHistoryBetweenDates(dateFrom, dateTo);
+
+  return querySnapshot.docs.map((monthHistoryDoc) => ({
+    id: monthHistoryDoc.id,
+    data: monthHistoryDoc.data(),
+  }));
+};
 
 export const aimRendererConfigs = {
-  relatedHobby: {
+  relatedHabit: {
     sumOfValues: async (data: IAim) => {
-      const querySnapshot = await getHistoryBetweenDates(
+      const progressDateTo = getAimProgressDateTo(data.dateTo);
+      const historyMonths = await getHistoryMonths(
         data.dateFrom,
-        data.dateTo
+        progressDateTo,
       );
-
-      let currentValue = 0;
-      querySnapshot.forEach(async (monthHistoryDoc) => {
-        for (const [day, habit] of Object.entries(monthHistoryDoc.data())) {
-          console.log(day, habit, 123123);
-          if (monthHistoryDoc.id === dayjs(data.dateFrom).format("MM-YYYY")) {
-            if (+day >= +dayjs(data.dateFrom).format("D")) {
-              currentValue +=
-                habit?.[data.relatedHabit[0]]?.measures?.[data.relatedHabit[1]]
-                  .value || 0;
-            }
-          } else if (
-            monthHistoryDoc.id === dayjs(data.dateTo).format("MM-YYYY")
-          ) {
-            if (+day <= +dayjs(data.dateFrom).format("D")) {
-              currentValue +=
-                habit?.[data.relatedHabit[0]]?.measures?.[data.relatedHabit[1]]
-                  .value || 0;
-            }
-          } else {
-            currentValue +=
-              habit?.[data.relatedHabit[0]]?.measures?.[data.relatedHabit[1]]
-                .value || 0;
-          }
-        }
-      });
+      const currentValue = sumRelatedHabitValuesBetweenDates(
+        historyMonths,
+        data.dateFrom,
+        progressDateTo,
+        data.relatedHabit,
+      );
 
       return {
         currentValue: +currentValue.toFixed(2),
-        progress: (currentValue / data.finalAim) * 100,
+        progress: data.finalAim ? (currentValue / data.finalAim) * 100 : 0,
       };
     },
-    lastValue: async (data: IAim, type: "asc" | "desc") => {
-      const querySnapshot = await getHistoryBetweenDates(
+    lastValue: async (data: IAim) => {
+      const progressDateTo = getAimProgressDateTo(data.dateTo);
+      const historyMonths = await getHistoryMonths(
         data.dateFrom,
-        data.dateTo
+        progressDateTo,
       );
-      let lastValue = 0;
-
-      querySnapshot.forEach(async (monthHistoryDoc) => {
-        for (const [day, habit] of Object.entries(
-          monthHistoryDoc.data()
-        ).reverse()) {
-          if (!lastValue) {
-            if (monthHistoryDoc.id === dayjs(data.dateFrom).format("MM-YYYY")) {
-              if (+day >= +dayjs(data.dateFrom).format("D")) {
-                lastValue =
-                  habit?.[data.relatedHabit[0]]?.measures?.[
-                    data.relatedHabit[1]
-                  ].value;
-              }
-            } else if (
-              monthHistoryDoc.id === dayjs(data.dateTo).format("MM-YYYY")
-            ) {
-              if (+day <= +dayjs(data.dateFrom).format("D")) {
-                lastValue =
-                  habit?.[data.relatedHabit[0]]?.measures?.[
-                    data.relatedHabit[1]
-                  ].value;
-              }
-            } else {
-              lastValue =
-                habit?.[data.relatedHabit[0]]?.measures?.[data.relatedHabit[1]]
-                  .value;
-            }
-          }
-        }
-      });
+      const lastValue =
+        getLastRelatedHabitValueBetweenDates(
+          historyMonths,
+          data.dateFrom,
+          progressDateTo,
+          data.relatedHabit,
+        ) ??
+        data.startedPoint ??
+        0;
 
       return {
         currentValue: lastValue,
-        progress:
-          type === "asc"
-            ? (lastValue / data.finalAim) * 100
-            : (data.finalAim / lastValue) * 100,
+        progress: calculateTargetProgress(
+          data.startedPoint ?? 0,
+          data.finalAim,
+          lastValue,
+        ),
       };
     },
   },
-  relatedTaskGroup: async (data: IAim) => {
-    const stagesProgress = [];
-
-    for (const [_, list] of Object.entries(data.relatedList)) {
-      const taskGroupRef = doc(db, "taskGroup", list[0]);
-      const taskGroupSnapshot = await getDoc(taskGroupRef);
-      if (taskGroupSnapshot.exists()) {
-        const taskGroup = taskGroupSnapshot.data() as ITasksGroup;
-
-        if (list[1]) {
-          const taskStage = taskGroup.tasksStages.find(
-            (taskStage) => taskStage.id === list[1]
-          );
-          const doneSubTasks =
-            taskStage?.subTasks.filter(
-              (subTask) => subTask.status === "done"
-            ) || [];
-          stagesProgress.push({
-            donePercentage:
-              doneSubTasks.length / (taskStage?.subTasks?.length || 0),
-            stageMaxPercentage: taskStage?.stagePercentage,
-          });
-        } else {
-          taskGroup.tasksStages.forEach((taskStage) => {
-            const doneSubTasks = taskStage.subTasks.filter(
-              (subTask) => subTask.status === "done"
-            );
-            stagesProgress.push({
-              donePercentage: doneSubTasks.length / taskStage.subTasks.length,
-              stageMaxPercentage: taskStage.stagePercentage,
-            });
-          });
-        }
-      }
-    }
-
-    const totalStageMaxPercentage = stagesProgress.reduce(
-      (sum, stage) => sum + (stage.stageMaxPercentage || 0),
-      0
-    );
-
-    const resultSum = stagesProgress.reduce((sum, stage) => {
-      const individualResult =
-        ((stage.stageMaxPercentage || 0) / totalStageMaxPercentage) *
-        stage.donePercentage;
-      return sum + individualResult;
-    }, 0);
-
-    return {
-      currentValue: 100,
-      progress: resultSum * 100,
-    };
-  },
+  relatedTaskGroup: (data: IAim, taskGroups: ITasksGroup[] = []) => ({
+    currentValue: 100,
+    progress: calculateTaskGroupProgress(data, taskGroups),
+  }),
 };

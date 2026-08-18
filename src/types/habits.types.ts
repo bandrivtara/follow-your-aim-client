@@ -1,3 +1,5 @@
+import { LifeAreaId } from "config/lifeAreas";
+
 export type IHabitValueTypes = "measures" | "boolean";
 
 export interface IHabitData {
@@ -8,13 +10,19 @@ export interface IHabitData {
   valueType: IHabitValueTypes;
   description?: string;
   complexity?: number;
+  category?: string | string[];
   habitsCategoryId?: string;
+  lifeArea?: LifeAreaId;
   sphereId?: string;
-  measure?: string;
+  measures?: { [measureId: string]: { value: string; plannedValue: string } };
   active?: boolean;
   minToComplete?: number;
   isHidden?: boolean;
+  isArchived?: boolean;
   fields?: IHabitField[];
+  isAllDay: boolean;
+  startTime: number[];
+  endTime: number[];
 }
 
 export interface IHabitField {

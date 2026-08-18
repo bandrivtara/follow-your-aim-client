@@ -42,7 +42,7 @@ export const habitsCategoriesFirestoreApi = api.injectEndpoints({
           const habitsCategoriesRef = doc(
             db,
             "habitsCategories",
-            habitsCategoriesId
+            habitsCategoriesId,
           );
           const habitsCategoriesSnapshot = await getDoc(habitsCategoriesRef);
           if (habitsCategoriesSnapshot.exists()) {
@@ -68,7 +68,7 @@ export const habitsCategoriesFirestoreApi = api.injectEndpoints({
         try {
           await addDoc(
             collection(db, "habitsCategories"),
-            habitsCategoriesDetails
+            habitsCategoriesDetails,
           );
           return { data: null };
         } catch (error: any) {
@@ -83,7 +83,7 @@ export const habitsCategoriesFirestoreApi = api.injectEndpoints({
         try {
           await setDoc(
             doc(db, "habitsCategories", habitsCategoriesDetails.id),
-            habitsCategoriesDetails.data
+            habitsCategoriesDetails.data,
           );
           return { data: null };
         } catch (error: any) {

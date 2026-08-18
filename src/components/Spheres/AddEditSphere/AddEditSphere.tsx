@@ -1,12 +1,10 @@
 import { Form, Input, Button, Transfer } from "antd";
 import { useNavigate, useParams } from "react-router-dom";
 import {
-  useAddSphereMutation,
   useGetSphereQuery,
   useUpdateSphereMutation,
 } from "store/services/spheres";
 import { ISphere } from "types/spheres.types";
-import routes from "config/routes";
 import TextArea from "antd/es/input/TextArea";
 import { useEffect, useState } from "react";
 import {
@@ -15,127 +13,89 @@ import {
 } from "store/services/habits";
 import { useGetAimsListQuery, useUpdateAimMutation } from "store/services/aims";
 import uniqid from "uniqid";
+import { getRelationshipUpdates } from "share/functions/getRelationshipUpdates";
 
 const formInitialValues = {
   title: "",
   description: "",
-  relatedHabits: [],
-  relatedAims: [],
 };
 
 const AddEditSphere = () => {
   const [form] = Form.useForm();
   const navigate = useNavigate();
-  let { sphereId } = useParams();
+  const { sphereId } = useParams();
 
   const [updateSphere] = useUpdateSphereMutation();
   const [updateAim] = useUpdateAimMutation();
   const [updateHabit] = useUpdateHabitMutation();
-  const sphereDetails = useGetSphereQuery(sphereId);
+  const sphereDetails = useGetSphereQuery(sphereId, { skip: !sphereId });
   const habitData = useGetHabitListQuery();
   const aimsData = useGetAimsListQuery();
 
   const [currentHabitsKeys, setCurrentHabitsKeys] = useState<string[]>([]);
   const [selectedHabitsKeys, setSelectedHabitsKeys] = useState<string[]>([]);
-  const [notSelectedHabits, setNotSelectedHabits] = useState<any[]>([]);
+  const [habitsTransferItems, setHabitsTransferItems] = useState<any[]>([]);
   const [currentAimsKeys, setCurrentAimsKeys] = useState<string[]>([]);
   const [selectedAimsKeys, setSelectedAimsKeys] = useState<string[]>([]);
-  const [notSelectedAims, setNotSelectedAims] = useState<any[]>([]);
+  const [aimsTransferItems, setAimsTransferItems] = useState<any[]>([]);
 
   useEffect(() => {
-    if (aimsData.data && habitData.data) {
-      const relatedAims = aimsData.data
+    if (!aimsData.data || !habitData.data) return;
+
+    setCurrentAimsKeys(
+      aimsData.data
         .filter((aim) => aim.sphereId === sphereId)
-        .map((aim) => aim.id);
-      const relatedHabits = habitData.data
+        .map((aim) => aim.id),
+    );
+    setCurrentHabitsKeys(
+      habitData.data
         .filter((habit) => habit.sphereId === sphereId)
-        .map((habit) => habit.id);
+        .map((habit) => habit.id),
+    );
+    setAimsTransferItems(
+      aimsData.data.map((aim) => ({ key: aim.id, title: aim.title })),
+    );
+    setHabitsTransferItems(
+      habitData.data.map((habit) => ({ key: habit.id, title: habit.title })),
+    );
+  }, [aimsData.data, habitData.data, sphereId]);
 
-      setCurrentAimsKeys(relatedAims);
-      setCurrentHabitsKeys(relatedHabits);
-
-      const allAims = [];
-      const allHabits = [];
-
-      for (let i = 0; i < aimsData?.data?.length; i++) {
-        const data = {
-          key: aimsData?.data[i].id,
-          title: aimsData?.data[i].title,
-        };
-
-        allAims.push(data);
-      }
-      for (let i = 0; i < habitData?.data?.length; i++) {
-        const data = {
-          key: habitData?.data[i].id,
-          title: habitData?.data[i].title,
-        };
-
-        allHabits.push(data);
-      }
-
-      setNotSelectedHabits(allHabits);
-      setNotSelectedAims(allAims);
-      if (sphereDetails.data) {
-        form.setFieldsValue(sphereDetails.data);
-      }
+  useEffect(() => {
+    if (sphereDetails.data) {
+      form.setFieldsValue(sphereDetails.data);
     }
-  }, [sphereDetails, form, aimsData.data, habitData.data, sphereId]);
-
-  const onHabitsTransferChange = (nextTargetKeys: string[]) => {
-    setCurrentHabitsKeys(nextTargetKeys);
-  };
-
-  const onHabitsTransferSelectChange = (
-    sourceSelectedKeys: string[],
-    targetSelectedKeys: string[]
-  ) => {
-    setSelectedHabitsKeys([...sourceSelectedKeys, ...targetSelectedKeys]);
-  };
-
-  const onAimsTransferChange = (nextTargetKeys: string[]) => {
-    setCurrentAimsKeys(nextTargetKeys);
-  };
-
-  const onAimsTransferSelectChange = (
-    sourceSelectedKeys: string[],
-    targetSelectedKeys: string[]
-  ) => {
-    setSelectedAimsKeys([...sourceSelectedKeys, ...targetSelectedKeys]);
-  };
+  }, [form, sphereDetails.data]);
 
   const onFinish = async (newSphereData: ISphere) => {
     const currentId = sphereId || uniqid();
-    const sphereToUpdate = {
-      id: currentId,
-      data: newSphereData,
-      path: "",
-    };
-    await updateSphere(sphereToUpdate).unwrap();
-    await Promise.all(
-      currentAimsKeys.map(async (aimId) => {
-        const aimToUpdate = {
-          id: aimId,
-          data: { sphereId: currentId },
-          path: "",
-        };
-        await updateAim(aimToUpdate);
-      })
-    );
+    const previousAimIds =
+      aimsData.data
+        ?.filter((aim) => aim.sphereId === sphereId)
+        .map((aim) => aim.id) || [];
+    const previousHabitIds =
+      habitData.data
+        ?.filter((habit) => habit.sphereId === sphereId)
+        .map((habit) => habit.id) || [];
+
+    await updateSphere({ id: currentId, data: newSphereData }).unwrap();
 
     await Promise.all(
-      currentHabitsKeys.map(async (habitId) => {
-        const habitToUpdate = {
-          id: habitId,
-          data: { sphereId: currentId },
-          path: "",
-        };
-        await updateHabit(habitToUpdate);
-      })
+      getRelationshipUpdates(previousAimIds, currentAimsKeys, currentId).map(
+        ({ id, relationId }) =>
+          updateAim({ id, data: { sphereId: relationId } }).unwrap(),
+      ),
+    );
+    await Promise.all(
+      getRelationshipUpdates(
+        previousHabitIds,
+        currentHabitsKeys,
+        currentId,
+      ).map(({ id, relationId }) =>
+        updateHabit({ id, data: { sphereId: relationId } }).unwrap(),
+      ),
     );
 
-    // navigate(routes.spheres.list);
-    // navigate(0);
+    navigate(-1);
   };
 
   return (
@@ -156,33 +116,41 @@ const AddEditSphere = () => {
         <TextArea rows={2} />
       </Form.Item>
 
-      <Form.Item label="Повязані звички">
+      <Form.Item label="Пов’язані звички">
         <Transfer
-          dataSource={notSelectedHabits}
-          titles={["Source", "Target"]}
+          dataSource={habitsTransferItems}
+          titles={["Доступні", "Пов’язані"]}
           targetKeys={currentHabitsKeys}
           selectedKeys={selectedHabitsKeys}
-          onChange={onHabitsTransferChange}
-          onSelectChange={onHabitsTransferSelectChange}
+          onChange={(nextTargetKeys) =>
+            setCurrentHabitsKeys(nextTargetKeys as string[])
+          }
+          onSelectChange={(sourceKeys, targetKeys) =>
+            setSelectedHabitsKeys([...sourceKeys, ...targetKeys] as string[])
+          }
           render={(item) => item.title}
         />
       </Form.Item>
 
-      <Form.Item label="Повязані цілі">
+      <Form.Item label="Пов’язані цілі">
         <Transfer
-          dataSource={notSelectedAims}
-          titles={["Source", "Target"]}
+          dataSource={aimsTransferItems}
+          titles={["Доступні", "Пов’язані"]}
           targetKeys={currentAimsKeys}
           selectedKeys={selectedAimsKeys}
-          onChange={onAimsTransferChange}
-          onSelectChange={onAimsTransferSelectChange}
+          onChange={(nextTargetKeys) =>
+            setCurrentAimsKeys(nextTargetKeys as string[])
+          }
+          onSelectChange={(sourceKeys, targetKeys) =>
+            setSelectedAimsKeys([...sourceKeys, ...targetKeys] as string[])
+          }
           render={(item) => item.title}
         />
       </Form.Item>
 
       <Form.Item>
         <Button htmlType="submit">
-          {sphereId ? "Записати зміни" : "Додати звичку"}
+          {sphereId ? "Записати зміни" : "Додати сферу життя"}
         </Button>
       </Form.Item>
     </Form>

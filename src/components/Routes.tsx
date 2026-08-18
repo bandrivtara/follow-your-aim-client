@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Routes, Route, HashRouter, Navigate } from "react-router-dom";
 import routes from "../config/routes";
 import AppLayout from "./Layout/AppLayout";
 import Main from "./Main/Main";
@@ -6,15 +6,12 @@ import AddEditAim from "./Aims/AddEditAim/AddEditAim";
 import AddEditHabit from "./Habits/AddEditHabit/AddEditHabit";
 import Habit from "./Habits/HabitsList/HabitsList";
 import AimsList from "./Aims/AimsList/AimsList";
-import SpheresList from "./Spheres/SpheresList/SpheresList";
-import AddEditSphere from "./Spheres/AddEditSphere/AddEditSphere";
 import TrackerCalendar from "./Calendar/Tracker/TrackerCalendar";
 import AimCalendar from "./Aims/AimsCalendar/AimCalendar";
 import HabitsCategoriesList from "./Habits/HabitsCategories/HabitsCategoriesList/HabitsCategoriesList";
 import AddEditHabitsCategory from "./Habits/HabitsCategories/AddEditHabitsCategory/AddEditHabitsCategory";
 import AddEditAimsCategory from "./Aims/AimsCategories/AddEditAimsCategory/AddEditAimsCategory";
 import AimsCategoriesList from "./Aims/AimsCategories/AimsCategoriesList/AimsCategoriesList";
-import Scheduler from "./Scheduler/Scheduler";
 import TasksGroupsList from "./TasksGroups/TasksGroupsList/TasksGroupsList";
 import AddEditTasksGroup from "./TasksGroups/AddEditTasksGroup/AddEditTasksGroup";
 import AddEditGroup from "./English/Vocabulary/Groups/AddEditGroup/AddEditGroup";
@@ -22,17 +19,28 @@ import GroupsList from "./English/Vocabulary/Groups/GroupsList/GroupsList";
 import AddEditWord from "./English/Vocabulary/Words/AddEditWord/AddEditWord";
 import WordsList from "./English/Vocabulary/Words/WordsList/WordsList";
 import WordsTest from "./English/Tests/WordsTest";
+import DailyReview from "./Review/DailyReview/DailyReview";
+import WeeklyReview from "./Review/WeeklyReview/WeeklyReview";
+import CodexGuide from "./Review/CodexGuide/CodexGuide";
+import CareerDashboard from "./Career/CareerDashboard";
 
 const AppRoutes = () => {
   return (
-    <Router>
+    <HashRouter>
       <AppLayout>
         <Routes>
           <Route path={routes.main} element={<Main />} />
 
-          <Route path={routes.calendar.scheduler} element={<Scheduler />} />
+          <Route
+            path={routes.calendar.scheduler}
+            element={<Navigate to={routes.main} replace />}
+          />
           <Route path={routes.calendar.tracker} element={<TrackerCalendar />} />
           <Route path={routes.calendar.aims} element={<AimCalendar />} />
+          <Route path={routes.review.daily} element={<DailyReview />} />
+          <Route path={routes.review.weekly} element={<WeeklyReview />} />
+          <Route path={routes.review.codex} element={<CodexGuide />} />
+          <Route path={routes.career} element={<CareerDashboard />} />
 
           <Route path={routes.habit.list} element={<Habit />} />
           <Route path={routes.habit.add} element={<AddEditHabit />} />
@@ -76,13 +84,6 @@ const AppRoutes = () => {
             element={<AddEditAimsCategory />}
           />
 
-          <Route path={routes.spheres.list} element={<SpheresList />} />
-          <Route path={routes.spheres.add} element={<AddEditSphere />} />
-          <Route
-            path={`${routes.spheres.edit}/:sphereId`}
-            element={<AddEditSphere />}
-          />
-
           <Route
             path={routes.english.vocabulary.group.add}
             element={<AddEditGroup />}
@@ -110,7 +111,7 @@ const AppRoutes = () => {
           <Route path={routes.english.tests.words} element={<WordsTest />} />
         </Routes>
       </AppLayout>
-    </Router>
+    </HashRouter>
   );
 };
 

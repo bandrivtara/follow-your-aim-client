@@ -10,7 +10,10 @@ import {
   OrderedListOutlined,
   HeatMapOutlined,
   CarryOutOutlined,
-  InsertRowAboveOutlined,
+  BookOutlined,
+  BarChartOutlined,
+  CodeOutlined,
+  RocketOutlined,
 } from "@ant-design/icons";
 import type { MenuProps } from "antd";
 import routes from "../../config/routes";
@@ -32,12 +35,6 @@ const useMenuItems = () => {
       label: "Календар",
       icon: <CalendarOutlined rev="string" />,
       children: [
-        {
-          key: 21,
-          label: "Розклад",
-          onClick: () => navigate(routes.calendar.scheduler),
-          icon: <InsertRowAboveOutlined rev="string" />,
-        },
         {
           key: 22,
           label: "Трекер",
@@ -69,12 +66,6 @@ const useMenuItems = () => {
           onClick: () => navigate(routes.taskGroups.add),
           icon: <PlusSquareOutlined rev="string" />,
         },
-        {
-          key: 33,
-          label: "Статистика",
-          onClick: () => navigate(routes.taskGroups.statistic),
-          icon: <LineChartOutlined rev="string" />,
-        },
       ],
     },
     {
@@ -93,12 +84,6 @@ const useMenuItems = () => {
           label: "Категорії",
           onClick: () => navigate(routes.habit.categories.list),
           icon: <UnorderedListOutlined rev="string" />,
-        },
-        {
-          key: 43,
-          label: "Статистика",
-          onClick: () => navigate(routes.habit.statistic),
-          icon: <LineChartOutlined rev="string" />,
         },
       ],
     },
@@ -119,36 +104,36 @@ const useMenuItems = () => {
           onClick: () => navigate(routes.aims.categories.list),
           icon: <UnorderedListOutlined rev="string" />,
         },
-        {
-          key: 53,
-          label: "Статистика",
-          onClick: () => navigate(routes.aims.statistic),
-          icon: <LineChartOutlined rev="string" />,
-        },
       ],
     },
     {
+      key: 8,
+      label: "Кар'єра",
+      onClick: () => navigate(routes.career),
+      icon: <RocketOutlined rev="string" />,
+    },
+    {
       key: 6,
-      label: "Сфери життя",
-      icon: <HeatMapOutlined rev="string" />,
+      label: "Огляди",
+      icon: <BookOutlined rev="string" />,
       children: [
         {
           key: 61,
-          label: "Усі сфери життя",
-          onClick: () => navigate(routes.spheres.list),
-          icon: <UnorderedListOutlined rev="string" />,
+          label: "Щоденний огляд",
+          onClick: () => navigate(routes.review.daily),
+          icon: <BookOutlined rev="string" />,
         },
         {
           key: 62,
-          label: "Додати сферу життя",
-          onClick: () => navigate(routes.spheres.add),
-          icon: <PlusSquareOutlined rev="string" />,
+          label: "Підсумок тижня",
+          onClick: () => navigate(routes.review.weekly),
+          icon: <BarChartOutlined rev="string" />,
         },
         {
           key: 63,
-          label: "Статистика",
-          onClick: () => navigate(routes.spheres.statistic),
-          icon: <LineChartOutlined rev="string" />,
+          label: "Codex-помічник",
+          onClick: () => navigate(routes.review.codex),
+          icon: <CodeOutlined rev="string" />,
         },
       ],
     },
