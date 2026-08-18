@@ -1,6 +1,6 @@
 # Observed Firebase contract
 
-Last verified from client code: 2026-07-28. This describes the existing integration; it does not authorize schema or rule changes.
+Last verified from client code: 2026-08-18. This describes the existing integration; it does not authorize further schema or rule changes.
 
 ## Safety boundary
 
@@ -26,6 +26,7 @@ Last verified from client code: 2026-07-28. This describes the existing integrat
 | aimsCategories/{categoryId}   | one category per document                    | src/store/services/aimsCategories.ts   |
 | spheres/{sphereId}            | one sphere per document                      | src/store/services/spheres.ts          |
 | history/{monthId}             | month with nested day/activity data and unix | src/store/services/history.ts          |
+| dailyReview/{monthId}         | month with nested day review data and unix   | src/store/services/dailyReviews.ts     |
 | english/groups                | map fields keyed by group ID                 | src/store/services/english.ts          |
 | english/words                 | map fields keyed by word ID                  | src/store/services/english.ts          |
 
@@ -43,6 +44,26 @@ List services usually attach Firestore document IDs as id. English differs: IDs 
 - History is read both by unix range in the RTK Query service and by document ID in src/share/fireBase/getHistoryBetweenDates.ts.
 
 Any date fix must keep both read paths consistent and test first/last-day and cross-month boundaries.
+
+## Daily review contract
+
+- Added with explicit user approval on 2026-08-18; review content remains independent from tracker `history` so reflection fields cannot be mistaken for activity IDs.
+- Collection: `dailyReview`; document ID: `YYYY-MM`; month documents keep `unix` for the same month-range query pattern as history.
+- Day fields use padded `DD` keys. Each value contains `date` (`YYYY-MM-DD`), `mood` (1–5), `energy` (1–5), `answers` keyed by stable question IDs, and `updatedAt` as Unix seconds.
+- A review is complete only when all five stable question IDs contain non-empty answers.
+- Completing a review uses one batched merge: it saves the selected `dailyReview` day and writes the configured `dailyReview` boolean habit as planned, `done`, and `100%` under the matching `history/{YYYY-MM}.{D}.{habitId}` path. Other days and activities are preserved.
+
+## Archive fields
+
+- Habits and aims can contain optional `isArchived: true`. Missing or false means active.
+- Archiving updates only that flag. Existing documents and historical tracker records are never deleted; archived items are omitted from active tracker, calendar, and dashboard views and remain available in archive lists.
+
+## Habit life-area metadata
+
+- Habits can contain optional `lifeArea`: `health`, `mental`, `learning`, `workFinance`, `relationships`, `creativity`, or `recovery`.
+- `lifeArea` is independent from `habitsCategoryId`. Existing habit categories continue to represent routine/time groupings and are not renamed or migrated.
+- `complexity` remains an integer from 1 to 10 and is interpreted as the effort required to perform the habit, not its importance.
+- The dashboard life-balance chart uses only non-hidden, non-archived habits with `lifeArea`, comparing the complexity-weighted share of the weekly plan with the complexity-weighted share of actual progress.
 
 ## Relationships
 
@@ -66,3 +87,12 @@ Observed live-data compatibility notes from the read-only audit on 2026-07-28:
 - Mutations invalidate broad domain tags.
 - Errors are generally converted to error.message and logged. Components still need to unwrap mutations or inspect error state.
 - Some files disable TypeScript checking, so runtime Firestore shape is authoritative when it conflicts with an interface.
+
+## Local Codex bridge boundary
+
+- `scripts/fya-codex-bridge.cjs` uses the same public Firebase configuration and deployed rules; it does not introduce Admin SDK credentials or bypass access control.
+- `export-context` reads `habit`, `habitsCategories`, `taskGroup`, `aim`, `history`, and `dailyReview` into an ignored local file.
+- `apply-plan` is dry-run unless `--apply` is supplied. It validates Monday–Sunday boundaries, existing activity and measure IDs, allowed fields, times, and task titles.
+- `apply-habit-metadata` is also dry-run unless `--apply` is supplied. It can update only `lifeArea` and `complexity` for existing non-archived habits, including hidden compatibility habits, whose IDs and titles both match the reviewed document.
+- Applied changes only merge planning data below `history/{YYYY-MM}/{DD}/{activityId}` and keep the existing month `unix` convention. No delete operation is implemented.
+- Because repository-only review cannot verify deployed rules, the bridge must remain a local personal tool and must not be exposed as a public API.

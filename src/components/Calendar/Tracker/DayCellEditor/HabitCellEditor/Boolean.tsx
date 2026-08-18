@@ -6,6 +6,7 @@ import {
   Switch,
   TextField,
   Box,
+  Button,
   Grid,
   LinearProgress,
   Typography,
@@ -28,6 +29,9 @@ import dayjs from "dayjs";
 import { IActivityData, IActivityHistoryData } from "types/history.types";
 import removeUndefinedDeep from "share/functions/sds";
 import _ from "lodash";
+import { useNavigate } from "react-router-dom";
+import routes from "config/routes";
+import habitsConfig from "config/habitsIds.json";
 
 interface IProps {
   colDef: ColDef<IHabitDayData>;
@@ -40,11 +44,14 @@ interface IFormValues {}
 const Boolean = ({ colDef, stopEditing, data }: IProps) => {
   const { control, handleSubmit, setValue } = useForm();
   const [updateHistory] = useUpdateHistoryMutation();
+  const navigate = useNavigate();
   const [initValues, setInitValues] = useState<IActivityHistoryData | null>(
-    null
+    null,
   );
   const cellData = colDef.field && data[+colDef.field];
   const { calendarMode, dayData } = colDef.cellRendererParams;
+  const isDailyReviewHabit =
+    data.id === habitsConfig.habits.dailyReview.details;
 
   useEffect(() => {
     const newInitValues: IActivityHistoryData = {
@@ -111,7 +118,7 @@ const Boolean = ({ colDef, stopEditing, data }: IProps) => {
       initValues,
       stopEditing,
       updateHistory,
-    ]
+    ],
   );
 
   const handleDelete = async () => {
@@ -161,6 +168,31 @@ const Boolean = ({ colDef, stopEditing, data }: IProps) => {
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [handleSubmit, handleConfirm]);
+
+  if (isDailyReviewHabit && calendarMode === "tracking") {
+    const reviewDate = `${dayData.year}-${String(dayData.month).padStart(
+      2,
+      "0",
+    )}-${String(dayData.day).padStart(2, "0")}`;
+
+    return (
+      <Box sx={{ maxWidth: 340, margin: 2 }}>
+        <Typography mb={2} color="text.secondary">
+          Ця звичка виконується лише після збереження всіх п’яти відповідей
+          щоденного огляду.
+        </Typography>
+        <Button
+          variant="contained"
+          onClick={() => {
+            stopEditing();
+            navigate(`${routes.review.daily}?date=${reviewDate}`);
+          }}
+        >
+          Заповнити щоденний огляд
+        </Button>
+      </Box>
+    );
+  }
 
   return (
     initValues && (

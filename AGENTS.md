@@ -63,3 +63,5 @@
 - docs/codex/firebase-contract.md - observed Firestore contract and safety boundary.
 - docs/codex/verification.md - safe validation commands and expectations.
 - docs/codex/known-issues.md - confirmed findings and current priorities.
+- docs/codex/weekly-planning-protocol-v1.md - evidence, interview, sanity-check, and output contract for next-week planning.
+- docs/codex/bridge-api.md - local Codex read/dry-run/apply workflow for tracker planning.

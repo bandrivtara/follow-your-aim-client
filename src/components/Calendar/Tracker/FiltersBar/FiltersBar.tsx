@@ -1,4 +1,4 @@
-import { RefObject, useCallback } from "react";
+import { RefObject, useCallback, useState } from "react";
 import {
   Button,
   DatePicker,
@@ -12,6 +12,7 @@ import {
   DownloadOutlined,
   LeftOutlined,
   RightOutlined,
+  FilterOutlined,
 } from "@ant-design/icons";
 import { AgGridReact } from "ag-grid-react";
 import dayjs, { Dayjs } from "dayjs";
@@ -57,6 +58,7 @@ const FiltersBar = ({
   exportDisabled,
 }: IProps) => {
   const isMobile = useIsMobile();
+  const [showMoreFilters, setShowMoreFilters] = useState(!isMobile);
 
   const onPickerSelect = useCallback(
     (selectedDate: Dayjs) => {
@@ -142,7 +144,19 @@ const FiltersBar = ({
         />
       </div>
 
-      <div className="tracker-filters">
+      {isMobile && (
+        <Button
+          className="mobile-filters-toggle"
+          icon={<FilterOutlined />}
+          onClick={() => setShowMoreFilters((current) => !current)}
+        >
+          {showMoreFilters ? "Сховати додаткове" : "Фільтри й експорт"}
+        </Button>
+      )}
+
+      <div
+        className={`tracker-filters ${!showMoreFilters ? "tracker-filters--hidden" : ""}`}
+      >
         <Select
           aria-label="Фільтр активностей"
           onChange={setFilteredCategory}

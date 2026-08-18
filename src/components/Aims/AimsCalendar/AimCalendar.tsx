@@ -45,7 +45,9 @@ const AimCalendar = () => {
   };
 
   const showAllAims = () => {
-    const aimsRange = getAimsDateRange(allAims.data);
+    const aimsRange = getAimsDateRange(
+      allAims.data?.filter((aim) => !aim.isArchived),
+    );
     aimsRange && setMonthsDates(aimsRange);
   };
 

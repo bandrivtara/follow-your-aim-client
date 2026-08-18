@@ -69,7 +69,7 @@ const getRows = (
   if (!rangeFrom || !rangeTo) return [];
 
   return allAims
-    .filter((aim) => isAimInRange(aim, monthsDates))
+    .filter((aim) => !aim.isArchived && isAimInRange(aim, monthsDates))
     .map((aim) => {
       const aimDateFrom = dayjs(aim.dateFrom);
       const aimDateTo = dayjs(aim.dateTo);

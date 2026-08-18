@@ -21,6 +21,7 @@ export interface IAim {
   finalAim: number;
   startedPoint: number;
   currentValue?: number;
+  isArchived?: boolean;
   relatedHabit: string[];
   relatedList: IAimRelatedList;
 }

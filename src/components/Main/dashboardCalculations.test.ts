@@ -4,6 +4,7 @@ import {
   getDashboardActivitiesForDate,
   getDashboardActivityProgress,
   getDashboardPlanPerformance,
+  getDashboardLifeBalance,
   getDashboardWeekData,
   isDashboardActivityPlanned,
 } from "./dashboardCalculations";
@@ -156,5 +157,63 @@ describe("dashboard calculations", () => {
 
   it("counts consecutive active days including yesterday when today is empty", () => {
     expect(getActivityStreak([julyHistory], dayjs("2026-07-29"))).toBe(2);
+  });
+
+  it("compares planned and actual weekly life-area effort", () => {
+    const history = [
+      {
+        unix: dayjs("2026-07").unix(),
+        "27": {
+          health: { progress: 100, isPlanned: true },
+          learning: { progress: 50, isPlanned: true },
+          recovery: { progress: 100, isPlanned: false },
+        },
+      },
+    ];
+    const habits = [
+      {
+        id: "health",
+        lifeArea: "health",
+        complexity: 8,
+        type: "habit",
+        title: "Спорт",
+      },
+      {
+        id: "learning",
+        lifeArea: "learning",
+        complexity: 2,
+        type: "habit",
+        title: "Навчання",
+      },
+      {
+        id: "recovery",
+        lifeArea: "recovery",
+        complexity: 5,
+        type: "habit",
+        title: "Відпочинок",
+      },
+    ] as any;
+
+    const balance = getDashboardLifeBalance(
+      history,
+      dayjs("2026-07-27"),
+      habits,
+    );
+
+    expect(balance.find(({ id }) => id === "health")).toMatchObject({
+      plannedShare: 80,
+      actualShare: 57,
+      completion: 100,
+    });
+    expect(balance.find(({ id }) => id === "learning")).toMatchObject({
+      plannedShare: 20,
+      actualShare: 7,
+      completion: 50,
+    });
+    expect(balance.find(({ id }) => id === "recovery")).toMatchObject({
+      plannedShare: 0,
+      actualShare: 36,
+      completion: 100,
+    });
   });
 });

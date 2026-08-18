@@ -21,11 +21,13 @@ import {
   TrackerRangeMode,
 } from "./calendarRange";
 import { buildTrackerExport, downloadTrackerExport } from "./trackerExport";
+import { useSearchParams } from "react-router-dom";
 
 export type ITrackerCalendarState = "tracking" | "planning";
 
 const TrackerCalendar = () => {
   const isMobile = useIsMobile();
+  const [searchParams] = useSearchParams();
   const habitsData = useGetHabitListQuery();
   const taskGroupsData = useGetTaskGroupListQuery();
   const gridRef = useRef<AgGridReact>(null);
@@ -35,9 +37,15 @@ const TrackerCalendar = () => {
     null,
   );
   const [isEditOpen, setIsEditOpen] = useState(false);
-  const initialRangeMode: Exclude<TrackerRangeMode, "custom"> = isMobile
-    ? "day"
-    : "week";
+  const requestedRangeMode = searchParams.get("view");
+  const initialRangeMode: Exclude<TrackerRangeMode, "custom"> =
+    requestedRangeMode === "day" ||
+    requestedRangeMode === "week" ||
+    requestedRangeMode === "month"
+      ? requestedRangeMode
+      : isMobile
+        ? "day"
+        : "week";
   const [rangeMode, setRangeMode] =
     useState<TrackerRangeMode>(initialRangeMode);
   const [currentDate, setCurrentDate] = useState<(Dayjs | null)[]>(
@@ -57,7 +65,11 @@ const TrackerCalendar = () => {
     useState<ITrackerCalendarState>("tracking");
 
   useEffect(() => {
-    const newColumnDefs = tableConfigs.getColumnDefs(currentDate, calendarMode);
+    const newColumnDefs = tableConfigs.getColumnDefs(
+      currentDate,
+      calendarMode,
+      isMobile,
+    );
     const newRows = tableConfigs.getRows(
       habitsData.data,
       taskGroupsData.data,
@@ -75,6 +87,7 @@ const TrackerCalendar = () => {
     rowSortingType,
     taskGroupsData.data,
     historyData.data,
+    isMobile,
   ]);
 
   useEffect(() => {
@@ -145,8 +158,14 @@ const TrackerCalendar = () => {
         <Drawer
           open={isEditOpen}
           onClose={toggleCloseEditCell}
+          anchor="right"
           container={isMobile ? undefined : gridContainerRef.current}
           elevation={2}
+          PaperProps={{
+            sx: {
+              width: isMobile ? "100%" : "min(480px, 92vw)",
+            },
+          }}
         >
           <DayCellEditor
             editableCell={editableCell}

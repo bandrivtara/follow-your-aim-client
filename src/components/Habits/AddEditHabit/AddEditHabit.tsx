@@ -31,6 +31,7 @@ import { getTimeOptions } from "share/functions/getTimeOptions";
 import { useWatch } from "antd/es/form/Form";
 import StyledAddEditHabit from "./AddEditHabit.styled";
 import { useGetHabitsCategoriesListQuery } from "store/services/habitsCategories";
+import { LIFE_AREAS } from "config/lifeAreas";
 
 const formInitialValues = {
   title: "",
@@ -44,6 +45,7 @@ const formInitialValues = {
   endTime: "",
   isHidden: false,
   habitsCategoryId: "",
+  lifeArea: undefined,
 };
 
 const AddEditHabit = () => {
@@ -108,6 +110,7 @@ const AddEditHabit = () => {
           rules={[{ required: true }]}
           name="complexity"
           label="Складність"
+          extra="1 — майже без зусиль, 10 — максимальне фізичне або розумове навантаження"
         >
           <Slider min={1} max={10} />
         </Form.Item>
@@ -122,6 +125,15 @@ const AddEditHabit = () => {
             <Select.Option key={"no-category"} value={""}>
               Без категорії
             </Select.Option>
+          </Select>
+        </Form.Item>
+        <Form.Item label="Сфера життя" name="lifeArea">
+          <Select allowClear placeholder="Виберіть сферу життя">
+            {LIFE_AREAS.map((area) => (
+              <Select.Option key={area.id} value={area.id}>
+                {area.title}
+              </Select.Option>
+            ))}
           </Select>
         </Form.Item>
         <Form.Item name="type" initialValue="habit" />

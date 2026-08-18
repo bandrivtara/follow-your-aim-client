@@ -87,7 +87,16 @@ const StyledMain = styled.main`
     }
 
     .summary-grid {
-      grid-template-columns: 1fr;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .metric-card {
+      min-height: 112px;
+    }
+
+    .metric-card .MuiCardContent-root {
+      padding: 14px;
     }
 
     .dashboard-actions > button {

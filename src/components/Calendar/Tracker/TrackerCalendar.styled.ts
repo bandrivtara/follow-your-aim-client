@@ -79,7 +79,8 @@ const StyledHabitsCalendar = styled.div`
     }
 
     .fyi-ag-theme {
-      height: calc(100vh - 330px);
+      height: calc(100vh - 260px);
+      min-height: 360px;
     }
   }
 `;

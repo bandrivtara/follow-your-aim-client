@@ -24,6 +24,10 @@ const StyledFiltersBarRow = styled(Row)`
     justify-content: space-between;
   }
 
+  .mobile-filters-toggle {
+    display: none;
+  }
+
   .tracker-filters .ant-select {
     min-width: 210px;
   }
@@ -36,7 +40,19 @@ const StyledFiltersBarRow = styled(Row)`
       align-items: stretch;
     }
 
-    .ant-picker-range,
+    .mobile-filters-toggle {
+      display: block;
+      width: 100%;
+    }
+
+    .tracker-filters--hidden {
+      display: none;
+    }
+
+    .calendar-navigation .ant-picker-range {
+      display: none;
+    }
+
     .tracker-filters .ant-select,
     .tracker-filters .ant-radio-group {
       width: 100%;

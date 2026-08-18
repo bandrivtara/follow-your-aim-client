@@ -20,6 +20,9 @@ import GroupsList from "./English/Vocabulary/Groups/GroupsList/GroupsList";
 import AddEditWord from "./English/Vocabulary/Words/AddEditWord/AddEditWord";
 import WordsList from "./English/Vocabulary/Words/WordsList/WordsList";
 import WordsTest from "./English/Tests/WordsTest";
+import DailyReview from "./Review/DailyReview/DailyReview";
+import WeeklyReview from "./Review/WeeklyReview/WeeklyReview";
+import CodexGuide from "./Review/CodexGuide/CodexGuide";
 
 const AppRoutes = () => {
   return (
@@ -31,6 +34,9 @@ const AppRoutes = () => {
           <Route path={routes.calendar.scheduler} element={<Scheduler />} />
           <Route path={routes.calendar.tracker} element={<TrackerCalendar />} />
           <Route path={routes.calendar.aims} element={<AimCalendar />} />
+          <Route path={routes.review.daily} element={<DailyReview />} />
+          <Route path={routes.review.weekly} element={<WeeklyReview />} />
+          <Route path={routes.review.codex} element={<CodexGuide />} />
 
           <Route path={routes.habit.list} element={<Habit />} />
           <Route path={routes.habit.add} element={<AddEditHabit />} />

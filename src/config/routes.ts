@@ -9,6 +9,11 @@ const routes = {
     tracker: "/calendar/tracker",
     aims: "/calendar/aims",
   },
+  review: {
+    daily: "/review/daily",
+    weekly: "/review/weekly",
+    codex: "/review/codex",
+  },
   taskGroups: {
     path: "/task-groups",
     list: "/task-groups/list",

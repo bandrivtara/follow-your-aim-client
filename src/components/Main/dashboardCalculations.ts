@@ -1,5 +1,6 @@
 import dayjs, { Dayjs } from "dayjs";
 import { IHabitData } from "types/habits.types";
+import { LIFE_AREAS, LifeAreaId } from "config/lifeAreas";
 
 export interface DashboardActivity {
   id: string;
@@ -17,6 +18,18 @@ export interface DashboardDayData {
   planned: number;
   completedPlanned: number;
   completedOutsidePlan: number;
+}
+
+export interface LifeBalanceAreaData {
+  id: LifeAreaId;
+  title: string;
+  shortTitle: string;
+  color: string;
+  plannedPoints: number;
+  actualPoints: number;
+  plannedShare: number;
+  actualShare: number;
+  completion: number;
 }
 
 const clampProgress = (value: number) => Math.min(100, Math.max(0, value));
@@ -170,6 +183,76 @@ export const getDashboardWeekData = (
       date: date.format("YYYY-MM-DD"),
       label,
       ...performance,
+    };
+  });
+};
+
+export const getDashboardLifeBalance = (
+  history: Record<string, any>[] = [],
+  currentDate: Dayjs,
+  habits: IHabitData[] = [],
+): LifeBalanceAreaData[] => {
+  const weekStart = getMonday(currentDate);
+  const habitById = new Map(
+    habits
+      .filter(
+        (habit) => !habit.isArchived && !habit.isHidden && habit.lifeArea,
+      )
+      .map((habit) => [habit.id, habit]),
+  );
+  const values = new Map<
+    LifeAreaId,
+    { plannedPoints: number; actualPoints: number }
+  >();
+
+  for (let dayIndex = 0; dayIndex < 7; dayIndex += 1) {
+    const activities = getDashboardActivitiesForDate(
+      history,
+      weekStart.add(dayIndex, "day"),
+      habits,
+    );
+    activities.forEach((activity) => {
+      const habit = habitById.get(activity.id);
+      if (!habit?.lifeArea) return;
+      const weight = Math.min(10, Math.max(1, Number(habit.complexity) || 5));
+      const current = values.get(habit.lifeArea) || {
+        plannedPoints: 0,
+        actualPoints: 0,
+      };
+      if (activity.isPlanned) current.plannedPoints += weight;
+      current.actualPoints += weight * (clampProgress(activity.progress) / 100);
+      values.set(habit.lifeArea, current);
+    });
+  }
+
+  const totalPlanned = Array.from(values.values()).reduce(
+    (sum, value) => sum + value.plannedPoints,
+    0,
+  );
+  const totalActual = Array.from(values.values()).reduce(
+    (sum, value) => sum + value.actualPoints,
+    0,
+  );
+
+  return LIFE_AREAS.map((area) => {
+    const value = values.get(area.id) || {
+      plannedPoints: 0,
+      actualPoints: 0,
+    };
+    return {
+      ...area,
+      ...value,
+      plannedShare: totalPlanned
+        ? Math.round((value.plannedPoints / totalPlanned) * 100)
+        : 0,
+      actualShare: totalActual
+        ? Math.round((value.actualPoints / totalActual) * 100)
+        : 0,
+      completion: value.plannedPoints
+        ? Math.round((value.actualPoints / value.plannedPoints) * 100)
+        : value.actualPoints > 0
+          ? 100
+          : 0,
     };
   });
 };

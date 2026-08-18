@@ -1,6 +1,6 @@
 # Known issues and review queue
 
-Last verified: 2026-07-28 on FYA-17-create-chart-analytics at commit 8e8a061.
+Last verified: 2026-08-18 on FYA-17-create-chart-analytics.
 
 This is a triage aid, not permission to fix items outside the requested scope. Reproduce and re-read current code before implementation. Never solve an item by changing the Firebase contract without explicit approval.
 
@@ -24,6 +24,11 @@ This is a triage aid, not permission to fix items outside the requested scope. R
 - Accessibility and responsive behavior need focused review, especially grids, drawers, form labels, keyboard use, and status announcements.
 
 ## Recently resolved
+
+- Mobile navigation now prioritizes Today, today's Tracker, Daily Review, and Weekly Review; the complete menu remains available through More.
+- Daily review and weekly report flows now connect subjective reflection to tracker results without embedding an AI provider or API key in the client.
+- Goals and habits can be archived and restored without deleting their Firestore documents or historical tracker data.
+- Weekly planning now has a versioned evidence/interview contract, a four-week context export, and a local bridge with validation plus dry-run-by-default plan application.
 
 - Dashboard completion is now normalized against explicitly planned tracker activities, while completed work outside the plan can raise the score above 100%.
 - Active aim calculations stop at the current date and fall back to the configured starting point when no measurement exists, preventing future placeholder values from completing descending goals.

@@ -9,9 +9,9 @@ import {
   Typography,
 } from "@mui/material";
 import {
-  CalendarMonthOutlined,
+  AssessmentOutlined,
   CheckCircleOutline,
-  FlagOutlined,
+  EditNoteOutlined,
 } from "@mui/icons-material";
 import { BarChart } from "@mui/x-charts/BarChart";
 import { useMemo } from "react";
@@ -27,6 +27,7 @@ import StyledMain from "./Main.styled";
 import {
   getActivityStreak,
   getDashboardActivitiesForDate,
+  getDashboardLifeBalance,
   getDashboardPlanPerformance,
   getDashboardWeekData,
   isDashboardActivityPlanned,
@@ -60,9 +61,11 @@ const Main = () => {
       habitData,
     );
     const week = getDashboardWeekData(historyData, now, habitData);
+    const lifeBalance = getDashboardLifeBalance(historyData, now, habitData);
     const todayPerformance = getDashboardPlanPerformance(todayActivities);
     const activeAims = (aims.data || []).filter(
       (aim) =>
+        !aim.isArchived &&
         !now.isBefore(dayjs(aim.dateFrom), "day") &&
         !now.isAfter(dayjs(aim.dateTo), "day"),
     );
@@ -73,6 +76,7 @@ const Main = () => {
       .filter(
         (habit) =>
           !habit.isHidden &&
+          !habit.isArchived &&
           activityById.has(habit.id) &&
           isDashboardActivityPlanned(activityById.get(habit.id)!.source) &&
           Array.isArray(habit.startTime) &&
@@ -89,6 +93,7 @@ const Main = () => {
     return {
       todayActivities,
       week,
+      lifeBalance,
       todayPerformance,
       activeAims,
       activityById,
@@ -102,6 +107,9 @@ const Main = () => {
     Math.ceil(
       Math.max(...dashboardData.week.map((day) => day.progress), 100) / 25,
     ) * 25,
+  );
+  const hasLifeBalance = dashboardData.lifeBalance.some(
+    (area) => area.plannedPoints > 0 || area.actualPoints > 0,
   );
 
   const summaryCards = [
@@ -128,7 +136,7 @@ const Main = () => {
     },
     {
       label: "Звички",
-      value: habits.data?.length || 0,
+      value: habits.data?.filter((habit) => !habit.isArchived).length || 0,
       hint: `${dashboardData.scheduledHabits.length} мають час у розкладі`,
     },
   ];
@@ -148,23 +156,23 @@ const Main = () => {
           <Button
             variant="contained"
             startIcon={<CheckCircleOutline />}
-            onClick={() => navigate(routes.calendar.tracker)}
+            onClick={() => navigate(`${routes.calendar.tracker}?view=day`)}
           >
-            Відкрити трекер
+            Внести дані за сьогодні
           </Button>
           <Button
             variant="outlined"
-            startIcon={<CalendarMonthOutlined />}
-            onClick={() => navigate(routes.calendar.scheduler)}
+            startIcon={<EditNoteOutlined />}
+            onClick={() => navigate(routes.review.daily)}
           >
-            Розклад
+            Огляд дня
           </Button>
           <Button
             variant="outlined"
-            startIcon={<FlagOutlined />}
-            onClick={() => navigate(routes.calendar.aims)}
+            startIcon={<AssessmentOutlined />}
+            onClick={() => navigate(routes.review.weekly)}
           >
-            Цілі
+            Підсумок тижня
           </Button>
         </div>
       </header>
@@ -211,6 +219,74 @@ const Main = () => {
                 height={300}
                 margin={{ left: 45, right: 20, top: 35, bottom: 30 }}
               />
+            </CardContent>
+          </Card>
+
+          <Card className="dashboard-card">
+            <CardContent>
+              <Typography variant="h5">Баланс життя за тиждень</Typography>
+              <Typography color="text.secondary">
+                Частка запланованого й фактичного навантаження за сферами,
+                зважена на складність звичок
+              </Typography>
+              {hasLifeBalance ? (
+                <>
+                  <BarChart
+                    layout="horizontal"
+                    yAxis={[
+                      {
+                        scaleType: "band",
+                        data: dashboardData.lifeBalance.map(
+                          (area) => area.shortTitle,
+                        ),
+                      },
+                    ]}
+                    xAxis={[
+                      {
+                        min: 0,
+                        max: 100,
+                        valueFormatter: (value) => `${value}%`,
+                      },
+                    ]}
+                    series={[
+                      {
+                        data: dashboardData.lifeBalance.map(
+                          (area) => area.plannedShare,
+                        ),
+                        label: "План, %",
+                        color: "#b9c3ce",
+                        valueFormatter: (value) => `${value ?? 0}%`,
+                      },
+                      {
+                        data: dashboardData.lifeBalance.map(
+                          (area) => area.actualShare,
+                        ),
+                        label: "Факт, %",
+                        color: "#52a447",
+                        valueFormatter: (value) => `${value ?? 0}%`,
+                      },
+                    ]}
+                    height={390}
+                    margin={{ left: 100, right: 20, top: 50, bottom: 30 }}
+                  />
+                  <Stack direction="row" flexWrap="wrap" gap={1} mt={1}>
+                    {dashboardData.lifeBalance
+                      .filter((area) => area.plannedPoints > 0)
+                      .map((area) => (
+                        <Chip
+                          key={area.id}
+                          size="small"
+                          label={`${area.shortTitle}: ${area.completion}% виконання`}
+                        />
+                      ))}
+                  </Stack>
+                </>
+              ) : (
+                <Typography color="text.secondary" mt={2}>
+                  Додай сферу життя до активних звичок, щоб побачити розподіл
+                  плану й фактичного виконання.
+                </Typography>
+              )}
             </CardContent>
           </Card>
 
