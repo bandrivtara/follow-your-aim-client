@@ -8,6 +8,7 @@ import { ColDef } from "ag-grid-community";
 import { useEffect, useState } from "react";
 import { IStopEditing } from "../../cellConfigs";
 import { useUpdateHistoryMutation } from "store/services/history";
+import StyledDayCellForm from "../DayCellForm.styled";
 
 interface IProps {
   data: IDayCellEditor;
@@ -72,51 +73,48 @@ const Time = ({ data, colDef, stopEditing }: IProps) => {
 
   return (
     initValues && (
-      <Form
-        labelCol={{ span: 8 }}
-        wrapperCol={{ span: 14 }}
-        layout="horizontal"
-        style={{ minWidth: 300, margin: 20 }}
-        form={form}
-        name="dayCellEditor"
-        onFinish={handleConfirm}
-        initialValues={initValues}
-      >
-        <Form.Item
-          noStyle
-          shouldUpdate={(prevValues, currentValues) =>
-            prevValues !== currentValues
-          }
+      <StyledDayCellForm>
+        <Form
+          layout="vertical"
+          form={form}
+          name="dayCellEditor"
+          onFinish={handleConfirm}
+          initialValues={initValues}
         >
-          {data.calendarMode === "tracking" ? (
-            <Form.Item name="value" label="Час" rules={[{ required: true }]}>
-              <Cascader
-                suffixIcon={<ClockCircleOutlined rev={"value"} />}
-                style={{ width: "100px" }}
-                options={getTimeOptions(15)}
-              />
-            </Form.Item>
-          ) : (
-            <Form.Item
-              name="plannedValue"
-              label="Час"
-              rules={[{ required: true }]}
-            >
-              <Cascader
-                suffixIcon={<ClockCircleOutlined rev={"value"} />}
-                style={{ width: "100px" }}
-                options={getTimeOptions(15)}
-              />
-            </Form.Item>
-          )}
-        </Form.Item>
-        <Form.Item>
-          <FormButtons
-            handleDecline={handleDecline}
-            handleDelete={handleDelete}
-          />
-        </Form.Item>
-      </Form>
+          <Form.Item
+            noStyle
+            shouldUpdate={(prevValues, currentValues) =>
+              prevValues !== currentValues
+            }
+          >
+            {data.calendarMode === "tracking" ? (
+              <Form.Item name="value" label="Час" rules={[{ required: true }]}>
+                <Cascader
+                  suffixIcon={<ClockCircleOutlined rev={"value"} />}
+                  options={getTimeOptions(15)}
+                />
+              </Form.Item>
+            ) : (
+              <Form.Item
+                name="plannedValue"
+                label="Час"
+                rules={[{ required: true }]}
+              >
+                <Cascader
+                  suffixIcon={<ClockCircleOutlined rev={"value"} />}
+                  options={getTimeOptions(15)}
+                />
+              </Form.Item>
+            )}
+          </Form.Item>
+          <Form.Item className="editor-actions">
+            <FormButtons
+              handleDecline={handleDecline}
+              handleDelete={handleDelete}
+            />
+          </Form.Item>
+        </Form>
+      </StyledDayCellForm>
     )
   );
 };

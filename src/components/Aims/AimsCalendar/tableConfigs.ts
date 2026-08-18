@@ -8,7 +8,10 @@ import { IAimsCategoryData } from "types/aimsCategories.types";
 import { getRelationTitle } from "share/functions/getRelationshipUpdates";
 import { isAimInRange } from "./aimCalendarCalculations";
 
-const getColumnDefs = (monthsDates: (Dayjs | null)[]): ColDef[] => {
+const getColumnDefs = (
+  monthsDates: (Dayjs | null)[],
+  isMobile = false,
+): ColDef[] => {
   if (!monthsDates[0] || !monthsDates[1]) return [{}];
   const monthDiff = monthsDates[1].month() - monthsDates[0].month();
   const yearDiff = monthsDates[1].year() - monthsDates[0].year();
@@ -32,10 +35,15 @@ const getColumnDefs = (monthsDates: (Dayjs | null)[]): ColDef[] => {
     });
   }
 
+  const showsSeveralYears = monthsDates[0].year() !== monthsDates[1].year();
+  const monthWidth = isMobile ? 128 : 164;
+
   const newColDefs: ColDef[] = months.map((month) => ({
     field: `col-${month.year}-${month.monthIndex}`,
-    headerName: month.name,
-    width: 150,
+    headerName: showsSeveralYears ? `${month.name} ${month.year}` : month.name,
+    width: monthWidth,
+    minWidth: monthWidth,
+    cellClass: "day-cell",
     editable: ({ data }) => !data.isRelatedWithHabit,
     cellEditorPopup: true,
     cellEditor: AimCellEditor,
@@ -52,7 +60,10 @@ const getColumnDefs = (monthsDates: (Dayjs | null)[]): ColDef[] => {
     field: "aim-category-col",
     headerName: "Категорія цілі",
     pinned: "left",
-    width: 220,
+    width: isMobile ? 150 : 220,
+    minWidth: isMobile ? 150 : 220,
+    cellClass: "aim-category-cell",
+    tooltipField: "aim-category-col",
   };
 
   return [aimCategoryCol, ...newColDefs];

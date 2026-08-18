@@ -9,7 +9,13 @@ const StyledAddEditHabit = styled.div`
   }
 
   .habit-form {
-    max-width: 820px;
+    max-width: none;
+  }
+
+  .field-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 18px;
   }
 
   .ant-form-item {
@@ -40,6 +46,37 @@ const StyledAddEditHabit = styled.div`
     flex-wrap: wrap;
   }
 
+  .habit-type-group {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    width: 100%;
+  }
+
+  .habit-type-group .ant-radio-button-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 44px;
+    border: 1px solid #dfe4ec;
+    border-radius: 11px;
+  }
+
+  .habit-type-group .ant-radio-button-wrapper::before {
+    display: none;
+  }
+
+  .habit-type-group .ant-radio-button-wrapper-checked {
+    color: #4051d6;
+    border-color: #5b6cf9;
+    background: rgba(91, 108, 249, 0.07);
+    box-shadow: 0 0 0 3px rgba(91, 108, 249, 0.08);
+  }
+
+  .ant-slider {
+    margin-inline: 8px;
+  }
+
   .ant-space-compact {
     width: 100%;
   }
@@ -52,8 +89,10 @@ const StyledAddEditHabit = styled.div`
   }
 
   .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
     margin-top: 8px;
-    margin-bottom: 0;
     padding-top: 22px;
     border-top: 1px solid #edf0f5;
   }
@@ -73,8 +112,16 @@ const StyledAddEditHabit = styled.div`
       padding-bottom: 6px;
     }
 
-    .form-actions .ant-space,
-    .form-actions .ant-space-item,
+    .field-grid,
+    .habit-type-group {
+      grid-template-columns: 1fr;
+    }
+
+    .form-actions {
+      align-items: stretch;
+      flex-direction: column;
+    }
+
     .form-actions button {
       width: 100%;
     }

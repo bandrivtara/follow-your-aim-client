@@ -66,13 +66,6 @@ const AddEditHabit = () => {
     form.setFieldsValue(habitDetails.data);
   }, [habitDetails, form, habitsCategories?.data]);
 
-  const formItemLayoutWithOutLabel = {
-    wrapperCol: {
-      xs: { span: 24, offset: 0 },
-      sm: { span: 16, offset: 7 },
-    },
-  };
-
   const onFinish = async (newHabitData: IHabitData) => {
     try {
       if (habitId) {
@@ -116,17 +109,19 @@ const AddEditHabit = () => {
         <Form
           className="habit-form"
           form={form}
-          labelCol={{ xs: { span: 24 }, sm: { span: 7 } }}
-          wrapperCol={{ xs: { span: 24 }, sm: { span: 16 } }}
-          layout="horizontal"
+          layout="vertical"
           onFinish={onFinish}
           initialValues={formInitialValues}
         >
-          <Form.Item rules={[{ required: true }]} name="title" label="Назва">
-            <Input />
+          <Form.Item
+            rules={[{ required: true, message: "Вкажи назву звички" }]}
+            name="title"
+            label="Назва"
+          >
+            <Input size="large" placeholder="Наприклад, Медитація" />
           </Form.Item>
           <Form.Item name="description" label="Опис">
-            <TextArea rows={2} />
+            <TextArea rows={3} maxLength={500} showCount />
           </Form.Item>
           <Form.Item
             rules={[{ required: true }]}
@@ -134,33 +129,34 @@ const AddEditHabit = () => {
             label="Складність"
             extra="1 — майже без зусиль, 10 — максимальне фізичне або розумове навантаження"
           >
-            <Slider min={1} max={10} />
+            <Slider min={1} max={10} marks={{ 1: "1", 5: "5", 10: "10" }} />
           </Form.Item>
-          <Form.Item label="Категорія" name="habitsCategoryId">
-            <Select placeholder="Виберіть категорію">
-              {habitsCategories.data &&
-                habitsCategories.data.map((category) => (
+          <div className="field-grid">
+            <Form.Item label="Категорія" name="habitsCategoryId">
+              <Select size="large" placeholder="Вибери категорію">
+                {habitsCategories.data?.map((category) => (
                   <Select.Option key={category.id} value={category.id}>
                     {category.title}
                   </Select.Option>
                 ))}
-              <Select.Option key={"no-category"} value={""}>
-                Без категорії
-              </Select.Option>
-            </Select>
-          </Form.Item>
-          <Form.Item label="Сфера життя" name="lifeArea">
-            <Select allowClear placeholder="Виберіть сферу життя">
-              {LIFE_AREAS.map((area) => (
-                <Select.Option key={area.id} value={area.id}>
-                  {area.title}
+                <Select.Option key="no-category" value="">
+                  Без категорії
                 </Select.Option>
-              ))}
-            </Select>
-          </Form.Item>
+              </Select>
+            </Form.Item>
+            <Form.Item label="Сфера життя" name="lifeArea">
+              <Select size="large" allowClear placeholder="Вибери сферу життя">
+                {LIFE_AREAS.map((area) => (
+                  <Select.Option key={area.id} value={area.id}>
+                    {area.title}
+                  </Select.Option>
+                ))}
+              </Select>
+            </Form.Item>
+          </div>
           <Form.Item name="type" initialValue="habit" hidden />
           <Form.Item rules={[{ required: true }]} name="valueType" label="Тип">
-            <Radio.Group defaultValue="measures">
+            <Radio.Group className="habit-type-group" defaultValue="measures">
               <Radio.Button value="measures">Вимірювальна</Radio.Button>
               <Radio.Button value="boolean">Проста (Так/Ні)</Radio.Button>
             </Radio.Group>
@@ -212,8 +208,7 @@ const AddEditHabit = () => {
                         {fields.map((field, index) => (
                           <Form.Item
                             className={index === 0 ? "main-field" : ""}
-                            {...formItemLayoutWithOutLabel}
-                            label={index === 0 ? "Головне:" : `${index + 1}:`}
+                            label={index === 0 ? "Головне поле" : `Поле ${index + 1}`}
                             key={field.key}
                           >
                             <Form.Item
@@ -272,7 +267,7 @@ const AddEditHabit = () => {
                           </Form.Item>
                         ))}
 
-                        <Form.Item {...formItemLayoutWithOutLabel}>
+                        <Form.Item>
                           <Button
                             type="dashed"
                             onClick={() => add()}
@@ -295,22 +290,17 @@ const AddEditHabit = () => {
             <Switch />
           </Form.Item>
 
-          <Form.Item
-            className="form-actions"
-            wrapperCol={{ xs: { span: 24 }, sm: { span: 16, offset: 7 } }}
-          >
-            <Space wrap>
-              <Button onClick={() => navigate(-1)}>Скасувати</Button>
-              <Button
-                type="primary"
-                htmlType="submit"
-                icon={<SaveOutlined />}
-                loading={isAdding || isUpdating}
-              >
-                {habitId ? "Зберегти зміни" : "Додати звичку"}
-              </Button>
-            </Space>
-          </Form.Item>
+          <div className="form-actions">
+            <Button onClick={() => navigate(-1)}>Скасувати</Button>
+            <Button
+              type="primary"
+              htmlType="submit"
+              icon={<SaveOutlined />}
+              loading={isAdding || isUpdating}
+            >
+              {habitId ? "Зберегти зміни" : "Додати звичку"}
+            </Button>
+          </div>
         </Form>
       </div>
     </StyledAddEditHabit>

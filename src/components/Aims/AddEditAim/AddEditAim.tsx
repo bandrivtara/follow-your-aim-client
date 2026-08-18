@@ -1,4 +1,5 @@
 import {
+  Alert,
   Form,
   Input,
   Button,
@@ -8,7 +9,17 @@ import {
   Radio,
   Cascader,
   InputNumber,
+  Spin,
+  Switch,
 } from "antd";
+import {
+  AimOutlined,
+  ArrowLeftOutlined,
+  CalendarOutlined,
+  LinkOutlined,
+  SaveOutlined,
+  SlidersOutlined,
+} from "@ant-design/icons";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   useAddAimMutation,
@@ -20,11 +31,11 @@ import { useEffect } from "react";
 import { IAim } from "types/aims.types";
 import dayjs from "dayjs";
 import { useGetAimsCategoriesListQuery } from "store/services/aimsCategories";
-import { Switch } from "@mui/material";
 import { DefaultOptionType } from "antd/es/select";
 import { useGetHabitListQuery } from "store/services/habits";
 import { useWatch } from "antd/es/form/Form";
 import { useGetTaskGroupListQuery } from "store/services/taskGroups";
+import StyledAddEditAim from "./AddEditAim.styled";
 
 interface ICascaderOption {
   value: string;
@@ -58,8 +69,8 @@ const AddEditAim = () => {
   const tasksGroup = useGetTaskGroupListQuery();
   const [form] = Form.useForm();
   let { aimId } = useParams();
-  const [addAim] = useAddAimMutation();
-  const [updateAim] = useUpdateAimMutation();
+  const [addAim, { isLoading: isAdding }] = useAddAimMutation();
+  const [updateAim, { isLoading: isUpdating }] = useUpdateAimMutation();
   const aimDetails = useGetAimQuery(aimId, { skip: !aimId });
   const aimsCategories = useGetAimsCategoriesListQuery();
   const relatedHabit = useWatch("relatedHabit", form);
@@ -175,210 +186,332 @@ const AddEditAim = () => {
     );
 
   return (
-    <Form
-      form={form}
-      labelCol={{ span: 8 }}
-      wrapperCol={{ span: 14 }}
-      layout="horizontal"
-      style={{ maxWidth: 600, marginTop: 20 }}
-      onFinish={onFinish}
-      initialValues={formInitialValues}
-    >
-      <Form.Item rules={[{ required: true }]} name="title" label="Назва">
-        <Input />
-      </Form.Item>
+    <StyledAddEditAim>
+      <header className="page-header">
+        <div>
+          <span className="page-kicker">Цілі</span>
+          <h1 className="page-title">
+            {aimId ? "Редагувати ціль" : "Нова ціль"}
+          </h1>
+          <p className="page-subtitle">
+            Сформулюй результат, задай період і вибери спосіб, яким прогрес буде
+            відображатися у календарі.
+          </p>
+        </div>
+        <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(-1)}>
+          Назад
+        </Button>
+      </header>
 
-      <Form.Item name="description" label="Опис">
-        <TextArea rows={2} />
-      </Form.Item>
+      {aimDetails.isError && (
+        <Alert
+          className="load-error"
+          type="error"
+          showIcon
+          message="Не вдалося завантажити ціль"
+          action={
+            <Button size="small" onClick={() => aimDetails.refetch()}>
+              Спробувати ще раз
+            </Button>
+          }
+        />
+      )}
 
-      <Form.Item label="Категорія" name="aimsCategoryId">
-        <Select placeholder="Виберіть категорію">
-          {aimsCategories.data &&
-            aimsCategories.data.map((aim) => (
-              <Select.Option key={aim.id} value={aim.id}>
-                {aim.title}
-              </Select.Option>
-            ))}
-          <Select.Option key={"no-category"} value={""}>
-            Без категорії
-          </Select.Option>
-        </Select>
-      </Form.Item>
-      <Form.Item
-        rules={[{ required: true }]}
-        name="complexity"
-        label="Складність"
-      >
-        <Slider min={1} max={10} />
-      </Form.Item>
+      <Spin spinning={aimDetails.isFetching}>
+        <div className="aim-form-card">
+          <Form
+            className="aim-form"
+            form={form}
+            layout="vertical"
+            onFinish={onFinish}
+            initialValues={formInitialValues}
+          >
+            <section className="form-section">
+              <div className="section-heading">
+                <span className="section-icon">
+                  <AimOutlined />
+                </span>
+                <div>
+                  <h2>Основна інформація</h2>
+                  <p>Опиши конкретний результат, якого хочеш досягти.</p>
+                </div>
+              </div>
 
-      <Form.Item name="dateFrom" label="Починаючи з...">
-        <DatePicker />
-      </Form.Item>
-
-      <Form.Item name="dateTo" label="До...">
-        <DatePicker />
-      </Form.Item>
-
-      <Form.Item rules={[{ required: true }]} name="aimType" label="Тип">
-        <Radio.Group defaultValue="number">
-          <Radio.Button value="number">Вимірювальна</Radio.Button>
-          <Radio.Button value="boolean">Проста (Так/Ні)</Radio.Button>
-          <Radio.Button value="list">Список завдань</Radio.Button>
-        </Radio.Group>
-      </Form.Item>
-
-      <Form.Item
-        noStyle
-        shouldUpdate={(prevValues, currentValues) =>
-          prevValues.aimType !== currentValues.aimType
-        }
-      >
-        {({ getFieldValue }) => {
-          if (getFieldValue("aimType") === "number") {
-            return (
               <Form.Item
-                valuePropName="checked"
-                name="isRelatedWithHabit"
-                label="Повязана із звичкою"
+                rules={[{ required: true, message: "Вкажи назву цілі" }]}
+                name="title"
+                label="Назва"
               >
-                <Switch />
+                <Input size="large" placeholder="Наприклад, знизити вагу до 94 кг" />
               </Form.Item>
-            );
-          }
-        }}
-      </Form.Item>
-      <Form.Item
-        noStyle
-        shouldUpdate={(prevValues, currentValues) =>
-          prevValues.isRelatedWithHabit !== currentValues.isRelatedWithHabit ||
-          prevValues.aimType !== currentValues.aimType
-        }
-      >
-        {({ getFieldValue }) => {
-          if (
-            getFieldValue("isRelatedWithHabit") &&
-            getFieldValue("aimType") === "number"
-          ) {
-            return (
-              <>
-                <Form.Item name="relatedHabit" label="Повязана звичка">
-                  <Cascader
-                    options={getRelatedHabits()}
-                    showSearch={{ filter }}
-                    placeholder="Вибери звичку"
-                  />
-                </Form.Item>
-                <Form.Item name="calculationType" label="Тип вимірювання">
-                  <Radio.Group defaultValue="sum">
-                    <Radio.Button value="sum">Сума усіх вартостей</Radio.Button>
-                    <Radio.Button value="lastMeasureAsc">
-                      За остатньою вартістю (Зростаюча)
-                    </Radio.Button>
-                    <Radio.Button value="lastMeasureDesc">
-                      За остатньою вартістю (Спадаюча)
-                    </Radio.Button>
-                  </Radio.Group>
-                </Form.Item>
-              </>
-            );
-          }
-        }}
-      </Form.Item>
-      <Form.Item
-        noStyle
-        shouldUpdate={(prevValues, currentValues) =>
-          prevValues.calculationType !== currentValues.calculationType ||
-          prevValues.aimType !== currentValues.aimType
-        }
-      >
-        {({ getFieldValue }) => {
-          if (
-            (getFieldValue("calculationType") === "lastMeasureAsc" ||
-              getFieldValue("calculationType") === "lastMeasureDesc") &&
-            getFieldValue("aimType") === "number"
-          ) {
-            return (
-              <Form.Item name="startedPoint" label="Початкове значення">
-                <InputNumber
-                  addonAfter={
-                    relatedHabit
-                      ? habitsList.data
-                          ?.find((habit) => relatedHabit[0] === habit.id)
-                          ?.fields?.find(
-                            (field) => field.id === relatedHabit[1],
-                          )?.unit
-                      : ""
-                  }
+
+              <Form.Item name="description" label="Опис">
+                <TextArea
+                  rows={3}
+                  maxLength={500}
+                  showCount
+                  placeholder="Навіщо ця ціль важлива і що означатиме її виконання?"
                 />
               </Form.Item>
-            );
-          }
-        }}
-      </Form.Item>
 
-      <Form.Item
-        noStyle
-        shouldUpdate={(prevValues, currentValues) =>
-          prevValues.aimType !== currentValues.aimType
-        }
-      >
-        {({ getFieldValue }) => {
-          if (getFieldValue("aimType") === "list") {
-            return (
-              <>
-                <Form.Item name="relatedList" label="Повязаний список">
-                  <Cascader
-                    multiple
-                    options={getRelatedLists()}
-                    showSearch={{ filter }}
-                    placeholder="Вибери звичку"
-                  />
+              <div className="field-grid">
+                <Form.Item label="Категорія" name="aimsCategoryId">
+                  <Select
+                    size="large"
+                    loading={aimsCategories.isFetching}
+                    placeholder="Вибери категорію"
+                  >
+                    {aimsCategories.data?.map((aim) => (
+                      <Select.Option key={aim.id} value={aim.id}>
+                        {aim.title}
+                      </Select.Option>
+                    ))}
+                    <Select.Option key="no-category" value="">
+                      Без категорії
+                    </Select.Option>
+                  </Select>
                 </Form.Item>
-              </>
-            );
-          }
-        }}
-      </Form.Item>
 
-      <Form.Item
-        noStyle
-        shouldUpdate={(prevValues, currentValues) =>
-          prevValues.aimType !== currentValues.aimType
-        }
-      >
-        {({ getFieldValue }) => {
-          if (getFieldValue("aimType") === "number") {
-            return (
+                <Form.Item
+                  className="complexity-field"
+                  rules={[{ required: true }]}
+                  name="complexity"
+                  label="Складність"
+                  extra="1 — майже без зусиль, 10 — максимальне навантаження"
+                >
+                  <Slider min={1} max={10} marks={{ 1: "1", 5: "5", 10: "10" }} />
+                </Form.Item>
+              </div>
+            </section>
+
+            <section className="form-section">
+              <div className="section-heading">
+                <span className="section-icon">
+                  <CalendarOutlined />
+                </span>
+                <div>
+                  <h2>Період цілі</h2>
+                  <p>Дати визначають положення цілі на roadmap.</p>
+                </div>
+              </div>
+
+              <div className="field-grid">
+                <Form.Item name="dateFrom" label="Початок">
+                  <DatePicker size="large" placeholder="Обери дату" />
+                </Form.Item>
+                <Form.Item name="dateTo" label="Завершення">
+                  <DatePicker size="large" placeholder="Обери дату" />
+                </Form.Item>
+              </div>
+            </section>
+
+            <section className="form-section">
+              <div className="section-heading">
+                <span className="section-icon">
+                  <SlidersOutlined />
+                </span>
+                <div>
+                  <h2>Спосіб вимірювання</h2>
+                  <p>Вибери формат прогресу, який відповідає цій цілі.</p>
+                </div>
+              </div>
+
               <Form.Item
                 rules={[{ required: true }]}
-                name="finalAim"
-                label="Кінцева ціль"
+                name="aimType"
+                label="Тип цілі"
               >
-                <InputNumber
-                  addonAfter={
-                    relatedHabit
-                      ? habitsList.data
-                          ?.find((habit) => relatedHabit[0] === habit.id)
-                          ?.fields?.find(
-                            (field) => field.id === relatedHabit[1],
-                          )?.unit
-                      : ""
-                  }
-                />
+                <Radio.Group className="goal-type-group">
+                  <Radio.Button value="number">Вимірювана</Radio.Button>
+                  <Radio.Button value="boolean">Проста — так/ні</Radio.Button>
+                  <Radio.Button value="list">Список завдань</Radio.Button>
+                </Radio.Group>
               </Form.Item>
-            );
-          }
-        }}
-      </Form.Item>
 
-      <Form.Item>
-        <Button htmlType="submit">
-          {aimId ? "Записати зміни" : "Додати ціль"}
-        </Button>
-      </Form.Item>
-    </Form>
+              <Form.Item
+                noStyle
+                shouldUpdate={(prevValues, currentValues) =>
+                  prevValues.aimType !== currentValues.aimType
+                }
+              >
+                {({ getFieldValue }) =>
+                  getFieldValue("aimType") === "number" ? (
+                    <div className="relationship-panel">
+                      <div className="switch-row">
+                        <div className="switch-copy">
+                          <strong>Автоматично рахувати зі звички</strong>
+                          <span>
+                            Прогрес оновлюватиметься за вимірами вибраної звички.
+                          </span>
+                        </div>
+                        <Form.Item
+                          valuePropName="checked"
+                          name="isRelatedWithHabit"
+                          noStyle
+                        >
+                          <Switch aria-label="Автоматично рахувати прогрес зі звички" />
+                        </Form.Item>
+                      </div>
+
+                      <Form.Item
+                        noStyle
+                        shouldUpdate={(prevValues, currentValues) =>
+                          prevValues.isRelatedWithHabit !==
+                          currentValues.isRelatedWithHabit
+                        }
+                      >
+                        {({ getFieldValue: getNestedFieldValue }) =>
+                          getNestedFieldValue("isRelatedWithHabit") ? (
+                            <div className="relationship-fields">
+                              <Form.Item name="relatedHabit" label="Пов’язана звичка">
+                                <Cascader
+                                  size="large"
+                                  options={getRelatedHabits()}
+                                  showSearch={{ filter }}
+                                  placeholder="Вибери звичку або її поле"
+                                />
+                              </Form.Item>
+                              <Form.Item
+                                name="calculationType"
+                                label="Як рахувати значення"
+                              >
+                                <Radio.Group className="calculation-type-group">
+                                  <Radio.Button value="sum">Сума всіх значень</Radio.Button>
+                                  <Radio.Button value="lastMeasureAsc">
+                                    Останнє значення — зростання
+                                  </Radio.Button>
+                                  <Radio.Button value="lastMeasureDesc">
+                                    Останнє значення — зменшення
+                                  </Radio.Button>
+                                </Radio.Group>
+                              </Form.Item>
+                            </div>
+                          ) : null
+                        }
+                      </Form.Item>
+                    </div>
+                  ) : null
+                }
+              </Form.Item>
+
+              <Form.Item
+                noStyle
+                shouldUpdate={(prevValues, currentValues) =>
+                  prevValues.aimType !== currentValues.aimType
+                }
+              >
+                {({ getFieldValue }) =>
+                  getFieldValue("aimType") === "list" ? (
+                    <div className="relationship-panel">
+                      <div className="section-heading">
+                        <span className="section-icon">
+                          <LinkOutlined />
+                        </span>
+                        <div>
+                          <h2>Пов’язаний список</h2>
+                          <p>Виконання вибраних справ формуватиме прогрес цілі.</p>
+                        </div>
+                      </div>
+                      <Form.Item name="relatedList" label="Групи або етапи завдань">
+                        <Cascader
+                          multiple
+                          size="large"
+                          options={getRelatedLists()}
+                          showSearch={{ filter }}
+                          placeholder="Вибери список завдань"
+                        />
+                      </Form.Item>
+                    </div>
+                  ) : null
+                }
+              </Form.Item>
+            </section>
+
+            <Form.Item
+              noStyle
+              shouldUpdate={(prevValues, currentValues) =>
+                prevValues.calculationType !== currentValues.calculationType ||
+                prevValues.aimType !== currentValues.aimType ||
+                prevValues.isRelatedWithHabit !== currentValues.isRelatedWithHabit
+              }
+            >
+              {({ getFieldValue }) => {
+                if (getFieldValue("aimType") !== "number") return null;
+
+                const usesLastMeasurement =
+                  getFieldValue("isRelatedWithHabit") &&
+                  (getFieldValue("calculationType") === "lastMeasureAsc" ||
+                    getFieldValue("calculationType") === "lastMeasureDesc");
+
+                return (
+                  <section className="form-section">
+                    <div className="section-heading">
+                      <span className="section-icon">
+                        <AimOutlined />
+                      </span>
+                      <div>
+                        <h2>Цільове значення</h2>
+                        <p>Вкажи числову межу, до якої потрібно дійти.</p>
+                      </div>
+                    </div>
+
+                    <div className={usesLastMeasurement ? "field-grid" : undefined}>
+                      {usesLastMeasurement && (
+                        <Form.Item name="startedPoint" label="Початкове значення">
+                          <InputNumber
+                            size="large"
+                            addonAfter={
+                              relatedHabit
+                                ? habitsList.data
+                                    ?.find((habit) => relatedHabit[0] === habit.id)
+                                    ?.fields?.find(
+                                      (field) => field.id === relatedHabit[1],
+                                    )?.unit
+                                : ""
+                            }
+                          />
+                        </Form.Item>
+                      )}
+
+                      <Form.Item
+                        rules={[{ required: true, message: "Вкажи цільове значення" }]}
+                        name="finalAim"
+                        label="Кінцеве значення"
+                      >
+                        <InputNumber
+                          size="large"
+                          addonAfter={
+                            relatedHabit
+                              ? habitsList.data
+                                  ?.find((habit) => relatedHabit[0] === habit.id)
+                                  ?.fields?.find(
+                                    (field) => field.id === relatedHabit[1],
+                                  )?.unit
+                              : ""
+                          }
+                        />
+                      </Form.Item>
+                    </div>
+                  </section>
+                );
+              }}
+            </Form.Item>
+
+            <div className="form-actions">
+              <Button onClick={() => navigate(-1)}>Скасувати</Button>
+              <Button
+                type="primary"
+                htmlType="submit"
+                icon={<SaveOutlined />}
+                loading={isAdding || isUpdating}
+              >
+                {aimId ? "Зберегти зміни" : "Додати ціль"}
+              </Button>
+            </div>
+          </Form>
+        </div>
+      </Spin>
+    </StyledAddEditAim>
   );
 };
 
