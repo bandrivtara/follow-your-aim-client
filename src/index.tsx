@@ -8,6 +8,8 @@ import { ConfigProvider } from "antd";
 import locale from "antd/locale/uk_UA";
 import dayjs from "dayjs";
 import "dayjs/locale/uk";
+import { antTheme } from "config/uiTheme";
+import { registerServiceWorker } from "./registerServiceWorker";
 
 dayjs.locale("uk");
 handleError();
@@ -18,8 +20,10 @@ const root = ReactDOM.createRoot(
 
 root.render(
   <Provider store={store}>
-    <ConfigProvider locale={locale}>
+    <ConfigProvider locale={locale} theme={antTheme}>
       <App />
     </ConfigProvider>
   </Provider>,
 );
+
+registerServiceWorker();

@@ -61,8 +61,10 @@ const TrackerCalendar = () => {
   const [filteredCategory, setFilteredCategory] =
     useState<TrackerCategoryFilter>("all");
   const [rowSortingType, setRowSortingType] = useState("schedule-time");
-  const [calendarMode, setCurrentMode] =
-    useState<ITrackerCalendarState>("tracking");
+  const requestedCalendarMode = searchParams.get("mode");
+  const [calendarMode, setCurrentMode] = useState<ITrackerCalendarState>(
+    requestedCalendarMode === "planning" ? "planning" : "tracking",
+  );
 
   useEffect(() => {
     const newColumnDefs = tableConfigs.getColumnDefs(
@@ -130,6 +132,19 @@ const TrackerCalendar = () => {
 
   return (
     <StyledTrackerCalendar>
+      <header className="tracker-header page-header">
+        <div>
+          <h1 className="page-title">Трекер</h1>
+          <p className="page-subtitle">
+            Плануй активності та фіксуй фактичне виконання в одному місці.
+          </p>
+        </div>
+        <span
+          className={`tracker-mode-pill tracker-mode-pill--${calendarMode}`}
+        >
+          {calendarMode === "tracking" ? "Фіксація результатів" : "Планування"}
+        </span>
+      </header>
       <FiltersBar
         gridRef={gridRef}
         calendarMode={calendarMode}
@@ -148,7 +163,8 @@ const TrackerCalendar = () => {
       <div className="ag-theme-material fyi-ag-theme" ref={gridContainerRef}>
         <AgGridReact
           key={rangeMode}
-          rowHeight={30}
+          rowHeight={isMobile ? 52 : 44}
+          headerHeight={48}
           ref={gridRef}
           rowData={rowData}
           columnDefs={columnDefs}
@@ -164,6 +180,7 @@ const TrackerCalendar = () => {
           PaperProps={{
             sx: {
               width: isMobile ? "100%" : "min(480px, 92vw)",
+              borderRadius: isMobile ? 0 : "20px 0 0 20px",
             },
           }}
         >

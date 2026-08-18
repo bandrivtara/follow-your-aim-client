@@ -3,6 +3,7 @@ import {
   getActivityStreak,
   getDashboardActivitiesForDate,
   getDashboardActivityProgress,
+  getDashboardAgendaItems,
   getDashboardPlanPerformance,
   getDashboardLifeBalance,
   getDashboardWeekData,
@@ -137,6 +138,65 @@ describe("dashboard calculations", () => {
     );
     expect(activities).toHaveLength(2);
     expect(activities.find(({ id }) => id === "habitA")?.progress).toBe(100);
+  });
+
+  it("builds a daily agenda from planned habits and concrete list tasks", () => {
+    const agenda = getDashboardAgendaItems(
+      [
+        {
+          id: "morning",
+          progress: 50,
+          isPlanned: true,
+          source: {},
+        },
+        {
+          id: "errands",
+          progress: 50,
+          isPlanned: true,
+          source: {
+            tasks: [
+              { id: "later", title: "Купити воду", status: "pending" },
+              {
+                id: "meeting",
+                title: "Зустріч",
+                status: "done",
+                time: [18, 0],
+              },
+            ],
+          },
+        },
+        {
+          id: "bonus",
+          progress: 100,
+          isPlanned: false,
+          source: {},
+        },
+      ],
+      [
+        {
+          id: "morning",
+          title: "Ранкова рутина",
+          startTime: [6, 10],
+          endTime: [7, 0],
+          isAllDay: false,
+        } as any,
+        { id: "bonus", title: "Бонус", isAllDay: true } as any,
+      ],
+      [{ id: "errands", title: "Справи", type: "tasksGroup" } as any],
+    );
+
+    expect(agenda.map(({ title }) => title)).toEqual([
+      "Ранкова рутина",
+      "Зустріч",
+      "Купити воду",
+    ]);
+    expect(agenda[1]).toMatchObject({
+      kind: "task",
+      parentTitle: "Справи",
+      progress: 100,
+      startTime: [18, 0],
+    });
+    expect(agenda[2].isAllDay).toBe(true);
   });
 
   it("builds a Monday-to-Sunday completion chart", () => {

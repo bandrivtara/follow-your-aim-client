@@ -11,12 +11,14 @@ import {
   DashboardOutlined,
   EditNoteOutlined,
   MenuOutlined,
+  TrackChangesRounded,
 } from "@mui/icons-material";
 import { useLocation, useNavigate } from "react-router-dom";
 import useMenuItems from "./useMenuItems";
 import useIsMobile from "../../share/hooks/useIsMobile";
 import StyledLayout from "./AppLayout.styled";
 import routes from "config/routes";
+import NetworkStatus from "share/components/NetworkStatus/NetworkStatus";
 
 const { Content, Footer, Sider } = Layout;
 
@@ -31,6 +33,25 @@ const AppLayout = ({ children }: IProps) => {
   const menuItems = useMenuItems();
   const navigate = useNavigate();
   const location = useLocation();
+  const selectedMenuKeys = useMemo(() => {
+    const path = location.pathname;
+    if (path === routes.main) return ["1"];
+    if (path.startsWith(routes.calendar.tracker)) return ["22"];
+    if (path.startsWith(routes.calendar.aims)) return ["23"];
+    if (path.startsWith(routes.taskGroups.add)) return ["32"];
+    if (path.startsWith(routes.taskGroups.path)) return ["31"];
+    if (path.startsWith(routes.habit.categories.path)) return ["42"];
+    if (path.startsWith(routes.habit.path)) return ["41"];
+    if (path.startsWith(routes.aims.categories.path)) return ["52"];
+    if (path.startsWith(routes.aims.path)) return ["51"];
+    if (path === routes.review.daily) return ["61"];
+    if (path === routes.review.weekly) return ["62"];
+    if (path === routes.review.codex) return ["63"];
+    if (path.startsWith(routes.english.vocabulary.group.path)) return ["71"];
+    if (path.startsWith(routes.english.vocabulary.word.path)) return ["72"];
+    if (path.startsWith(routes.english.tests.words)) return ["73"];
+    return [];
+  }, [location.pathname]);
   const mobileNavigationValue = useMemo(() => {
     if (location.pathname === routes.review.daily) return routes.review.daily;
     if (location.pathname === routes.review.weekly) return routes.review.weekly;
@@ -45,6 +66,12 @@ const AppLayout = ({ children }: IProps) => {
     if (location.pathname === routes.review.weekly) return "Підсумок тижня";
     if (location.pathname === routes.review.codex) return "Codex-помічник";
     if (location.pathname.startsWith(routes.calendar.tracker)) return "Трекер";
+    if (location.pathname.startsWith(routes.calendar.aims))
+      return "Календар цілей";
+    if (location.pathname.startsWith(routes.habit.path)) return "Звички";
+    if (location.pathname.startsWith(routes.taskGroups.path)) return "Завдання";
+    if (location.pathname.startsWith(routes.aims.path)) return "Цілі";
+    if (location.pathname.startsWith("/english")) return "Англійська";
     if (location.pathname === routes.main) return "Мій день";
     return "Розділи";
   }, [location.pathname]);
@@ -64,6 +91,7 @@ const AppLayout = ({ children }: IProps) => {
 
   return (
     <StyledLayout>
+      <NetworkStatus />
       {isMobile ? (
         <Layout className="mobile-layout">
           <header className="mobile-app-header">
@@ -112,6 +140,7 @@ const AppLayout = ({ children }: IProps) => {
             />
           </BottomNavigation>
           <Drawer
+            className="mobile-menu-drawer"
             title="Усі розділи"
             placement="right"
             width="min(88vw, 360px)"
@@ -128,21 +157,40 @@ const AppLayout = ({ children }: IProps) => {
       ) : (
         <Layout style={{ minHeight: "100vh" }}>
           <Sider
+            className="desktop-sidebar"
+            width={232}
+            collapsedWidth={76}
             collapsible
             collapsed={collapsed}
             onCollapse={(value) => setCollapsed(value)}
           >
+            <button
+              type="button"
+              className="desktop-brand"
+              aria-label="Перейти на головну"
+              onClick={() => navigate(routes.main)}
+            >
+              <span className="desktop-brand-mark">
+                <TrackChangesRounded />
+              </span>
+              {!collapsed && (
+                <span className="desktop-brand-copy">
+                  <strong>Follow Your Aim</strong>
+                  <small>Personal workspace</small>
+                </span>
+              )}
+            </button>
             <Menu
               theme="dark"
-              defaultSelectedKeys={["1"]}
+              selectedKeys={selectedMenuKeys}
               mode="inline"
               items={menuItems}
             />
           </Sider>
           <Layout className="site-layout">
-            <Content style={{ margin: "0 16px" }}>{children}</Content>
-            <Footer style={{ textAlign: "center" }}>
-              Follow Your Aim ©2023 Created by TB.JS.DEV
+            <Content className="desktop-content">{children}</Content>
+            <Footer className="app-footer">
+              Follow Your Aim · твоя особиста система прогресу
             </Footer>
           </Layout>
         </Layout>

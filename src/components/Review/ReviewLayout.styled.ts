@@ -14,9 +14,9 @@ const ReviewLayout = styled.main`
   }
 
   .review-card {
-    border: 1px solid #ece5dd;
+    border: 1px solid var(--fya-border);
     border-radius: 18px;
-    box-shadow: 0 10px 28px rgba(64, 48, 35, 0.07);
+    box-shadow: var(--fya-shadow);
   }
 
   .review-score-grid,

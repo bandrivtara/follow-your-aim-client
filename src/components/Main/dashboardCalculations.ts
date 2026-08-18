@@ -1,5 +1,6 @@
 import dayjs, { Dayjs } from "dayjs";
 import { IHabitData } from "types/habits.types";
+import { ITask, ITasksGroup } from "types/taskGroups";
 import { LIFE_AREAS, LifeAreaId } from "config/lifeAreas";
 
 export interface DashboardActivity {
@@ -20,6 +21,22 @@ export interface DashboardDayData {
   completedOutsidePlan: number;
 }
 
+export interface DashboardAgendaItem {
+  id: string;
+  activityId: string;
+  kind: "habit" | "task";
+  valueType?: "boolean" | "measures" | "todoList";
+  taskIndex?: number;
+  title: string;
+  parentTitle?: string;
+  progress: number;
+  status?: string;
+  startTime?: Array<number | string>;
+  endTime?: Array<number | string>;
+  isAllDay: boolean;
+  source: Record<string, any>;
+}
+
 export interface LifeBalanceAreaData {
   id: LifeAreaId;
   title: string;
@@ -33,6 +50,15 @@ export interface LifeBalanceAreaData {
 }
 
 const clampProgress = (value: number) => Math.min(100, Math.max(0, value));
+
+const isTimeValue = (value: unknown): value is Array<number | string> =>
+  Array.isArray(value) &&
+  value.length >= 2 &&
+  Number.isFinite(Number(value[0])) &&
+  Number.isFinite(Number(value[1]));
+
+const getTimeInMinutes = (value?: Array<number | string>) =>
+  isTimeValue(value) ? Number(value[0]) * 60 + Number(value[1]) : null;
 
 export const getDashboardActivityProgress = (activity: Record<string, any>) => {
   if (typeof activity.progress === "number") {
@@ -138,6 +164,108 @@ export const getDashboardActivitiesForDate = (
   );
 };
 
+export const getDashboardAgendaItems = (
+  activities: DashboardActivity[] = [],
+  habits: IHabitData[] = [],
+  taskGroups: ITasksGroup[] = [],
+): DashboardAgendaItem[] => {
+  const habitById = new Map(
+    habits
+      .filter((habit) => !habit.isHidden && !habit.isArchived)
+      .map((habit) => [habit.id, habit]),
+  );
+  const taskGroupById = new Map(
+    taskGroups
+      .filter((taskGroup) => !taskGroup.isHidden)
+      .map((taskGroup) => [taskGroup.id, taskGroup]),
+  );
+  const agenda: DashboardAgendaItem[] = [];
+
+  activities
+    .filter((activity) => activity.isPlanned)
+    .forEach((activity) => {
+      const source = activity.source as Record<string, any>;
+      const habit = habitById.get(activity.id);
+      if (habit) {
+        const startTime = isTimeValue(source.startTime)
+          ? source.startTime
+          : isTimeValue(habit.startTime)
+            ? habit.startTime
+            : undefined;
+        const endTime = isTimeValue(source.endTime)
+          ? source.endTime
+          : isTimeValue(habit.endTime)
+            ? habit.endTime
+            : undefined;
+
+        agenda.push({
+          id: activity.id,
+          activityId: activity.id,
+          kind: "habit",
+          valueType: habit.valueType,
+          title: habit.title,
+          progress: activity.progress,
+          status: source.status,
+          startTime,
+          endTime,
+          isAllDay: Boolean(source.isAllDay ?? habit.isAllDay ?? !startTime),
+          source,
+        });
+        return;
+      }
+
+      const taskGroup = taskGroupById.get(activity.id);
+      if (!taskGroup) return;
+      const tasks = Array.isArray(source.tasks)
+        ? (source.tasks as ITask[])
+        : [];
+      if (!tasks.length) {
+        agenda.push({
+          id: activity.id,
+          activityId: activity.id,
+          kind: "task",
+          valueType: "todoList",
+          title: taskGroup.title,
+          progress: activity.progress,
+          status: source.status,
+          isAllDay: true,
+          source,
+        });
+        return;
+      }
+
+      tasks.forEach((task, index) => {
+        const startTime = isTimeValue(task.time) ? task.time : undefined;
+        agenda.push({
+          id: `${activity.id}:${task.id || index}`,
+          activityId: activity.id,
+          kind: "task",
+          valueType: "todoList",
+          taskIndex: index,
+          title: task.title,
+          parentTitle: taskGroup.title,
+          progress: task.status === "done" ? 100 : 0,
+          status: task.status,
+          startTime,
+          isAllDay: !startTime,
+          source,
+        });
+      });
+    });
+
+  return agenda.sort((left, right) => {
+    const leftMinutes = getTimeInMinutes(left.startTime);
+    const rightMinutes = getTimeInMinutes(right.startTime);
+    if (leftMinutes !== null && rightMinutes !== null) {
+      return leftMinutes - rightMinutes;
+    }
+    if (leftMinutes !== null) return -1;
+    if (rightMinutes !== null) return 1;
+    if (left.kind !== right.kind) return left.kind === "habit" ? -1 : 1;
+    return left.title.localeCompare(right.title, "uk");
+  });
+};
+
 const getMonday = (date: Dayjs) =>
   date.startOf("day").subtract((date.day() + 6) % 7, "day");
 
@@ -195,9 +323,7 @@ export const getDashboardLifeBalance = (
   const weekStart = getMonday(currentDate);
   const habitById = new Map(
     habits
-      .filter(
-        (habit) => !habit.isArchived && !habit.isHidden && habit.lifeArea,
-      )
+      .filter((habit) => !habit.isArchived && !habit.isHidden && habit.lifeArea)
       .map((habit) => [habit.id, habit]),
   );
   const values = new Map<

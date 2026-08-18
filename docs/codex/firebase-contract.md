@@ -40,6 +40,7 @@ List services usually attach Firestore document IDs as id. English differs: IDs 
 - updateHistory accepts id, path, and data and updates the dynamic field path without replacing the month.
 - Activity history can contain type, valueType, isPlanned, status, progress, times, measures, or tasks.
 - New task-list history entries persist the already-supported isPlanned flag so work added during tracking can be distinguished from the daily plan. Legacy task lists without the flag remain treated as planned for compatibility.
+- Dashboard quick completion merges a boolean habit, measured habit, or updated task list back into the same existing day/activity path. Copying yesterday's plan creates current-day activity entries with progress/value/status reset while preserving targets, tasks, times, and IDs.
 - Measure values are nested under activity and measure IDs. Do not flatten or rename them.
 - History is read both by unix range in the RTK Query service and by document ID in src/share/fireBase/getHistoryBetweenDates.ts.
 
@@ -96,3 +97,8 @@ Observed live-data compatibility notes from the read-only audit on 2026-07-28:
 - `apply-habit-metadata` is also dry-run unless `--apply` is supplied. It can update only `lifeArea` and `complexity` for existing non-archived habits, including hidden compatibility habits, whose IDs and titles both match the reviewed document.
 - Applied changes only merge planning data below `history/{YYYY-MM}/{DD}/{activityId}` and keep the existing month `unix` convention. No delete operation is implemented.
 - Because repository-only review cannot verify deployed rules, the bridge must remain a local personal tool and must not be exposed as a public API.
+
+## Personal backup export
+
+- `src/share/backup/firebaseBackup.ts` performs read-only `getDocs` calls for every known application collection, including legacy spheres and the fixed English documents.
+- The downloaded `follow-your-aim-backup-v1` JSON contains document IDs and raw document data. No restore, migration, delete, or remote write is implemented.

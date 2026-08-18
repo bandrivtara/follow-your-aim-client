@@ -1,4 +1,4 @@
-import { Routes, Route, HashRouter } from "react-router-dom";
+import { Routes, Route, HashRouter, Navigate } from "react-router-dom";
 import routes from "../config/routes";
 import AppLayout from "./Layout/AppLayout";
 import Main from "./Main/Main";
@@ -12,7 +12,6 @@ import HabitsCategoriesList from "./Habits/HabitsCategories/HabitsCategoriesList
 import AddEditHabitsCategory from "./Habits/HabitsCategories/AddEditHabitsCategory/AddEditHabitsCategory";
 import AddEditAimsCategory from "./Aims/AimsCategories/AddEditAimsCategory/AddEditAimsCategory";
 import AimsCategoriesList from "./Aims/AimsCategories/AimsCategoriesList/AimsCategoriesList";
-import Scheduler from "./Scheduler/Scheduler";
 import TasksGroupsList from "./TasksGroups/TasksGroupsList/TasksGroupsList";
 import AddEditTasksGroup from "./TasksGroups/AddEditTasksGroup/AddEditTasksGroup";
 import AddEditGroup from "./English/Vocabulary/Groups/AddEditGroup/AddEditGroup";
@@ -31,7 +30,10 @@ const AppRoutes = () => {
         <Routes>
           <Route path={routes.main} element={<Main />} />
 
-          <Route path={routes.calendar.scheduler} element={<Scheduler />} />
+          <Route
+            path={routes.calendar.scheduler}
+            element={<Navigate to={routes.main} replace />}
+          />
           <Route path={routes.calendar.tracker} element={<TrackerCalendar />} />
           <Route path={routes.calendar.aims} element={<AimCalendar />} />
           <Route path={routes.review.daily} element={<DailyReview />} />

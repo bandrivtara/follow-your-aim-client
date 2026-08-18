@@ -10,7 +10,6 @@ import {
   OrderedListOutlined,
   HeatMapOutlined,
   CarryOutOutlined,
-  InsertRowAboveOutlined,
   BookOutlined,
   BarChartOutlined,
   CodeOutlined,
@@ -35,12 +34,6 @@ const useMenuItems = () => {
       label: "Календар",
       icon: <CalendarOutlined rev="string" />,
       children: [
-        {
-          key: 21,
-          label: "Розклад",
-          onClick: () => navigate(routes.calendar.scheduler),
-          icon: <InsertRowAboveOutlined rev="string" />,
-        },
         {
           key: 22,
           label: "Трекер",

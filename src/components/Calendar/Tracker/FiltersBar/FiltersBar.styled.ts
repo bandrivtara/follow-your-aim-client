@@ -5,12 +5,12 @@ const StyledFiltersBarRow = styled(Row)`
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 14px;
-  margin-bottom: 12px;
-  border: 1px solid #e7e0d8;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 8px 24px rgba(64, 48, 35, 0.06);
+  padding: 16px;
+  margin-bottom: 14px;
+  border: 1px solid var(--fya-border);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: var(--fya-shadow);
 
   .calendar-navigation,
   .tracker-filters {
@@ -21,7 +21,8 @@ const StyledFiltersBarRow = styled(Row)`
   }
 
   .tracker-filters {
-    justify-content: space-between;
+    padding-top: 12px;
+    border-top: 1px solid #edf0f5;
   }
 
   .mobile-filters-toggle {
@@ -32,8 +33,12 @@ const StyledFiltersBarRow = styled(Row)`
     min-width: 210px;
   }
 
+  .ant-radio-button-wrapper-checked:not(.ant-radio-button-wrapper-disabled) {
+    box-shadow: 0 6px 14px rgba(91, 108, 249, 0.16);
+  }
+
   @media only screen and (max-width: 768px) {
-    padding: 10px;
+    padding: 12px;
 
     .calendar-navigation,
     .tracker-filters {
@@ -47,6 +52,10 @@ const StyledFiltersBarRow = styled(Row)`
 
     .tracker-filters--hidden {
       display: none;
+    }
+
+    .tracker-filters {
+      padding-top: 10px;
     }
 
     .calendar-navigation .ant-picker-range {

@@ -46,7 +46,7 @@
 - Shared Redux state is RTK Query only. The base API and active Firebase initialization live in src/store/api/index.ts; feature endpoints live in src/store/services/.
 - Domain interfaces live in src/types/. Check runtime Firestore shapes as well as TypeScript declarations because several services use broad types or disable checking.
 - UI state is mostly local React state. Do not introduce global state without a demonstrated cross-component need.
-- The application intentionally combines Ant Design, MUI, AG Grid, DevExpress Scheduler, and styled-components; avoid adding another UI system.
+- The application intentionally combines Ant Design, MUI, AG Grid, and styled-components; avoid adding another UI system.
 
 ## Review priorities
 

@@ -22,6 +22,7 @@ This is a triage aid, not permission to fix items outside the requested scope. R
 - Several central files use @ts-nocheck/@ts-ignore, allowing runtime shape mismatches past strict TypeScript.
 - Broad RTK Query tags and direct Firestore reads can cause excess refetching or bypass cache state.
 - Accessibility and responsive behavior need focused review, especially grids, drawers, form labels, keyboard use, and status announcements.
+- The PWA service worker caches the application shell only. Firestore writes are not guaranteed to survive closing the browser while offline; the client displays a persistent warning instead of claiming offline data safety.
 
 ## Recently resolved
 
@@ -35,7 +36,7 @@ This is a triage aid, not permission to fix items outside the requested scope. R
 - Tracker month columns now have a fixed equal width, and the current period can be exported with nested tasks and an AI-analysis prompt.
 - Life spheres were removed from the active UI without migrating or deleting legacy Firebase data.
 
-- Scheduler is intentionally a read-only projection of timed tracker history; standalone appointments are not supported by the current Firebase contract.
+- The standalone scheduler was removed from active navigation because it duplicated the tracker, omitted task-list items, and was not practical on mobile. Its old route redirects to the dashboard, while habit/history time fields remain compatible and now feed the daily agenda.
 
 - Tracker activity filters now affect displayed rows and have focused tests (8e8a061, fix(tracker): apply activity filters).
 - Habit-based aim progress now uses YYYY-MM history documents, inclusive date boundaries, and chronological last values (fix(aims): correct habit progress date ranges).

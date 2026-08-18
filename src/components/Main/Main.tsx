@@ -4,33 +4,57 @@ import {
   Card,
   CardContent,
   Chip,
+  IconButton,
   LinearProgress,
-  Stack,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import {
   AssessmentOutlined,
   CheckCircleOutline,
+  CloudDownloadOutlined,
+  DoneRounded,
   EditNoteOutlined,
 } from "@mui/icons-material";
 import { BarChart } from "@mui/x-charts/BarChart";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
 import "dayjs/locale/uk";
+import { message } from "antd";
 import routes from "config/routes";
+import habitsConfig from "config/habitsIds.json";
 import { useGetAimsListQuery } from "store/services/aims";
 import { useGetHabitListQuery } from "store/services/habits";
-import { useGetHistoryBetweenDatesQuery } from "store/services/history";
+import {
+  useGetHistoryBetweenDatesQuery,
+  useUpdateHistoryMutation,
+} from "store/services/history";
+import { useGetTaskGroupListQuery } from "store/services/taskGroups";
+import { useGetDailyReviewMonthQuery } from "store/services/dailyReviews";
+import { isDailyReviewComplete } from "share/functions/dailyReviewCompletion";
+import {
+  buildFirebaseBackup,
+  downloadFirebaseBackup,
+} from "share/backup/firebaseBackup";
 import WaterCounter from "./WaterCounter/WaterCounter";
 import StyledMain from "./Main.styled";
+import TodayPlanDialog from "./TodayPlanDialog";
+import QuickMeasureDialog from "./QuickMeasureDialog";
 import {
+  completeBooleanHabit,
+  completeMeasuredHabit,
+  completeTaskAtIndex,
+  resetActivityForPlanning,
+} from "./dashboardActions";
+import {
+  DashboardAgendaItem,
   getActivityStreak,
+  getDashboardAgendaItems,
   getDashboardActivitiesForDate,
   getDashboardLifeBalance,
   getDashboardPlanPerformance,
   getDashboardWeekData,
-  isDashboardActivityPlanned,
 } from "./dashboardCalculations";
 
 const formatTime = (time?: Array<number | string>) =>
@@ -38,9 +62,31 @@ const formatTime = (time?: Array<number | string>) =>
     ? `${String(time[0]).padStart(2, "0")}:${String(time[1]).padStart(2, "0")}`
     : "—";
 
+const getTimeInMinutes = (time?: Array<number | string>) =>
+  Array.isArray(time) && time.length >= 2
+    ? Number(time[0]) * 60 + Number(time[1])
+    : null;
+
+const formatAgendaTime = (
+  startTime?: Array<number | string>,
+  endTime?: Array<number | string>,
+  isAllDay = false,
+) => {
+  if (isAllDay || !startTime) return "Весь день";
+  return endTime
+    ? `${formatTime(startTime)}–${formatTime(endTime)}`
+    : formatTime(startTime);
+};
+
 const Main = () => {
   const navigate = useNavigate();
   const now = useMemo(() => dayjs(), []);
+  const [isPlanDialogOpen, setIsPlanDialogOpen] = useState(false);
+  const [quickMeasureItem, setQuickMeasureItem] =
+    useState<DashboardAgendaItem>();
+  const [quickSavingId, setQuickSavingId] = useState<string>();
+  const [isCopyingPlan, setIsCopyingPlan] = useState(false);
+  const [isDownloadingBackup, setIsDownloadingBackup] = useState(false);
   const historyRange = useMemo(
     () => [
       now.subtract(90, "day").startOf("month").unix(),
@@ -50,7 +96,10 @@ const Main = () => {
   );
   const history = useGetHistoryBetweenDatesQuery(historyRange);
   const habits = useGetHabitListQuery();
+  const taskGroups = useGetTaskGroupListQuery();
   const aims = useGetAimsListQuery();
+  const dailyReview = useGetDailyReviewMonthQuery(now.format("YYYY-MM"));
+  const [updateHistory] = useUpdateHistoryMutation();
 
   const dashboardData = useMemo(() => {
     const historyData = (history.data || []) as Record<string, any>[];
@@ -58,6 +107,11 @@ const Main = () => {
     const todayActivities = getDashboardActivitiesForDate(
       historyData,
       now,
+      habitData,
+    );
+    const yesterdayActivities = getDashboardActivitiesForDate(
+      historyData,
+      now.subtract(1, "day"),
       habitData,
     );
     const week = getDashboardWeekData(historyData, now, habitData);
@@ -69,38 +123,75 @@ const Main = () => {
         !now.isBefore(dayjs(aim.dateFrom), "day") &&
         !now.isAfter(dayjs(aim.dateTo), "day"),
     );
-    const activityById = new Map(
-      todayActivities.map((activity) => [activity.id, activity]),
+    const agendaItems = getDashboardAgendaItems(
+      todayActivities,
+      habitData,
+      taskGroups.data || [],
     );
-    const scheduledHabits = (habits.data || [])
-      .filter(
-        (habit) =>
-          !habit.isHidden &&
-          !habit.isArchived &&
-          activityById.has(habit.id) &&
-          isDashboardActivityPlanned(activityById.get(habit.id)!.source) &&
-          Array.isArray(habit.startTime) &&
-          habit.startTime.length >= 2,
-      )
-      .sort(
-        (left, right) =>
-          Number(left.startTime[0]) * 60 +
-          Number(left.startTime[1]) -
-          (Number(right.startTime[0]) * 60 + Number(right.startTime[1])),
-      )
-      .slice(0, 7);
 
     return {
       todayActivities,
+      yesterdayActivities,
       week,
       lifeBalance,
       todayPerformance,
       activeAims,
-      activityById,
-      scheduledHabits,
+      agendaItems,
       streak: getActivityStreak(historyData, now, 90, habitData),
     };
-  }, [aims.data, habits.data, history.data, now]);
+  }, [aims.data, habits.data, history.data, now, taskGroups.data]);
+
+  const currentMinutes = now.hour() * 60 + now.minute();
+  const currentAgendaItem = dashboardData.agendaItems.find((item) => {
+    if (item.progress >= 100 || item.isAllDay) return false;
+    const start = getTimeInMinutes(item.startTime);
+    if (start === null || start > currentMinutes) return false;
+    const end = getTimeInMinutes(item.endTime) ?? start + 30;
+    return currentMinutes < end;
+  });
+  const nextAgendaItem = dashboardData.agendaItems.find((item) => {
+    if (item.progress >= 100 || item.isAllDay) return false;
+    const start = getTimeInMinutes(item.startTime);
+    return start !== null && start > currentMinutes;
+  });
+  const focusAgendaItem = currentAgendaItem || nextAgendaItem;
+  const agendaIsLoading =
+    history.isLoading || habits.isLoading || taskGroups.isLoading;
+  const agendaHasError =
+    history.isError || habits.isError || taskGroups.isError;
+  const visibleAgendaItems = dashboardData.agendaItems.slice(0, 3);
+  const remainingAgendaItems = Math.max(
+    0,
+    dashboardData.agendaItems.length - visibleAgendaItems.length,
+  );
+  const visibleAims = dashboardData.activeAims.slice(0, 3);
+  const remainingAims = Math.max(
+    0,
+    dashboardData.activeAims.length - visibleAims.length,
+  );
+  const copyableActivityIds = new Set([
+    ...(habits.data || [])
+      .filter((habit) => !habit.isArchived && !habit.isHidden)
+      .map((habit) => habit.id),
+    ...(taskGroups.data || [])
+      .filter((taskGroup) => !taskGroup.isHidden)
+      .map((taskGroup) => taskGroup.id),
+  ]);
+  const plannedYesterdayActivities = dashboardData.yesterdayActivities.filter(
+    (activity) => activity.isPlanned && copyableActivityIds.has(activity.id),
+  );
+  const savedDailyReview = dailyReview.data?.[now.format("DD")];
+  const isReviewComplete = Boolean(
+    savedDailyReview &&
+    typeof savedDailyReview === "object" &&
+    isDailyReviewComplete(savedDailyReview.answers || {}),
+  );
+  const hasWeekActivity = dashboardData.week.some(
+    (day) => day.planned > 0 || day.total > 0,
+  );
+  const quickMeasureHabit = habits.data?.find(
+    (habit) => habit.id === quickMeasureItem?.activityId,
+  );
 
   const weekChartMax = Math.max(
     100,
@@ -112,7 +203,108 @@ const Main = () => {
     (area) => area.plannedPoints > 0 || area.actualPoints > 0,
   );
 
-  const summaryCards = [
+  const getTodayHistoryUpdate = (activityId: string, data: unknown) => ({
+    id: now.format("YYYY-MM"),
+    path: `${now.format("D")}.${activityId}`,
+    data,
+  });
+
+  const saveQuickActivity = async (
+    item: DashboardAgendaItem,
+    data: Record<string, any>,
+  ) => {
+    setQuickSavingId(item.id);
+    try {
+      await updateHistory(
+        getTodayHistoryUpdate(item.activityId, data),
+      ).unwrap();
+      message.success(`«${item.title}» оновлено`);
+    } catch {
+      message.error("Не вдалося зберегти результат. Спробуй ще раз.");
+    } finally {
+      setQuickSavingId(undefined);
+    }
+  };
+
+  const handleQuickComplete = async (item: DashboardAgendaItem) => {
+    if (item.activityId === habitsConfig.habits.dailyReview.details) {
+      navigate(`${routes.review.daily}?date=${now.format("YYYY-MM-DD")}`);
+      return;
+    }
+
+    if (item.kind === "habit") {
+      const habit = habits.data?.find(
+        (candidate) => candidate.id === item.activityId,
+      );
+      if (!habit) return;
+      if (habit.valueType === "measures") {
+        setQuickMeasureItem(item);
+        return;
+      }
+      await saveQuickActivity(item, completeBooleanHabit(habit, item.source));
+      return;
+    }
+
+    if (typeof item.taskIndex === "number") {
+      await saveQuickActivity(
+        item,
+        completeTaskAtIndex(item.source, item.taskIndex),
+      );
+      return;
+    }
+
+    navigate(`${routes.calendar.tracker}?view=day`);
+  };
+
+  const handleSaveMeasuredHabit = async (values: Record<string, number>) => {
+    if (!quickMeasureItem || !quickMeasureHabit) return;
+    await saveQuickActivity(
+      quickMeasureItem,
+      completeMeasuredHabit(quickMeasureHabit, quickMeasureItem.source, values),
+    );
+    setQuickMeasureItem(undefined);
+  };
+
+  const handleCopyYesterdayPlan = async () => {
+    setIsCopyingPlan(true);
+    try {
+      await Promise.all(
+        plannedYesterdayActivities.map((activity) =>
+          updateHistory(
+            getTodayHistoryUpdate(
+              activity.id,
+              resetActivityForPlanning(activity.source),
+            ),
+          ).unwrap(),
+        ),
+      );
+      message.success("Вчорашній план перенесено на сьогодні");
+      setIsPlanDialogOpen(false);
+    } catch {
+      message.error("Не вдалося скопіювати план. Спробуй ще раз.");
+    } finally {
+      setIsCopyingPlan(false);
+    }
+  };
+
+  const handleDownloadBackup = async () => {
+    setIsDownloadingBackup(true);
+    try {
+      downloadFirebaseBackup(await buildFirebaseBackup());
+      message.success("Резервну копію завантажено");
+    } catch {
+      message.error("Не вдалося створити резервну копію");
+    } finally {
+      setIsDownloadingBackup(false);
+    }
+  };
+
+  const summaryCards: Array<{
+    label: string;
+    value: string | number;
+    hint: string;
+    action?: () => void;
+  }> = [
     {
       label: "Виконання плану",
       value: `${dashboardData.todayPerformance.progress}%`,
@@ -135,9 +327,12 @@ const Main = () => {
       hint: `${aims.data?.length || 0} цілей загалом`,
     },
     {
-      label: "Звички",
-      value: habits.data?.filter((habit) => !habit.isArchived).length || 0,
-      hint: `${dashboardData.scheduledHabits.length} мають час у розкладі`,
+      label: "Огляд дня",
+      value: isReviewComplete ? "Готово" : "Не готово",
+      hint: isReviewComplete
+        ? "П’ять відповідей збережено"
+        : "Заверши день короткою рефлексією",
+      action: () => navigate(routes.review.daily),
     },
   ];
 
@@ -174,12 +369,32 @@ const Main = () => {
           >
             Підсумок тижня
           </Button>
+          <Button
+            variant="text"
+            startIcon={<CloudDownloadOutlined />}
+            disabled={isDownloadingBackup}
+            onClick={handleDownloadBackup}
+          >
+            {isDownloadingBackup ? "Створюю копію…" : "Резервна копія"}
+          </Button>
         </div>
       </header>
 
       <section className="summary-grid" aria-label="Підсумок дня">
         {summaryCards.map((card) => (
-          <Card className="metric-card" key={card.label}>
+          <Card
+            className={`metric-card${card.action ? " metric-card--interactive" : ""}`}
+            key={card.label}
+            role={card.action ? "button" : undefined}
+            tabIndex={card.action ? 0 : undefined}
+            onClick={card.action}
+            onKeyDown={(event) => {
+              if (card.action && (event.key === "Enter" || event.key === " ")) {
+                event.preventDefault();
+                card.action();
+              }
+            }}
+          >
             <CardContent>
               <Typography color="text.secondary">{card.label}</Typography>
               <div className="metric-value">{card.value}</div>
@@ -192,37 +407,54 @@ const Main = () => {
       </section>
 
       <section className="content-grid">
-        <Stack spacing={2}>
-          <Card className="dashboard-card">
+        <div className="dashboard-flow">
+          <Card className="dashboard-card week-card">
             <CardContent>
               <Typography variant="h5">Ритм поточного тижня</Typography>
               <Typography color="text.secondary">
                 Виконання відносно плану дня; робота поза планом може дати понад
                 100%
               </Typography>
-              <BarChart
-                xAxis={[
-                  {
-                    scaleType: "band",
-                    data: dashboardData.week.map((day) => day.label),
-                  },
-                ]}
-                yAxis={[{ min: 0, max: weekChartMax }]}
-                series={[
-                  {
-                    data: dashboardData.week.map((day) => day.progress),
-                    label: "Виконання плану, %",
-                    color: "#52a447",
-                    valueFormatter: (value) => `${value ?? 0}%`,
-                  },
-                ]}
-                height={300}
-                margin={{ left: 45, right: 20, top: 35, bottom: 30 }}
-              />
+              {hasWeekActivity ? (
+                <BarChart
+                  xAxis={[
+                    {
+                      scaleType: "band",
+                      data: dashboardData.week.map((day) => day.label),
+                    },
+                  ]}
+                  yAxis={[{ min: 0, max: weekChartMax }]}
+                  series={[
+                    {
+                      data: dashboardData.week.map((day) => day.progress),
+                      label: "Виконання плану, %",
+                      color: "#5b6cf9",
+                      valueFormatter: (value) => `${value ?? 0}%`,
+                    },
+                  ]}
+                  height={235}
+                  margin={{ left: 42, right: 12, top: 28, bottom: 24 }}
+                />
+              ) : (
+                <Box className="chart-empty-state">
+                  <Typography fontWeight={650}>
+                    Цього тижня ще немає даних для графіка
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Сформуй план дня — ритм з’явиться після перших результатів.
+                  </Typography>
+                  <Button
+                    variant="outlined"
+                    onClick={() => setIsPlanDialogOpen(true)}
+                  >
+                    Сформувати план
+                  </Button>
+                </Box>
+              )}
             </CardContent>
           </Card>
 
-          <Card className="dashboard-card">
+          <Card className="dashboard-card balance-card">
             <CardContent>
               <Typography variant="h5">Баланс життя за тиждень</Typography>
               <Typography color="text.secondary">
@@ -254,7 +486,7 @@ const Main = () => {
                           (area) => area.plannedShare,
                         ),
                         label: "План, %",
-                        color: "#b9c3ce",
+                        color: "#c4cad6",
                         valueFormatter: (value) => `${value ?? 0}%`,
                       },
                       {
@@ -262,35 +494,34 @@ const Main = () => {
                           (area) => area.actualShare,
                         ),
                         label: "Факт, %",
-                        color: "#52a447",
+                        color: "#18a874",
                         valueFormatter: (value) => `${value ?? 0}%`,
                       },
                     ]}
-                    height={390}
-                    margin={{ left: 100, right: 20, top: 50, bottom: 30 }}
+                    height={235}
+                    margin={{ left: 88, right: 12, top: 34, bottom: 24 }}
                   />
-                  <Stack direction="row" flexWrap="wrap" gap={1} mt={1}>
-                    {dashboardData.lifeBalance
-                      .filter((area) => area.plannedPoints > 0)
-                      .map((area) => (
-                        <Chip
-                          key={area.id}
-                          size="small"
-                          label={`${area.shortTitle}: ${area.completion}% виконання`}
-                        />
-                      ))}
-                  </Stack>
                 </>
               ) : (
-                <Typography color="text.secondary" mt={2}>
-                  Додай сферу життя до активних звичок, щоб побачити розподіл
-                  плану й фактичного виконання.
-                </Typography>
+                <Box className="chart-empty-state">
+                  <Typography fontWeight={650}>
+                    Баланс з’явиться разом із тижневим планом
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Категорії та складність звичок уже враховуються автоматично.
+                  </Typography>
+                  <Button
+                    variant="outlined"
+                    onClick={() => setIsPlanDialogOpen(true)}
+                  >
+                    Сформувати план
+                  </Button>
+                </Box>
               )}
             </CardContent>
           </Card>
 
-          <Card className="dashboard-card">
+          <Card className="dashboard-card goals-card">
             <CardContent>
               <Box
                 display="flex"
@@ -309,7 +540,7 @@ const Main = () => {
                 </Button>
               </Box>
               {dashboardData.activeAims.length ? (
-                dashboardData.activeAims.map((aim) => (
+                visibleAims.map((aim) => (
                   <Box key={aim.id} mt={2}>
                     <Box display="flex" justifyContent="space-between" mb={1}>
                       <Typography fontWeight={600}>{aim.title}</Typography>
@@ -327,50 +558,193 @@ const Main = () => {
                   загальному календарі.
                 </Typography>
               )}
-            </CardContent>
-          </Card>
-        </Stack>
-
-        <aside className="side-column">
-          <Card className="dashboard-card">
-            <CardContent>
-              <Typography variant="h5">Заплановані звички за часом</Typography>
-              <Typography color="text.secondary" mb={1}>
-                Лише звички, які є в плані на сьогодні
-              </Typography>
-              {dashboardData.scheduledHabits.map((habit) => {
-                const progress =
-                  dashboardData.activityById.get(habit.id)?.progress || 0;
-                return (
-                  <div className="schedule-row" key={habit.id}>
-                    <Box>
-                      <Typography fontWeight={600}>{habit.title}</Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {formatTime(habit.startTime)}
-                      </Typography>
-                    </Box>
-                    <Chip
-                      size="small"
-                      color={progress >= 100 ? "success" : "default"}
-                      label={
-                        progress >= 100
-                          ? "Виконано"
-                          : `${Math.round(progress)}%`
-                      }
-                    />
-                  </div>
-                );
-              })}
-              {!dashboardData.scheduledHabits.length && (
-                <Typography color="text.secondary" mt={2}>
-                  Запланованих звичок із визначеним часом немає.
-                </Typography>
+              {remainingAims > 0 && (
+                <Button
+                  className="card-more-link"
+                  size="small"
+                  onClick={() => navigate(routes.aims.list)}
+                >
+                  Ще {remainingAims} {remainingAims === 1 ? "ціль" : "цілі"}
+                </Button>
               )}
             </CardContent>
           </Card>
-          <WaterCounter />
+        </div>
+
+        <aside className="side-column">
+          <Card className="dashboard-card plan-card">
+            <CardContent>
+              <Box
+                display="flex"
+                justifyContent="space-between"
+                alignItems="flex-start"
+                gap={1}
+                mb={1}
+              >
+                <Box>
+                  <Typography variant="h5">План дня</Typography>
+                  <Typography color="text.secondary">
+                    Заплановані звички та конкретні справи
+                  </Typography>
+                </Box>
+                <Button
+                  size="small"
+                  onClick={() =>
+                    navigate(`${routes.calendar.tracker}?view=day`)
+                  }
+                >
+                  Трекер
+                </Button>
+              </Box>
+              {agendaIsLoading && (
+                <LinearProgress aria-label="Завантаження плану дня" />
+              )}
+              {agendaHasError && (
+                <Box mt={2}>
+                  <Typography color="error" variant="body2">
+                    Не вдалося завантажити план дня.
+                  </Typography>
+                  <Button
+                    size="small"
+                    onClick={() => {
+                      history.refetch();
+                      habits.refetch();
+                      taskGroups.refetch();
+                    }}
+                  >
+                    Спробувати ще раз
+                  </Button>
+                </Box>
+              )}
+              {!agendaHasError && focusAgendaItem && (
+                <div className="agenda-focus">
+                  <span>{currentAgendaItem ? "Зараз" : "Далі"}</span>
+                  <strong>{focusAgendaItem.title}</strong>
+                  {!focusAgendaItem.isAllDay && (
+                    <small>{formatTime(focusAgendaItem.startTime)}</small>
+                  )}
+                </div>
+              )}
+              {!agendaHasError &&
+                visibleAgendaItems.map((item) => {
+                  const isCurrent = currentAgendaItem?.id === item.id;
+                  const isNext =
+                    !currentAgendaItem && nextAgendaItem?.id === item.id;
+                  return (
+                    <div
+                      className={`agenda-row${isCurrent ? " agenda-row--current" : ""}`}
+                      key={item.id}
+                    >
+                      <div className="agenda-time">
+                        {formatAgendaTime(
+                          item.startTime,
+                          item.endTime,
+                          item.isAllDay,
+                        )}
+                      </div>
+                      <Box minWidth={0}>
+                        <Typography fontWeight={600}>{item.title}</Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {item.parentTitle ||
+                            (item.kind === "habit" ? "Звичка" : "Список справ")}
+                        </Typography>
+                      </Box>
+                      <div className="agenda-action">
+                        <Chip
+                          size="small"
+                          color={
+                            item.progress >= 100
+                              ? "success"
+                              : item.status === "failed"
+                                ? "error"
+                                : isCurrent
+                                  ? "primary"
+                                  : "default"
+                          }
+                          variant={isNext ? "outlined" : "filled"}
+                          label={
+                            item.progress >= 100
+                              ? "Виконано"
+                              : item.status === "failed"
+                                ? "Не виконано"
+                                : isCurrent
+                                  ? "Зараз"
+                                  : isNext
+                                    ? "Наступне"
+                                    : item.progress > 0
+                                      ? `${Math.round(item.progress)}%`
+                                      : "Заплановано"
+                          }
+                        />
+                        {item.progress < 100 && (
+                          <Tooltip title="Швидко зафіксувати результат">
+                            <span>
+                              <IconButton
+                                size="small"
+                                color="primary"
+                                aria-label={`Виконати ${item.title}`}
+                                disabled={quickSavingId === item.id}
+                                onClick={() => handleQuickComplete(item)}
+                              >
+                                <DoneRounded fontSize="small" />
+                              </IconButton>
+                            </span>
+                          </Tooltip>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              {remainingAgendaItems > 0 && (
+                <Button
+                  className="card-more-link"
+                  size="small"
+                  onClick={() =>
+                    navigate(`${routes.calendar.tracker}?view=day`)
+                  }
+                >
+                  Ще {remainingAgendaItems} у трекері
+                </Button>
+              )}
+              {!agendaIsLoading &&
+                !agendaHasError &&
+                !dashboardData.agendaItems.length && (
+                  <Box className="plan-empty-state">
+                    <Typography color="text.secondary">
+                      План на сьогодні ще не сформовано.
+                    </Typography>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      onClick={() => setIsPlanDialogOpen(true)}
+                    >
+                      Сформувати план дня
+                    </Button>
+                  </Box>
+                )}
+            </CardContent>
+          </Card>
+          <WaterCounter className="water-card" compact />
         </aside>
       </section>
+      <TodayPlanDialog
+        open={isPlanDialogOpen}
+        canCopyYesterday={plannedYesterdayActivities.length > 0}
+        isSaving={isCopyingPlan}
+        onClose={() => setIsPlanDialogOpen(false)}
+        onCopyYesterday={handleCopyYesterdayPlan}
+        onOpenPlanning={() => {
+          setIsPlanDialogOpen(false);
+          navigate(`${routes.calendar.tracker}?view=day&mode=planning`);
+        }}
+      />
+      <QuickMeasureDialog
+        habit={quickMeasureHabit}
+        source={quickMeasureItem?.source}
+        isSaving={Boolean(quickSavingId)}
+        onClose={() => setQuickMeasureItem(undefined)}
+        onSave={handleSaveMeasuredHabit}
+      />
     </StyledMain>
   );
 };

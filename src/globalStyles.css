@@ -1,22 +1,172 @@
-@import "../node_modules/@syncfusion/ej2-base/styles/material.css";
-@import "../node_modules/@syncfusion/ej2-buttons/styles/material.css";
-@import "../node_modules/@syncfusion/ej2-calendars/styles/material.css";
-@import "../node_modules/@syncfusion/ej2-dropdowns/styles/material.css";
-@import "../node_modules/@syncfusion/ej2-inputs/styles/material.css";
-@import "../node_modules/@syncfusion/ej2-navigations/styles/material.css";
-@import "../node_modules/@syncfusion/ej2-popups/styles/material.css";
-@import "../node_modules/@syncfusion/ej2-react-schedule/styles/material.css";
-
-body {
-  margin: 0;
+:root {
+  --fya-primary: #5b6cf9;
+  --fya-primary-dark: #4051d6;
+  --fya-success: #18a874;
+  --fya-warning: #f59e0b;
+  --fya-error: #e5484d;
+  --fya-ink: #172033;
+  --fya-muted: #667085;
+  --fya-canvas: #f5f7fb;
+  --fya-surface: #ffffff;
+  --fya-border: #e4e8f0;
+  --fya-shadow: 0 12px 32px rgba(16, 24, 40, 0.07);
 }
 
-.fyi-ag-theme {
-  height: calc(100vh - 200px);
+* {
   box-sizing: border-box;
 }
 
+html {
+  min-width: 320px;
+  background: var(--fya-canvas);
+}
+
+body {
+  margin: 0;
+  color: var(--fya-ink);
+  background:
+    radial-gradient(
+      circle at 95% 0%,
+      rgba(91, 108, 249, 0.08),
+      transparent 28rem
+    ),
+    var(--fya-canvas);
+  font-family:
+    Inter,
+    ui-sans-serif,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+::selection {
+  color: #fff;
+  background: var(--fya-primary);
+}
+
+:focus-visible {
+  outline: 3px solid rgba(91, 108, 249, 0.28);
+  outline-offset: 2px;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: #c7cedb;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.fyi-ag-theme {
+  margin-top: 20px;
+  height: calc(100vh - 200px);
+  box-sizing: border-box;
+  --ag-font-family:
+    Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  --ag-font-size: 14px;
+  --ag-foreground-color: var(--fya-ink);
+  --ag-secondary-foreground-color: var(--fya-muted);
+  --ag-background-color: var(--fya-surface);
+  --ag-header-background-color: #f8f9fc;
+  --ag-header-foreground-color: #475467;
+  --ag-border-color: var(--fya-border);
+  --ag-row-border-color: #edf0f5;
+  --ag-row-hover-color: #f5f6ff;
+  --ag-selected-row-background-color: #eef0ff;
+  --ag-range-selection-border-color: var(--fya-primary);
+  --ag-input-focus-border-color: var(--fya-primary);
+  --ag-material-primary-color: var(--fya-primary);
+}
+
+.fyi-ag-theme .ag-root-wrapper {
+  overflow: hidden;
+  border: 1px solid var(--fya-border);
+  border-radius: 16px;
+  box-shadow: var(--fya-shadow);
+}
+
+.fyi-ag-theme .ag-header {
+  border-bottom: 1px solid var(--fya-border);
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+}
+
+.fyi-ag-theme .ag-cell {
+  display: flex;
+  align-items: center;
+  line-height: 1.35;
+}
+
+.fyi-ag-theme .ag-cell a {
+  color: var(--fya-primary-dark);
+  font-weight: 550;
+  text-decoration: none;
+}
+
+.fyi-ag-theme .ag-cell a:hover {
+  color: var(--fya-primary);
+  text-decoration: underline;
+}
+
+.page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 18px;
+}
+
+.page-title {
+  margin: 0;
+  color: var(--fya-ink);
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  font-weight: 750;
+  letter-spacing: -0.035em;
+  line-height: 1.1;
+}
+
+.page-subtitle {
+  max-width: 720px;
+  margin: 7px 0 0;
+  color: var(--fya-muted);
+  font-size: 0.95rem;
+}
+
+.surface-card {
+  border: 1px solid var(--fya-border);
+  border-radius: 18px;
+  background: var(--fya-surface);
+  box-shadow: var(--fya-shadow);
+}
+
 @media only screen and (max-width: 768px) {
+  .page-header {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 12px;
+  }
+
   .ant-picker-panels {
     flex-direction: column;
   }

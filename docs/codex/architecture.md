@@ -29,9 +29,9 @@ Typical flow: screen/component -> generated query or mutation hook -> service qu
 
 ## Feature domains
 
-- Main: current-day plan-performance dashboard, weekly chart that can exceed 100% for completed work outside the plan, complexity-weighted weekly life balance by habit area, activity streak, active aims, planned timed habits, quick entry to today's tracker, review navigation, and water counter.
+- Main: current-day plan-performance dashboard, a mobile daily agenda combining planned habits with concrete task-list items, copy-yesterday/manual plan setup, inline completion for boolean/measured habits and task items, review status, context-aware empty states, a weekly chart that can exceed 100% for completed work outside the plan, complexity-weighted weekly life balance by habit area, activity streak, active aims, full JSON backup download, and water counter.
 - Calendar tracker: current day/week/month navigation plus planning and completion history for habits and task groups. The selected period can be downloaded as a Markdown report with nested todo items and an AI-analysis prompt.
-- Scheduler: read-only day/week/month projection of timed habit history entries, with fallback to the current habit schedule for legacy history. Persistent editing remains in the tracker.
+- The former standalone scheduler is no longer active. Its old route redirects to the dashboard; time fields remain part of habits/history and feed the daily agenda and tracker ordering.
 - Aims: CRUD, categories, calendar spans, and progress from direct values, measured habits, or task-group stages.
 - Habits: CRUD, routine/time categories, independent life-area metadata, complexity, measures, schedules, and relationships.
 - Task groups: reusable task store, optional stages/subtasks, and per-day todo instances in tracker history.
@@ -41,9 +41,11 @@ Typical flow: screen/component -> generated query or mutation hook -> service qu
 
 ## UI composition
 
-Ant Design supplies navigation/forms, MUI supplies widgets/drawers/charts, AG Grid powers tracker and aim calendars, DevExpress powers the scheduler, and styled-components plus global CSS provide styling. Avoid adding another UI system.
+Ant Design supplies navigation/forms, MUI supplies widgets/drawers/charts, AG Grid powers tracker and aim calendars, and styled-components plus global CSS provide styling. The shared palette and component tokens live in `src/config/uiTheme.ts`; global layout, focus, scrollbar, and AG Grid defaults live in `src/globalStyles.css`. Avoid adding another UI system.
 
 On screens up to 768px, the main workflow uses a fixed bottom navigation: Today, Tracker, Daily Review, Weekly Review, and More. The More action opens the complete application menu. The tracker opens its day view from mobile navigation and uses a full-width editor drawer.
+
+The production build registers a small app-shell service worker and ships an installable Ukrainian PWA manifest. This caches the application shell, not Firestore data; the global network/save indicator warns users not to close the app while offline.
 
 ## Local Codex bridge
 

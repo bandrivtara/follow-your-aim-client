@@ -18,11 +18,11 @@ const DayCellRenderer = ({ value, data }: ICellRendererParams) => {
     if (!currentCellRendererData) return "transparent";
     const { progress } = currentCellRendererData;
     if (progress >= 100) {
-      return "#bae637";
+      return "#d9f7ec";
     } else if (progress >= 50) {
-      return "#fffb8f";
+      return "#fff1c7";
     } else if (progress > 0) {
-      return "#ff9c6e";
+      return "#ffe1dc";
     }
     return "transparent";
   };
