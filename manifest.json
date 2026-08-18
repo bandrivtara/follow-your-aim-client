@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "Follow Your Aim",
+  "name": "Follow Your Aim — особистий трекер прогресу",
   "icons": [
     {
       "src": "favicon.ico",
@@ -18,8 +18,22 @@
       "sizes": "512x512"
     }
   ],
-  "start_url": ".",
+  "start_url": "./#/",
+  "scope": "./",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "orientation": "any",
+  "theme_color": "#5b6cf9",
+  "background_color": "#f5f7fb",
+  "shortcuts": [
+    {
+      "name": "Трекер сьогодні",
+      "short_name": "Трекер",
+      "url": "./#/calendar/tracker?view=day"
+    },
+    {
+      "name": "Щоденний огляд",
+      "short_name": "Огляд",
+      "url": "./#/review/daily"
+    }
+  ]
 }
