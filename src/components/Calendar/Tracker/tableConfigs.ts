@@ -20,6 +20,19 @@ export interface IHabitRow {
   scheduleTime?: string;
 }
 
+export const getTrackerDayColumnLayout = (daysCount: number) => {
+  if (daysCount > 7) {
+    return { width: 64, minWidth: 64, maxWidth: 64, flex: 0 };
+  }
+
+  return {
+    width: undefined,
+    minWidth: daysCount === 1 ? 180 : 90,
+    maxWidth: undefined,
+    flex: 1,
+  };
+};
+
 const getColumnDefs = (
   currentDate: (Dayjs | null)[],
   calendarMode: ITrackerCalendarState,
@@ -27,19 +40,18 @@ const getColumnDefs = (
   if (!currentDate[0] || !currentDate[1]) return [];
 
   const days = getDaysBetweenDates(currentDate[0], currentDate[1]);
-  const dayColumnWidth = days.length === 1 ? 180 : days.length <= 7 ? 90 : 64;
+  const dayColumnLayout = getTrackerDayColumnLayout(days.length);
 
   const dayCols: ColDef[] = days.map((dayData) => {
     const isToday = dayjs(dayData.date).isSame(dayjs(), "day");
     return {
       field: dayData.day,
       headerName: `${dayData.weekday}, ${dayData.day}`,
-      minWidth: dayColumnWidth,
+      ...dayColumnLayout,
       cellRenderer: DayCellRenderer,
       cellRendererParams: { calendarMode, dayData },
       cellClass: isToday ? "day-cell day-cell--today" : "day-cell",
       headerClass: isToday ? "day-header--today" : undefined,
-      flex: days.length <= 7 ? 1 : undefined,
     };
   });
 

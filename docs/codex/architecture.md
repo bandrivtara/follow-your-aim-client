@@ -29,13 +29,13 @@ Typical flow: screen/component -> generated query or mutation hook -> service qu
 
 ## Feature domains
 
-- Main: current-day dashboard, weekly completion chart, activity streak, active aims, timed habits, quick navigation, and water counter.
-- Calendar tracker: current day/week/month navigation plus planning and completion history for habits and task groups.
+- Main: current-day plan-performance dashboard, weekly chart that can exceed 100% for completed work outside the plan, activity streak, active aims, planned timed habits, quick navigation, and water counter.
+- Calendar tracker: current day/week/month navigation plus planning and completion history for habits and task groups. The selected period can be downloaded as a Markdown report with nested todo items and an AI-analysis prompt.
 - Scheduler: read-only day/week/month projection of timed habit history entries, with fallback to the current habit schedule for legacy history. Persistent editing remains in the tracker.
-- Aims: CRUD, categories, life spheres, calendar spans, and progress from direct values, measured habits, or task-group stages.
+- Aims: CRUD, categories, calendar spans, and progress from direct values, measured habits, or task-group stages.
 - Habits: CRUD, categories, measures, schedules, and relationships.
 - Task groups: reusable task store, optional stages/subtasks, and per-day todo instances in tracker history.
-- Spheres: life-area records whose related habits and aims are derived from child sphereId fields.
+- Life spheres are no longer exposed in navigation, routes, forms, lists, or calendars. Legacy sphere documents, optional sphereId fields, and inert compatibility code remain untouched so existing Firebase data is not migrated or deleted.
 - English: vocabulary groups, words, and word tests.
 
 ## UI composition

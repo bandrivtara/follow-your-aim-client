@@ -9,6 +9,7 @@ import {
 } from "antd";
 import {
   CalendarOutlined,
+  DownloadOutlined,
   LeftOutlined,
   RightOutlined,
 } from "@ant-design/icons";
@@ -36,6 +37,8 @@ interface IProps {
   calendarMode: ITrackerCalendarState;
   rangeMode: TrackerRangeMode;
   setRangeMode: (mode: TrackerRangeMode) => void;
+  onExport: () => void;
+  exportDisabled?: boolean;
 }
 
 const FiltersBar = ({
@@ -50,6 +53,8 @@ const FiltersBar = ({
   rangeMode,
   setRangeMode,
   gridRef,
+  onExport,
+  exportDisabled,
 }: IProps) => {
   const isMobile = useIsMobile();
 
@@ -171,6 +176,14 @@ const FiltersBar = ({
             Планування
           </Radio.Button>
         </Radio.Group>
+
+        <Button
+          icon={<DownloadOutlined />}
+          onClick={onExport}
+          disabled={exportDisabled}
+        >
+          Завантажити витяг
+        </Button>
       </div>
     </StyledFiltersBarRow>
   );

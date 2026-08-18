@@ -3,17 +3,22 @@ import {
   getActivityStreak,
   getDashboardActivitiesForDate,
   getDashboardActivityProgress,
+  getDashboardPlanPerformance,
   getDashboardWeekData,
+  isDashboardActivityPlanned,
 } from "./dashboardCalculations";
 
 const julyHistory = {
   unix: dayjs("2026-07").unix(),
   "27": {
-    habitA: { progress: 100 },
+    habitA: { progress: 100, isPlanned: true },
   },
   "28": {
-    habitA: { progress: 100 },
-    tasks: { tasks: [{ status: "done" }, { status: "pending" }] },
+    habitA: { progress: 100, isPlanned: true },
+    tasks: {
+      isPlanned: true,
+      tasks: [{ status: "done" }, { status: "pending" }],
+    },
   },
 };
 
@@ -53,6 +58,67 @@ describe("dashboard calculations", () => {
     );
 
     expect(activities[0].progress).toBe(20);
+  });
+
+  it("prefers the value planned for the selected day over the habit default", () => {
+    const activities = getDashboardActivitiesForDate(
+      [
+        {
+          unix: dayjs("2026-07").unix(),
+          "28": {
+            water: {
+              progress: 0,
+              measures: {
+                measure: { value: 500, plannedValue: 1000 },
+              },
+            },
+          },
+        },
+      ],
+      dayjs("2026-07-28"),
+      [
+        {
+          id: "water",
+          type: "habit",
+          valueType: "measures",
+          fields: [{ id: "measure", minToComplete: 2500 }],
+        } as any,
+      ],
+    );
+
+    expect(activities[0].progress).toBe(50);
+    expect(activities[0].isPlanned).toBe(true);
+  });
+
+  it("recognizes explicit, measured and legacy task-list plans", () => {
+    expect(isDashboardActivityPlanned({ isPlanned: true })).toBe(true);
+    expect(
+      isDashboardActivityPlanned({
+        measures: { weight: { plannedValue: 98 } },
+      }),
+    ).toBe(true);
+    expect(isDashboardActivityPlanned({ tasks: [{ title: "План" }] })).toBe(
+      true,
+    );
+    expect(
+      isDashboardActivityPlanned({
+        isPlanned: false,
+        tasks: [{ title: "Поза планом" }],
+      }),
+    ).toBe(false);
+  });
+
+  it("uses planned activities as 100% and allows completed extras above it", () => {
+    const performance = getDashboardPlanPerformance([
+      { id: "a", progress: 100, isPlanned: true, source: {} },
+      { id: "b", progress: 50, isPlanned: true, source: {} },
+      { id: "c", progress: 100, isPlanned: false, source: {} },
+    ]);
+
+    expect(performance.progress).toBe(125);
+    expect(performance.planned).toBe(2);
+    expect(performance.completedPlanned).toBe(1);
+    expect(performance.completedOutsidePlan).toBe(1);
   });
 
   it("reads padded and unpadded day keys without duplicating activities", () => {

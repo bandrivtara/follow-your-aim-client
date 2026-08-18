@@ -10,13 +10,13 @@ Last verified: 2026-07-28.
 | Firestore services      | src/store/services/                              | src/types/, src/share/fireBase/                                             |
 | Main dashboard          | src/components/Main/Main.tsx                     | dashboardCalculations.ts, WaterCounter/, history, habits, and aims services |
 | Tracker date ranges     | src/components/Calendar/Tracker/calendarRange.ts | FiltersBar/, TrackerCalendar.tsx                                            |
-| Tracker                 | src/components/Calendar/Tracker/                 | habits, task groups, and history services                                   |
+| Tracker and export      | src/components/Calendar/Tracker/                 | trackerExport.ts, habits, task groups, and history services                 |
 | Tracker filters         | src/components/Calendar/Tracker/rowFilters.ts    | rowFilters.test.ts, FiltersBar/, tableConfigs.ts                            |
 | Scheduler               | src/components/Scheduler/                        | history and habits services                                                 |
 | Aims                    | src/components/Aims/                             | aims services, history helper, task groups                                  |
 | Habits                  | src/components/Habits/                           | habit and category services                                                 |
 | Task groups             | src/components/TasksGroups/                      | task-group service and tracker editors                                      |
-| Spheres                 | src/components/Spheres/                          | spheres service, related aims/habits                                        |
+| Legacy spheres          | src/components/Spheres/                          | unmounted compatibility code; no active route or UI                         |
 | English                 | src/components/English/                          | src/store/services/english.ts                                               |
 | Shared helpers          | src/share/                                       | dates, errors, forms, mobile detection                                      |
 | Domain types            | src/types/                                       | runtime Firestore shapes                                                    |

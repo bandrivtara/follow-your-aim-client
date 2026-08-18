@@ -32,6 +32,7 @@ export interface ITasksHistoryData {
   valueType: string;
   tasks: ITask[];
   progress: number;
+  isPlanned?: boolean;
   tasksStore?: ITask[];
 }
 

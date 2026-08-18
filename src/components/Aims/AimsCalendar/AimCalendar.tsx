@@ -10,7 +10,6 @@ import tableConfigs from "./tableConfigs";
 import { useGetAimsListQuery } from "store/services/aims";
 import { useGetTaskGroupListQuery } from "store/services/taskGroups";
 import { useGetAimsCategoriesListQuery } from "store/services/aimsCategories";
-import { useGetSpheresListQuery } from "store/services/spheres";
 import { getAimsDateRange } from "./aimCalendarCalculations";
 
 export type IAimCalendarState = "tracking" | "planning";
@@ -19,7 +18,6 @@ const AimCalendar = () => {
   const allAims = useGetAimsListQuery();
   const taskGroups = useGetTaskGroupListQuery();
   const aimCategories = useGetAimsCategoriesListQuery();
-  const spheres = useGetSpheresListQuery();
   const gridRef = useRef<AgGridReact>(null);
   const [rowData, setRowData] = useState<any[]>([]);
   const [columnDefs, setColumnDefs] = useState<ColDef[]>([]);
@@ -35,17 +33,10 @@ const AimCalendar = () => {
       taskGroups.data,
       monthsDates,
       aimCategories.data,
-      spheres.data,
     );
     setColumnDefs(newColumnDefs);
     setRowData(newRows);
-  }, [
-    aimCategories.data,
-    allAims.data,
-    monthsDates,
-    spheres.data,
-    taskGroups.data,
-  ]);
+  }, [aimCategories.data, allAims.data, monthsDates, taskGroups.data]);
 
   const onChange = (dates: null | (Dayjs | null)[]) => {
     if (dates) {

@@ -6,8 +6,6 @@ import AddEditAim from "./Aims/AddEditAim/AddEditAim";
 import AddEditHabit from "./Habits/AddEditHabit/AddEditHabit";
 import Habit from "./Habits/HabitsList/HabitsList";
 import AimsList from "./Aims/AimsList/AimsList";
-import SpheresList from "./Spheres/SpheresList/SpheresList";
-import AddEditSphere from "./Spheres/AddEditSphere/AddEditSphere";
 import TrackerCalendar from "./Calendar/Tracker/TrackerCalendar";
 import AimCalendar from "./Aims/AimsCalendar/AimCalendar";
 import HabitsCategoriesList from "./Habits/HabitsCategories/HabitsCategoriesList/HabitsCategoriesList";
@@ -74,13 +72,6 @@ const AppRoutes = () => {
           <Route
             path={`${routes.aims.categories.edit}/:aimsCategoryId`}
             element={<AddEditAimsCategory />}
-          />
-
-          <Route path={routes.spheres.list} element={<SpheresList />} />
-          <Route path={routes.spheres.add} element={<AddEditSphere />} />
-          <Route
-            path={`${routes.spheres.edit}/:sphereId`}
-            element={<AddEditSphere />}
           />
 
           <Route

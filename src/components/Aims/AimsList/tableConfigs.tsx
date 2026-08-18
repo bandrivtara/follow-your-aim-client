@@ -3,13 +3,9 @@ import routes from "config/routes";
 import { ColDef, ICellRendererParams } from "ag-grid-community";
 import { IAimData } from "types/aims.types";
 import { IAimsCategoryData } from "types/aimsCategories.types";
-import { ISphereData } from "types/spheres.types";
 import { getRelationTitle } from "share/functions/getRelationshipUpdates";
 
-const getColDefs = (
-  aimCategories: IAimsCategoryData[],
-  spheres: ISphereData[],
-): ColDef<IAimData>[] => [
+const getColDefs = (aimCategories: IAimsCategoryData[]): ColDef<IAimData>[] => [
   {
     headerName: "Назва",
     field: "title",
@@ -25,12 +21,6 @@ const getColDefs = (
     headerName: "Категорія",
     valueGetter: ({ data }) =>
       getRelationTitle(data?.aimsCategoryId, aimCategories, "Без категорії"),
-    flex: 1,
-  },
-  {
-    headerName: "Сфера життя",
-    valueGetter: ({ data }) =>
-      getRelationTitle(data?.sphereId, spheres, "Без сфери"),
     flex: 1,
   },
   {

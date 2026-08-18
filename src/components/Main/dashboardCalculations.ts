@@ -5,6 +5,7 @@ export interface DashboardActivity {
   id: string;
   progress: number;
   source: Record<string, unknown>;
+  isPlanned: boolean;
 }
 
 export interface DashboardDayData {
@@ -13,6 +14,9 @@ export interface DashboardDayData {
   progress: number;
   completed: number;
   total: number;
+  planned: number;
+  completedPlanned: number;
+  completedOutsidePlan: number;
 }
 
 const clampProgress = (value: number) => Math.min(100, Math.max(0, value));
@@ -32,6 +36,25 @@ export const getDashboardActivityProgress = (activity: Record<string, any>) => {
   return activity.status === "done" ? 100 : 0;
 };
 
+export const isDashboardActivityPlanned = (activity: Record<string, any>) => {
+  if (typeof activity.isPlanned === "boolean") {
+    return activity.isPlanned;
+  }
+
+  if (
+    activity.measures &&
+    Object.values(activity.measures).some(
+      (measure: any) => Number(measure?.plannedValue) > 0,
+    )
+  ) {
+    return true;
+  }
+
+  // Legacy task-group history did not persist isPlanned. Existing task lists
+  // therefore remain part of the plan unless a newer entry explicitly says no.
+  return Array.isArray(activity.tasks) && activity.tasks.length > 0;
+};
+
 const getMonthHistory = (history: Record<string, any>[], date: Dayjs) =>
   history.find((month) => {
     if (typeof month.unix !== "number") return false;
@@ -48,14 +71,21 @@ const getHabitAdjustedProgress = (
   }
 
   const measures = activity.source.measures as
-    | Record<string, { value?: number | string }>
+    | Record<
+        string,
+        { value?: number | string; plannedValue?: number | string }
+      >
     | undefined;
   const measuredValue = Number(measures?.[primaryField.id]?.value || 0);
+  const dailyPlannedValue = Number(
+    measures?.[primaryField.id]?.plannedValue || 0,
+  );
+  const targetValue = dailyPlannedValue || primaryField.minToComplete;
   return {
     ...activity,
     progress: Math.max(
       activity.progress,
-      clampProgress((measuredValue / primaryField.minToComplete) * 100),
+      clampProgress((measuredValue / targetValue) * 100),
     ),
   };
 };
@@ -82,6 +112,7 @@ export const getDashboardActivitiesForDate = (
         id,
         progress: getDashboardActivityProgress(source),
         source,
+        isPlanned: isDashboardActivityPlanned(source),
       });
     });
   });
@@ -97,6 +128,31 @@ export const getDashboardActivitiesForDate = (
 const getMonday = (date: Dayjs) =>
   date.startOf("day").subtract((date.day() + 6) % 7, "day");
 
+export const getDashboardPlanPerformance = (
+  activities: DashboardActivity[],
+) => {
+  const plannedActivities = activities.filter(({ isPlanned }) => isPlanned);
+  const completedEquivalent = activities.reduce(
+    (sum, activity) => sum + clampProgress(activity.progress) / 100,
+    0,
+  );
+
+  return {
+    progress: plannedActivities.length
+      ? Math.round((completedEquivalent / plannedActivities.length) * 100)
+      : 0,
+    planned: plannedActivities.length,
+    completedPlanned: plannedActivities.filter(
+      (activity) => activity.progress >= 100,
+    ).length,
+    completedOutsidePlan: activities.filter(
+      (activity) => !activity.isPlanned && activity.progress >= 100,
+    ).length,
+    completed: activities.filter((activity) => activity.progress >= 100).length,
+    total: activities.length,
+  };
+};
+
 export const getDashboardWeekData = (
   history: Record<string, any>[] = [],
   currentDate: Dayjs,
@@ -108,20 +164,12 @@ export const getDashboardWeekData = (
   return labels.map((label, index) => {
     const date = weekStart.add(index, "day");
     const activities = getDashboardActivitiesForDate(history, date, habits);
-    const totalProgress = activities.reduce(
-      (sum, activity) => sum + activity.progress,
-      0,
-    );
+    const performance = getDashboardPlanPerformance(activities);
 
     return {
       date: date.format("YYYY-MM-DD"),
       label,
-      progress: activities.length
-        ? Math.round(totalProgress / activities.length)
-        : 0,
-      completed: activities.filter((activity) => activity.progress >= 100)
-        .length,
-      total: activities.length,
+      ...performance,
     };
   });
 };

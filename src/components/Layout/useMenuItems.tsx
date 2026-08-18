@@ -110,25 +110,6 @@ const useMenuItems = () => {
       ],
     },
     {
-      key: 6,
-      label: "Сфери життя",
-      icon: <HeatMapOutlined rev="string" />,
-      children: [
-        {
-          key: 61,
-          label: "Усі сфери життя",
-          onClick: () => navigate(routes.spheres.list),
-          icon: <UnorderedListOutlined rev="string" />,
-        },
-        {
-          key: 62,
-          label: "Додати сферу життя",
-          onClick: () => navigate(routes.spheres.add),
-          icon: <PlusSquareOutlined rev="string" />,
-        },
-      ],
-    },
-    {
       key: 7,
       label: "Англійський словник",
       icon: <HeatMapOutlined rev="string" />,

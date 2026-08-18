@@ -31,7 +31,6 @@ import { getTimeOptions } from "share/functions/getTimeOptions";
 import { useWatch } from "antd/es/form/Form";
 import StyledAddEditHabit from "./AddEditHabit.styled";
 import { useGetHabitsCategoriesListQuery } from "store/services/habitsCategories";
-import { useGetSpheresListQuery } from "store/services/spheres";
 
 const formInitialValues = {
   title: "",
@@ -45,7 +44,6 @@ const formInitialValues = {
   endTime: "",
   isHidden: false,
   habitsCategoryId: "",
-  sphereId: "",
 };
 
 const AddEditHabit = () => {
@@ -55,7 +53,6 @@ const AddEditHabit = () => {
   const [updateHabit] = useUpdateHabitMutation();
   const habitDetails = useGetHabitQuery(habitId, { skip: !habitId });
   const habitsCategories = useGetHabitsCategoriesListQuery();
-  const spheres = useGetSpheresListQuery();
   const navigate = useNavigate();
 
   const currentFields = useWatch("fields", form);
@@ -127,20 +124,6 @@ const AddEditHabit = () => {
             </Select.Option>
           </Select>
         </Form.Item>
-        <Form.Item label="Сфера" name="sphereId">
-          <Select placeholder="Виберіть сферу">
-            {spheres.data &&
-              spheres.data.map((sphere) => (
-                <Select.Option key={sphere.id} value={sphere.id}>
-                  {sphere.title}
-                </Select.Option>
-              ))}
-            <Select.Option key={"no-sphere"} value={""}>
-              Без сфери
-            </Select.Option>
-          </Select>
-        </Form.Item>
-
         <Form.Item name="type" initialValue="habit" />
         <Form.Item rules={[{ required: true }]} name="valueType" label="Тип">
           <Radio.Group defaultValue="measures">

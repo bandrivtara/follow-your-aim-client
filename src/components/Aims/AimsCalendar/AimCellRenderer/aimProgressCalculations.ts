@@ -1,8 +1,21 @@
 import { IAim } from "types/aims.types";
 import { ITasksGroup } from "types/taskGroups";
+import dayjs, { Dayjs } from "dayjs";
 
 const clampProgress = (progress: number) =>
   Math.min(100, Math.max(0, progress));
+
+export const getAimProgressDateTo = (
+  dateTo: string,
+  currentDate: Dayjs = dayjs(),
+) => {
+  const aimEndDate = dayjs(dateTo);
+  if (!aimEndDate.isValid()) return dateTo;
+
+  return (aimEndDate.isAfter(currentDate, "day") ? currentDate : aimEndDate)
+    .startOf("day")
+    .format("YYYY/MM/DD");
+};
 
 export const calculateTargetProgress = (
   startedPoint: number,

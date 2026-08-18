@@ -38,6 +38,7 @@ List services usually attach Firestore document IDs as id. English differs: IDs 
 - Day keys are strings such as DD; activity IDs below them map to habit or task-group history.
 - updateHistory accepts id, path, and data and updates the dynamic field path without replacing the month.
 - Activity history can contain type, valueType, isPlanned, status, progress, times, measures, or tasks.
+- New task-list history entries persist the already-supported isPlanned flag so work added during tracking can be distinguished from the daily plan. Legacy task lists without the flag remain treated as planned for compatibility.
 - Measure values are nested under activity and measure IDs. Do not flatten or rename them.
 - History is read both by unix range in the RTK Query service and by document ID in src/share/fireBase/getHistoryBetweenDates.ts.
 
@@ -46,6 +47,7 @@ Any date fix must keep both read paths consistent and test first/last-day and cr
 ## Relationships
 
 - The effective relationship source is the child record: habits use habitsCategoryId and sphereId; aims use aimsCategoryId and sphereId.
+- Sphere documents and sphereId fields are legacy-compatible data. The active client UI no longer reads or edits them, but they remain unchanged in Firestore.
 - Category and sphere related-habit/aim arrays are optional legacy data and are not reliable enough to drive lists or initial form selection.
 - Relationship screens therefore derive their displayed and selected items from child IDs. Saving a relationship updates selected children and clears the same relationship on deselected children.
 - Missing referenced IDs must remain visible as a fallback such as "Не знайдено (ID)" instead of rendering a raw unexplained ID or crashing.

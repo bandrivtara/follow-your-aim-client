@@ -27,7 +27,9 @@ import StyledMain from "./Main.styled";
 import {
   getActivityStreak,
   getDashboardActivitiesForDate,
+  getDashboardPlanPerformance,
   getDashboardWeekData,
+  isDashboardActivityPlanned,
 } from "./dashboardCalculations";
 
 const formatTime = (time?: Array<number | string>) =>
@@ -58,17 +60,7 @@ const Main = () => {
       habitData,
     );
     const week = getDashboardWeekData(historyData, now, habitData);
-    const todayAverage = todayActivities.length
-      ? Math.round(
-          todayActivities.reduce(
-            (sum, activity) => sum + activity.progress,
-            0,
-          ) / todayActivities.length,
-        )
-      : 0;
-    const completedToday = todayActivities.filter(
-      (activity) => activity.progress >= 100,
-    ).length;
+    const todayPerformance = getDashboardPlanPerformance(todayActivities);
     const activeAims = (aims.data || []).filter(
       (aim) =>
         !now.isBefore(dayjs(aim.dateFrom), "day") &&
@@ -81,6 +73,8 @@ const Main = () => {
       .filter(
         (habit) =>
           !habit.isHidden &&
+          activityById.has(habit.id) &&
+          isDashboardActivityPlanned(activityById.get(habit.id)!.source) &&
           Array.isArray(habit.startTime) &&
           habit.startTime.length >= 2,
       )
@@ -95,8 +89,7 @@ const Main = () => {
     return {
       todayActivities,
       week,
-      todayAverage,
-      completedToday,
+      todayPerformance,
       activeAims,
       activityById,
       scheduledHabits,
@@ -104,11 +97,24 @@ const Main = () => {
     };
   }, [aims.data, habits.data, history.data, now]);
 
+  const weekChartMax = Math.max(
+    100,
+    Math.ceil(
+      Math.max(...dashboardData.week.map((day) => day.progress), 100) / 25,
+    ) * 25,
+  );
+
   const summaryCards = [
     {
-      label: "Виконання сьогодні",
-      value: `${dashboardData.todayAverage}%`,
-      hint: `${dashboardData.completedToday} із ${dashboardData.todayActivities.length} активностей завершено`,
+      label: "Виконання плану",
+      value: `${dashboardData.todayPerformance.progress}%`,
+      hint: dashboardData.todayPerformance.planned
+        ? `${dashboardData.todayPerformance.completedPlanned} із ${dashboardData.todayPerformance.planned} запланованих завершено${
+            dashboardData.todayPerformance.completedOutsidePlan
+              ? ` · ${dashboardData.todayPerformance.completedOutsidePlan} поза планом`
+              : ""
+          }`
+        : "На сьогодні план не сформовано",
     },
     {
       label: "Активна серія",
@@ -183,7 +189,8 @@ const Main = () => {
             <CardContent>
               <Typography variant="h5">Ритм поточного тижня</Typography>
               <Typography color="text.secondary">
-                Середній відсоток виконання активностей за кожен день
+                Виконання відносно плану дня; робота поза планом може дати понад
+                100%
               </Typography>
               <BarChart
                 xAxis={[
@@ -192,11 +199,11 @@ const Main = () => {
                     data: dashboardData.week.map((day) => day.label),
                   },
                 ]}
-                yAxis={[{ min: 0, max: 100 }]}
+                yAxis={[{ min: 0, max: weekChartMax }]}
                 series={[
                   {
                     data: dashboardData.week.map((day) => day.progress),
-                    label: "Виконання, %",
+                    label: "Виконання плану, %",
                     color: "#52a447",
                     valueFormatter: (value) => `${value ?? 0}%`,
                   },
@@ -251,9 +258,9 @@ const Main = () => {
         <aside className="side-column">
           <Card className="dashboard-card">
             <CardContent>
-              <Typography variant="h5">Звички за часом</Typography>
+              <Typography variant="h5">Заплановані звички за часом</Typography>
               <Typography color="text.secondary" mb={1}>
-                Швидкий огляд щоденного розкладу
+                Лише звички, які є в плані на сьогодні
               </Typography>
               {dashboardData.scheduledHabits.map((habit) => {
                 const progress =
@@ -278,6 +285,11 @@ const Main = () => {
                   </div>
                 );
               })}
+              {!dashboardData.scheduledHabits.length && (
+                <Typography color="text.secondary" mt={2}>
+                  Запланованих звичок із визначеним часом немає.
+                </Typography>
+              )}
             </CardContent>
           </Card>
           <WaterCounter />

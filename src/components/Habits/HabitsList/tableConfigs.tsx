@@ -3,12 +3,10 @@ import routes from "config/routes";
 import { ColDef, ICellRendererParams } from "ag-grid-community";
 import { IHabitsCategoryData } from "types/habitsCategories.types";
 import { IHabitData } from "types/habits.types";
-import { ISphereData } from "types/spheres.types";
 import { getRelationTitle } from "share/functions/getRelationshipUpdates";
 
 const getColDefs = (
   habitsCategories: IHabitsCategoryData[],
-  spheres: ISphereData[],
 ): ColDef<IHabitData>[] => [
   {
     headerName: "Назва",
@@ -29,12 +27,6 @@ const getColDefs = (
         habitsCategories,
         "Без категорії",
       ),
-    flex: 1,
-  },
-  {
-    headerName: "Сфера життя",
-    valueGetter: ({ data }) =>
-      getRelationTitle(data?.sphereId, spheres, "Без сфери"),
     flex: 1,
   },
   {

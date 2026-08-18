@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-material.css";
@@ -20,6 +20,7 @@ import {
   isDateInTrackerRange,
   TrackerRangeMode,
 } from "./calendarRange";
+import { buildTrackerExport, downloadTrackerExport } from "./trackerExport";
 
 export type ITrackerCalendarState = "tracking" | "planning";
 
@@ -95,6 +96,25 @@ const TrackerCalendar = () => {
     setIsEditOpen(false);
   };
 
+  const handleExport = useCallback(() => {
+    const [dateFrom, dateTo] = currentDate;
+    if (!dateFrom || !dateTo) return;
+
+    const content = buildTrackerExport({
+      dateFrom,
+      dateTo,
+      history: (historyData.data || []) as Record<string, any>[],
+      habits: habitsData.data || [],
+      taskGroups: taskGroupsData.data || [],
+    });
+    downloadTrackerExport(
+      content,
+      `tracker-${dateFrom.format("YYYY-MM-DD")}--${dateTo.format(
+        "YYYY-MM-DD",
+      )}.md`,
+    );
+  }, [currentDate, habitsData.data, historyData.data, taskGroupsData.data]);
+
   return (
     <StyledTrackerCalendar>
       <FiltersBar
@@ -109,9 +129,12 @@ const TrackerCalendar = () => {
         setRowSortingType={setRowSortingType}
         rangeMode={rangeMode}
         setRangeMode={setRangeMode}
+        onExport={handleExport}
+        exportDisabled={historyData.isFetching}
       />
       <div className="ag-theme-material fyi-ag-theme" ref={gridContainerRef}>
         <AgGridReact
+          key={rangeMode}
           rowHeight={30}
           ref={gridRef}
           rowData={rowData}

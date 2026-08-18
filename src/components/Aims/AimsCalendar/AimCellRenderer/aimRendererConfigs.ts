@@ -4,6 +4,7 @@ import { ITasksGroup } from "types/taskGroups";
 import {
   calculateTargetProgress,
   calculateTaskGroupProgress,
+  getAimProgressDateTo,
 } from "./aimProgressCalculations";
 import {
   getLastRelatedHabitValueBetweenDates,
@@ -12,12 +13,10 @@ import {
 } from "./aimHistoryCalculations";
 
 const getHistoryMonths = async (
-  data: IAim,
+  dateFrom: string,
+  dateTo: string,
 ): Promise<IHistoryMonthSnapshot[]> => {
-  const querySnapshot = await getHistoryBetweenDates(
-    data.dateFrom,
-    data.dateTo,
-  );
+  const querySnapshot = await getHistoryBetweenDates(dateFrom, dateTo);
 
   return querySnapshot.docs.map((monthHistoryDoc) => ({
     id: monthHistoryDoc.id,
@@ -28,11 +27,15 @@ const getHistoryMonths = async (
 export const aimRendererConfigs = {
   relatedHabit: {
     sumOfValues: async (data: IAim) => {
-      const historyMonths = await getHistoryMonths(data);
+      const progressDateTo = getAimProgressDateTo(data.dateTo);
+      const historyMonths = await getHistoryMonths(
+        data.dateFrom,
+        progressDateTo,
+      );
       const currentValue = sumRelatedHabitValuesBetweenDates(
         historyMonths,
         data.dateFrom,
-        data.dateTo,
+        progressDateTo,
         data.relatedHabit,
       );
 
@@ -42,19 +45,25 @@ export const aimRendererConfigs = {
       };
     },
     lastValue: async (data: IAim) => {
-      const historyMonths = await getHistoryMonths(data);
+      const progressDateTo = getAimProgressDateTo(data.dateTo);
+      const historyMonths = await getHistoryMonths(
+        data.dateFrom,
+        progressDateTo,
+      );
       const lastValue =
         getLastRelatedHabitValueBetweenDates(
           historyMonths,
           data.dateFrom,
-          data.dateTo,
+          progressDateTo,
           data.relatedHabit,
-        ) ?? 0;
+        ) ??
+        data.startedPoint ??
+        0;
 
       return {
         currentValue: lastValue,
         progress: calculateTargetProgress(
-          data.startedPoint || 0,
+          data.startedPoint ?? 0,
           data.finalAim,
           lastValue,
         ),

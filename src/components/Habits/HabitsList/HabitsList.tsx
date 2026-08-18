@@ -6,17 +6,14 @@ import routes from "config/routes";
 import { AgGridReact } from "ag-grid-react";
 import tableConfigs from "./tableConfigs";
 import { useGetHabitsCategoriesListQuery } from "store/services/habitsCategories";
-import { useGetSpheresListQuery } from "store/services/spheres";
 
 const HabitsList = () => {
   const { data = [] } = useGetHabitListQuery();
   const habitsCategories = useGetHabitsCategoriesListQuery();
-  const spheres = useGetSpheresListQuery();
   const navigate = useNavigate();
   const columnDefs = useMemo(
-    () =>
-      tableConfigs.getColDefs(habitsCategories.data || [], spheres.data || []),
-    [habitsCategories.data, spheres.data],
+    () => tableConfigs.getColDefs(habitsCategories.data || []),
+    [habitsCategories.data],
   );
 
   return (

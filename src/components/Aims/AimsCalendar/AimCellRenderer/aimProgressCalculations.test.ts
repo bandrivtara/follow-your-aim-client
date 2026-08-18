@@ -1,8 +1,10 @@
+import dayjs from "dayjs";
 import { IAim } from "types/aims.types";
 import { ITasksGroup } from "types/taskGroups";
 import {
   calculateTargetProgress,
   calculateTaskGroupProgress,
+  getAimProgressDateTo,
 } from "./aimProgressCalculations";
 
 const aim: IAim = {
@@ -68,5 +70,14 @@ describe("aim progress calculations", () => {
 
   it("returns zero for missing or empty task groups", () => {
     expect(calculateTaskGroupProgress(aim, [])).toBe(0);
+  });
+
+  it("does not use measurements from future days of an active aim", () => {
+    expect(getAimProgressDateTo("2026/08/31", dayjs("2026-07-28"))).toBe(
+      "2026/07/28",
+    );
+    expect(getAimProgressDateTo("2026/06/30", dayjs("2026-07-28"))).toBe(
+      "2026/06/30",
+    );
   });
 });

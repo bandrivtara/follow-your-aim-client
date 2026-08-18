@@ -56,6 +56,7 @@ const TodoList = ({ data, colDef, stopEditing }: IProps) => {
         type: "tasksGroup",
         valueType: "todoList",
         progress: 0,
+        isPlanned: false,
         tasks: [] as ITask[],
       },
     });
@@ -68,7 +69,7 @@ const TodoList = ({ data, colDef, stopEditing }: IProps) => {
   const [updateHistory] = useUpdateHistoryMutation();
   const taskGroupDetails = useGetTaskGroupQuery(data.id);
 
-  const { dayData } = colDef.cellRendererParams;
+  const { dayData, calendarMode } = colDef.cellRendererParams;
   const cellData = colDef.field && data[+colDef.field];
 
   useEffect(() => {
@@ -77,7 +78,13 @@ const TodoList = ({ data, colDef, stopEditing }: IProps) => {
     setValue("valueType", "todoList");
     setValue("progress", cellData?.progress || 0);
     setValue("tasks", cellData?.tasks || []);
-  }, [cellData, data.id, setValue]);
+    setValue(
+      "isPlanned",
+      typeof cellData?.isPlanned === "boolean"
+        ? cellData.isPlanned
+        : calendarMode === "planning" || Boolean(cellData?.tasks?.length),
+    );
+  }, [calendarMode, cellData, data.id, setValue]);
 
   const handleConfirm: SubmitHandler<ITasksHistoryData> = async (
     formValues: ITasksHistoryData,

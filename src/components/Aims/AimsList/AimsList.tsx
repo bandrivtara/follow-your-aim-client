@@ -6,16 +6,14 @@ import { Button } from "antd";
 import routes from "config/routes";
 import { useNavigate } from "react-router-dom";
 import { useGetAimsCategoriesListQuery } from "store/services/aimsCategories";
-import { useGetSpheresListQuery } from "store/services/spheres";
 
 const AimsList = () => {
   const navigate = useNavigate();
   const { data = [] } = useGetAimsListQuery();
   const aimCategories = useGetAimsCategoriesListQuery();
-  const spheres = useGetSpheresListQuery();
   const columnDefs = useMemo(
-    () => tableConfigs.getColDefs(aimCategories.data || [], spheres.data || []),
-    [aimCategories.data, spheres.data],
+    () => tableConfigs.getColDefs(aimCategories.data || []),
+    [aimCategories.data],
   );
 
   return (

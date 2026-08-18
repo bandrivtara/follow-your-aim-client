@@ -5,7 +5,6 @@ import { IAimData } from "types/aims.types";
 import { ITasksGroup } from "types/taskGroups";
 import AimCellEditor from "./AimCellEditor/AimCellEditor";
 import { IAimsCategoryData } from "types/aimsCategories.types";
-import { ISphereData } from "types/spheres.types";
 import { getRelationTitle } from "share/functions/getRelationshipUpdates";
 import { isAimInRange } from "./aimCalendarCalculations";
 
@@ -56,14 +55,7 @@ const getColumnDefs = (monthsDates: (Dayjs | null)[]): ColDef[] => {
     width: 220,
   };
 
-  const sphereCol: ColDef = {
-    field: "sphere-col",
-    headerName: "Сфера життя",
-    pinned: "left",
-    width: 180,
-  };
-
-  return [aimCategoryCol, sphereCol, ...newColDefs];
+  return [aimCategoryCol, ...newColDefs];
 };
 
 const getRows = (
@@ -71,7 +63,6 @@ const getRows = (
   taskGroupsData: ITasksGroup[] | undefined,
   monthsDates: (Dayjs | null)[],
   aimCategories: IAimsCategoryData[] = [],
-  spheres: ISphereData[] = [],
 ) => {
   if (!allAims) return [];
   const [rangeFrom, rangeTo] = monthsDates;
@@ -101,7 +92,6 @@ const getRows = (
           aimCategories,
           "Без категорії",
         ),
-        "sphere-col": getRelationTitle(aim.sphereId, spheres, "Без сфери"),
         colName: `col-${calendarDateFrom.year()}-${calendarDateFrom.month()}`,
         differenceMonths: difference,
         calendarDateFrom: calendarDateFrom.format("YYYY/MM/DD"),

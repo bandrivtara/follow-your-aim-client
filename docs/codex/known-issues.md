@@ -25,6 +25,11 @@ This is a triage aid, not permission to fix items outside the requested scope. R
 
 ## Recently resolved
 
+- Dashboard completion is now normalized against explicitly planned tracker activities, while completed work outside the plan can raise the score above 100%.
+- Active aim calculations stop at the current date and fall back to the configured starting point when no measurement exists, preventing future placeholder values from completing descending goals.
+- Tracker month columns now have a fixed equal width, and the current period can be exported with nested tasks and an AI-analysis prompt.
+- Life spheres were removed from the active UI without migrating or deleting legacy Firebase data.
+
 - Scheduler is intentionally a read-only projection of timed tracker history; standalone appointments are not supported by the current Firebase contract.
 
 - Tracker activity filters now affect displayed rows and have focused tests (8e8a061, fix(tracker): apply activity filters).
