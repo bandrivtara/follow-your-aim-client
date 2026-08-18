@@ -14,6 +14,7 @@ const routes = {
     weekly: "/review/weekly",
     codex: "/review/codex",
   },
+  career: "/career",
   taskGroups: {
     path: "/task-groups",
     list: "/task-groups/list",

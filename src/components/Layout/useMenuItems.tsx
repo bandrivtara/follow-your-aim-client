@@ -13,6 +13,7 @@ import {
   BookOutlined,
   BarChartOutlined,
   CodeOutlined,
+  RocketOutlined,
 } from "@ant-design/icons";
 import type { MenuProps } from "antd";
 import routes from "../../config/routes";
@@ -104,6 +105,12 @@ const useMenuItems = () => {
           icon: <UnorderedListOutlined rev="string" />,
         },
       ],
+    },
+    {
+      key: 8,
+      label: "Кар'єра",
+      onClick: () => navigate(routes.career),
+      icon: <RocketOutlined rev="string" />,
     },
     {
       key: 6,

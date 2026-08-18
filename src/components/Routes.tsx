@@ -22,6 +22,7 @@ import WordsTest from "./English/Tests/WordsTest";
 import DailyReview from "./Review/DailyReview/DailyReview";
 import WeeklyReview from "./Review/WeeklyReview/WeeklyReview";
 import CodexGuide from "./Review/CodexGuide/CodexGuide";
+import CareerDashboard from "./Career/CareerDashboard";
 
 const AppRoutes = () => {
   return (
@@ -39,6 +40,7 @@ const AppRoutes = () => {
           <Route path={routes.review.daily} element={<DailyReview />} />
           <Route path={routes.review.weekly} element={<WeeklyReview />} />
           <Route path={routes.review.codex} element={<CodexGuide />} />
+          <Route path={routes.career} element={<CareerDashboard />} />
 
           <Route path={routes.habit.list} element={<Habit />} />
           <Route path={routes.habit.add} element={<AddEditHabit />} />

@@ -44,6 +44,7 @@ const AppLayout = ({ children }: IProps) => {
     if (path.startsWith(routes.habit.path)) return ["41"];
     if (path.startsWith(routes.aims.categories.path)) return ["52"];
     if (path.startsWith(routes.aims.path)) return ["51"];
+    if (path === routes.career) return ["8"];
     if (path === routes.review.daily) return ["61"];
     if (path === routes.review.weekly) return ["62"];
     if (path === routes.review.codex) return ["63"];
@@ -65,6 +66,7 @@ const AppLayout = ({ children }: IProps) => {
     if (location.pathname === routes.review.daily) return "Щоденний огляд";
     if (location.pathname === routes.review.weekly) return "Підсумок тижня";
     if (location.pathname === routes.review.codex) return "Codex-помічник";
+    if (location.pathname === routes.career) return "Кар'єрний компас";
     if (location.pathname.startsWith(routes.calendar.tracker)) return "Трекер";
     if (location.pathname.startsWith(routes.calendar.aims))
       return "Календар цілей";
