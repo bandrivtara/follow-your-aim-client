@@ -7,23 +7,31 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import { ContentCopyOutlined, TuneOutlined } from "@mui/icons-material";
+import {
+  ContentCopyOutlined,
+  EventRepeatOutlined,
+  TuneOutlined,
+} from "@mui/icons-material";
 
 interface TodayPlanDialogProps {
   open: boolean;
   canCopyYesterday: boolean;
+  canCopyPreviousWeek: boolean;
   isSaving: boolean;
   onClose: () => void;
   onCopyYesterday: () => void;
+  onCopyPreviousWeek: () => void;
   onOpenPlanning: () => void;
 }
 
 const TodayPlanDialog = ({
   open,
   canCopyYesterday,
+  canCopyPreviousWeek,
   isSaving,
   onClose,
   onCopyYesterday,
+  onCopyPreviousWeek,
   onOpenPlanning,
 }: TodayPlanDialogProps) => (
   <Dialog
@@ -41,6 +49,19 @@ const TodayPlanDialog = ({
       <Stack spacing={1.5}>
         <Button
           variant="contained"
+          startIcon={<EventRepeatOutlined />}
+          disabled={!canCopyPreviousWeek || isSaving}
+          onClick={onCopyPreviousWeek}
+        >
+          {isSaving ? "Копіюю…" : "Скопіювати такий самий день минулого тижня"}
+        </Button>
+        {!canCopyPreviousWeek && (
+          <Typography variant="caption" color="text.secondary">
+            У такий самий день минулого тижня немає готового плану.
+          </Typography>
+        )}
+        <Button
+          variant="outlined"
           startIcon={<ContentCopyOutlined />}
           disabled={!canCopyYesterday || isSaving}
           onClick={onCopyYesterday}

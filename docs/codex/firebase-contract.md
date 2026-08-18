@@ -40,7 +40,7 @@ List services usually attach Firestore document IDs as id. English differs: IDs 
 - updateHistory accepts id, path, and data and updates the dynamic field path without replacing the month.
 - Activity history can contain type, valueType, isPlanned, status, progress, times, measures, or tasks.
 - New task-list history entries persist the already-supported isPlanned flag so work added during tracking can be distinguished from the daily plan. Legacy task lists without the flag remain treated as planned for compatibility.
-- Dashboard quick completion merges a boolean habit, measured habit, or updated task list back into the same existing day/activity path. Copying yesterday's plan creates current-day activity entries with progress/value/status reset while preserving targets, tasks, times, and IDs.
+- Dashboard quick completion merges a boolean habit, measured habit, or updated task list back into the same existing day/activity path. Quick task capture appends a pending task to an existing flat task-group activity at that path and marks the activity as planned. Copying yesterday's or the previous same weekday's plan creates current-day activity entries with progress/value/status reset while preserving targets, tasks, times, and IDs.
 - Measure values are nested under activity and measure IDs. Do not flatten or rename them.
 - History is read both by unix range in the RTK Query service and by document ID in src/share/fireBase/getHistoryBetweenDates.ts.
 

@@ -26,6 +26,61 @@ const StyledMain = styled.main`
     margin-bottom: 14px;
   }
 
+  .daily-guidance-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+
+  .guidance-card {
+    overflow: hidden;
+    border: 1px solid var(--fya-border);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: var(--fya-shadow);
+  }
+
+  .guidance-card .MuiCardContent-root {
+    padding: 18px;
+  }
+
+  .guidance-heading {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .guidance-icon {
+    display: grid;
+    flex: 0 0 40px;
+    width: 40px;
+    height: 40px;
+    place-items: center;
+    border-radius: 12px;
+  }
+
+  .guidance-icon--focus {
+    color: #d97706;
+    background: rgba(245, 158, 11, 0.12);
+  }
+
+  .guidance-icon--recovery {
+    color: #0f9f8f;
+    background: rgba(20, 184, 166, 0.12);
+  }
+
+  .guidance-card .MuiButton-root {
+    margin-top: 10px;
+  }
+
+  .recovery-habit-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 14px;
+  }
+
   .content-grid {
     display: grid;
     grid-template-areas:
@@ -220,9 +275,23 @@ const StyledMain = styled.main`
     height: 100%;
   }
 
+  .mobile-quick-task-fab {
+    position: fixed;
+    z-index: 26;
+    right: 16px;
+    bottom: calc(82px + env(safe-area-inset-bottom));
+    gap: 7px;
+    box-shadow: 0 14px 28px rgba(64, 81, 214, 0.28);
+  }
+
   @media only screen and (max-width: 980px) {
     .summary-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .daily-guidance-grid {
+      grid-template-columns: 1fr;
+      gap: 10px;
     }
 
     .content-grid {
@@ -250,8 +319,8 @@ const StyledMain = styled.main`
     .content-grid {
       grid-template-areas:
         "plan"
-        "water"
         "goals"
+        "water"
         "week"
         "balance";
       grid-template-columns: minmax(0, 1fr);
@@ -268,6 +337,19 @@ const StyledMain = styled.main`
     .dashboard-actions > button {
       flex: 1;
       min-width: calc(50% - 4px);
+    }
+
+    .dashboard-action--desktop-secondary {
+      display: none;
+    }
+
+    .guidance-card .MuiCardContent-root {
+      padding: 15px;
+    }
+
+    .guidance-card .MuiTypography-h6 {
+      font-size: 1rem;
+      line-height: 1.35;
     }
 
     .agenda-row {

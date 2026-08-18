@@ -27,6 +27,7 @@ interface IProps {
   placeholder: string;
   value: string;
   onChange: (value: string) => void;
+  minRows?: number;
 }
 
 const getSpeechRecognition = () => {
@@ -39,7 +40,13 @@ const getSpeechRecognition = () => {
   );
 };
 
-const VoiceTextField = ({ label, placeholder, value, onChange }: IProps) => {
+const VoiceTextField = ({
+  label,
+  placeholder,
+  value,
+  onChange,
+  minRows = 3,
+}: IProps) => {
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
 
@@ -90,7 +97,7 @@ const VoiceTextField = ({ label, placeholder, value, onChange }: IProps) => {
     <TextField
       fullWidth
       multiline
-      minRows={3}
+      minRows={minRows}
       label={label}
       placeholder={placeholder}
       value={value}

@@ -49,6 +49,13 @@ export interface LifeBalanceAreaData {
   completion: number;
 }
 
+export interface RecoveryHabitData {
+  id: string;
+  title: string;
+  todayIsPlanned: boolean;
+  startTime?: Array<number | string>;
+}
+
 const clampProgress = (value: number) => Math.min(100, Math.max(0, value));
 
 const isTimeValue = (value: unknown): value is Array<number | string> =>
@@ -292,6 +299,41 @@ export const getDashboardPlanPerformance = (
     completed: activities.filter((activity) => activity.progress >= 100).length,
     total: activities.length,
   };
+};
+
+export const getRecoveryHabits = (
+  yesterdayActivities: DashboardActivity[] = [],
+  todayActivities: DashboardActivity[] = [],
+  habits: IHabitData[] = [],
+): RecoveryHabitData[] => {
+  const missedIds = new Set(
+    yesterdayActivities
+      .filter((activity) => activity.isPlanned && activity.progress < 100)
+      .map((activity) => activity.id),
+  );
+  const todayById = new Map(todayActivities.map((activity) => [activity.id, activity]));
+
+  return habits
+    .filter(
+      (habit) =>
+        missedIds.has(habit.id) &&
+        !habit.isArchived &&
+        !habit.isHidden &&
+        (todayById.get(habit.id)?.progress || 0) < 100,
+    )
+    .map((habit) => ({
+      id: habit.id,
+      title: habit.title,
+      todayIsPlanned: Boolean(todayById.get(habit.id)?.isPlanned),
+      startTime: isTimeValue(habit.startTime) ? habit.startTime : undefined,
+    }))
+    .sort((left, right) => {
+      if (left.todayIsPlanned !== right.todayIsPlanned) {
+        return left.todayIsPlanned ? -1 : 1;
+      }
+      return (getTimeInMinutes(left.startTime) ?? Number.MAX_SAFE_INTEGER) -
+        (getTimeInMinutes(right.startTime) ?? Number.MAX_SAFE_INTEGER);
+    });
 };
 
 export const getDashboardWeekData = (

@@ -26,6 +26,7 @@ This is a triage aid, not permission to fix items outside the requested scope. R
 
 ## Recently resolved
 
+- The dashboard now carries yesterday's stated focus into today, highlights missed habits until recovery, supports copying the same weekday from the previous week, and adds mobile quick task capture without introducing a new Firebase entity.
 - Mobile navigation now prioritizes Today, today's Tracker, Daily Review, and Weekly Review; the complete menu remains available through More.
 - Daily review and weekly report flows now connect subjective reflection to tracker results without embedding an AI provider or API key in the client.
 - Goals and habits can be archived and restored without deleting their Firestore documents or historical tracker data.

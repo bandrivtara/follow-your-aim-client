@@ -1,4 +1,5 @@
 import { IHabitData } from "types/habits.types";
+import { ITasksGroup } from "types/taskGroups";
 
 export const resetActivityForPlanning = (source: Record<string, any>) => ({
   ...source,
@@ -106,6 +107,40 @@ export const completeTaskAtIndex = (
   return {
     ...source,
     isPlanned: source.isPlanned ?? true,
+    tasks,
+    progress,
+    status: progress >= 100 ? "done" : "pending",
+  };
+};
+
+export const appendQuickTask = (
+  taskGroup: ITasksGroup,
+  source: Record<string, any> = {},
+  title: string,
+  taskId: string,
+) => {
+  const tasks = [
+    ...(Array.isArray(source.tasks) ? source.tasks : []),
+    {
+      id: taskId,
+      title: title.trim(),
+      description: "",
+      status: "pending" as const,
+      time: [0, 0],
+      isEditOn: false,
+    },
+  ];
+  const completed = tasks.filter(
+    (task: Record<string, any>) => task.status === "done",
+  ).length;
+  const progress = tasks.length ? Math.round((completed / tasks.length) * 100) : 0;
+
+  return {
+    ...source,
+    id: taskGroup.id,
+    type: "tasksGroup" as const,
+    valueType: "todoList" as const,
+    isPlanned: true,
     tasks,
     progress,
     status: progress >= 100 ? "done" : "pending",

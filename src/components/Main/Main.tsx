@@ -4,6 +4,7 @@ import {
   Card,
   CardContent,
   Chip,
+  Fab,
   IconButton,
   LinearProgress,
   Tooltip,
@@ -11,10 +12,13 @@ import {
 } from "@mui/material";
 import {
   AssessmentOutlined,
+  AddTaskOutlined,
   CheckCircleOutline,
   CloudDownloadOutlined,
   DoneRounded,
   EditNoteOutlined,
+  LightbulbOutlined,
+  ReplayOutlined,
 } from "@mui/icons-material";
 import { BarChart } from "@mui/x-charts/BarChart";
 import { useMemo, useState } from "react";
@@ -32,6 +36,8 @@ import {
 } from "store/services/history";
 import { useGetTaskGroupListQuery } from "store/services/taskGroups";
 import { useGetDailyReviewMonthQuery } from "store/services/dailyReviews";
+import useIsMobile from "share/hooks/useIsMobile";
+import uniqid from "uniqid";
 import { isDailyReviewComplete } from "share/functions/dailyReviewCompletion";
 import {
   buildFirebaseBackup,
@@ -41,7 +47,9 @@ import WaterCounter from "./WaterCounter/WaterCounter";
 import StyledMain from "./Main.styled";
 import TodayPlanDialog from "./TodayPlanDialog";
 import QuickMeasureDialog from "./QuickMeasureDialog";
+import QuickTaskDialog from "./QuickTaskDialog";
 import {
+  appendQuickTask,
   completeBooleanHabit,
   completeMeasuredHabit,
   completeTaskAtIndex,
@@ -54,6 +62,7 @@ import {
   getDashboardActivitiesForDate,
   getDashboardLifeBalance,
   getDashboardPlanPerformance,
+  getRecoveryHabits,
   getDashboardWeekData,
 } from "./dashboardCalculations";
 
@@ -80,12 +89,16 @@ const formatAgendaTime = (
 
 const Main = () => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const now = useMemo(() => dayjs(), []);
+  const yesterday = useMemo(() => now.subtract(1, "day"), [now]);
   const [isPlanDialogOpen, setIsPlanDialogOpen] = useState(false);
+  const [isQuickTaskOpen, setIsQuickTaskOpen] = useState(false);
   const [quickMeasureItem, setQuickMeasureItem] =
     useState<DashboardAgendaItem>();
   const [quickSavingId, setQuickSavingId] = useState<string>();
   const [isCopyingPlan, setIsCopyingPlan] = useState(false);
+  const [isSavingQuickTask, setIsSavingQuickTask] = useState(false);
   const [isDownloadingBackup, setIsDownloadingBackup] = useState(false);
   const historyRange = useMemo(
     () => [
@@ -98,7 +111,11 @@ const Main = () => {
   const habits = useGetHabitListQuery();
   const taskGroups = useGetTaskGroupListQuery();
   const aims = useGetAimsListQuery();
-  const dailyReview = useGetDailyReviewMonthQuery(now.format("YYYY-MM"));
+  const currentReview = useGetDailyReviewMonthQuery(now.format("YYYY-MM"));
+  const previousMonthReview = useGetDailyReviewMonthQuery(
+    yesterday.format("YYYY-MM"),
+    { skip: yesterday.isSame(now, "month") },
+  );
   const [updateHistory] = useUpdateHistoryMutation();
 
   const dashboardData = useMemo(() => {
@@ -111,7 +128,12 @@ const Main = () => {
     );
     const yesterdayActivities = getDashboardActivitiesForDate(
       historyData,
-      now.subtract(1, "day"),
+      yesterday,
+      habitData,
+    );
+    const previousWeekActivities = getDashboardActivitiesForDate(
+      historyData,
+      now.subtract(1, "week"),
       habitData,
     );
     const week = getDashboardWeekData(historyData, now, habitData);
@@ -132,14 +154,20 @@ const Main = () => {
     return {
       todayActivities,
       yesterdayActivities,
+      previousWeekActivities,
       week,
       lifeBalance,
       todayPerformance,
       activeAims,
       agendaItems,
+      recoveryHabits: getRecoveryHabits(
+        yesterdayActivities,
+        todayActivities,
+        habitData,
+      ),
       streak: getActivityStreak(historyData, now, 90, habitData),
     };
-  }, [aims.data, habits.data, history.data, now, taskGroups.data]);
+  }, [aims.data, habits.data, history.data, now, taskGroups.data, yesterday]);
 
   const currentMinutes = now.hour() * 60 + now.minute();
   const currentAgendaItem = dashboardData.agendaItems.find((item) => {
@@ -180,7 +208,19 @@ const Main = () => {
   const plannedYesterdayActivities = dashboardData.yesterdayActivities.filter(
     (activity) => activity.isPlanned && copyableActivityIds.has(activity.id),
   );
-  const savedDailyReview = dailyReview.data?.[now.format("DD")];
+  const plannedPreviousWeekActivities =
+    dashboardData.previousWeekActivities.filter(
+      (activity) => activity.isPlanned && copyableActivityIds.has(activity.id),
+    );
+  const savedDailyReview = currentReview.data?.[now.format("DD")];
+  const yesterdayReviewMonth = yesterday.isSame(now, "month")
+    ? currentReview.data
+    : previousMonthReview.data;
+  const yesterdayFocusValue = yesterdayReviewMonth?.[yesterday.format("DD")];
+  const dailyFocus =
+    yesterdayFocusValue && typeof yesterdayFocusValue === "object"
+      ? yesterdayFocusValue.answers?.tomorrow?.trim()
+      : "";
   const isReviewComplete = Boolean(
     savedDailyReview &&
     typeof savedDailyReview === "object" &&
@@ -191,6 +231,17 @@ const Main = () => {
   );
   const quickMeasureHabit = habits.data?.find(
     (habit) => habit.id === quickMeasureItem?.activityId,
+  );
+  const quickTaskGroups = (taskGroups.data || []).filter(
+    (taskGroup) =>
+      !taskGroup.isHidden &&
+      !taskGroup.isDividedIntoStages &&
+      taskGroup.valueType === "todoList",
+  );
+  const visibleRecoveryHabits = dashboardData.recoveryHabits.slice(0, 3);
+  const remainingRecoveryHabits = Math.max(
+    0,
+    dashboardData.recoveryHabits.length - visibleRecoveryHabits.length,
   );
 
   const weekChartMax = Math.max(
@@ -265,11 +316,14 @@ const Main = () => {
     setQuickMeasureItem(undefined);
   };
 
-  const handleCopyYesterdayPlan = async () => {
+  const handleCopyPlan = async (
+    activities: typeof plannedYesterdayActivities,
+    successMessage: string,
+  ) => {
     setIsCopyingPlan(true);
     try {
       await Promise.all(
-        plannedYesterdayActivities.map((activity) =>
+        activities.map((activity) =>
           updateHistory(
             getTodayHistoryUpdate(
               activity.id,
@@ -278,12 +332,42 @@ const Main = () => {
           ).unwrap(),
         ),
       );
-      message.success("Вчорашній план перенесено на сьогодні");
+      message.success(successMessage);
       setIsPlanDialogOpen(false);
     } catch {
       message.error("Не вдалося скопіювати план. Спробуй ще раз.");
     } finally {
       setIsCopyingPlan(false);
+    }
+  };
+
+  const handleAddQuickTask = async ({
+    title,
+    taskGroupId,
+  }: {
+    title: string;
+    taskGroupId: string;
+  }) => {
+    const taskGroup = quickTaskGroups.find(({ id }) => id === taskGroupId);
+    if (!taskGroup) return;
+    const currentSource =
+      dashboardData.todayActivities.find(({ id }) => id === taskGroupId)
+        ?.source || {};
+
+    setIsSavingQuickTask(true);
+    try {
+      await updateHistory(
+        getTodayHistoryUpdate(
+          taskGroup.id,
+          appendQuickTask(taskGroup, currentSource, title, uniqid()),
+        ),
+      ).unwrap();
+      message.success(`Справу додано до «${taskGroup.title}»`);
+      setIsQuickTaskOpen(false);
+    } catch {
+      message.error("Не вдалося додати справу. Спробуй ще раз.");
+    } finally {
+      setIsSavingQuickTask(false);
     }
   };
 
@@ -364,12 +448,22 @@ const Main = () => {
           </Button>
           <Button
             variant="outlined"
+            startIcon={<AddTaskOutlined />}
+            disabled={!quickTaskGroups.length}
+            onClick={() => setIsQuickTaskOpen(true)}
+          >
+            Швидка справа
+          </Button>
+          <Button
+            className="dashboard-action--desktop-secondary"
+            variant="outlined"
             startIcon={<AssessmentOutlined />}
             onClick={() => navigate(routes.review.weekly)}
           >
             Підсумок тижня
           </Button>
           <Button
+            className="dashboard-action--desktop-secondary"
             variant="text"
             startIcon={<CloudDownloadOutlined />}
             disabled={isDownloadingBackup}
@@ -379,6 +473,95 @@ const Main = () => {
           </Button>
         </div>
       </header>
+
+      <section className="daily-guidance-grid" aria-label="Фокус і відновлення">
+        <Card className="guidance-card focus-card">
+          <CardContent>
+            <div className="guidance-heading">
+              <span className="guidance-icon guidance-icon--focus">
+                <LightbulbOutlined />
+              </span>
+              <Box minWidth={0}>
+                <Typography variant="overline" color="primary.main">
+                  Головний фокус дня
+                </Typography>
+                <Typography variant="h6">
+                  {dailyFocus || "Фокус на сьогодні ще не сформульовано"}
+                </Typography>
+              </Box>
+            </div>
+            <Typography variant="body2" color="text.secondary" mt={1.5}>
+              {dailyFocus
+                ? "Перенесено з учорашнього щоденного огляду."
+                : "Запиши один конкретний фокус у вечірньому огляді — завтра він з’явиться тут."}
+            </Typography>
+            {!dailyFocus && (
+              <Button
+                size="small"
+                onClick={() =>
+                  navigate(
+                    `${routes.review.daily}?date=${yesterday.format("YYYY-MM-DD")}`,
+                  )
+                }
+              >
+                Відкрити огляд за вчора
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="guidance-card recovery-card">
+          <CardContent>
+            <div className="guidance-heading">
+              <span className="guidance-icon guidance-icon--recovery">
+                <ReplayOutlined />
+              </span>
+              <Box minWidth={0}>
+                <Typography variant="overline" color="secondary.main">
+                  Не пропускай двічі
+                </Typography>
+                <Typography variant="h6">
+                  {visibleRecoveryHabits.length
+                    ? "Сьогодні достатньо просто повернутися"
+                    : "Відновлення не потрібне"}
+                </Typography>
+              </Box>
+            </div>
+            {visibleRecoveryHabits.length ? (
+              <>
+                <div className="recovery-habit-list">
+                  {visibleRecoveryHabits.map((habit) => (
+                    <Chip
+                      key={habit.id}
+                      size="small"
+                      color={habit.todayIsPlanned ? "primary" : "default"}
+                      variant={habit.todayIsPlanned ? "filled" : "outlined"}
+                      label={`${habit.title}${
+                        habit.todayIsPlanned ? " · у плані" : " · додай у план"
+                      }`}
+                    />
+                  ))}
+                  {remainingRecoveryHabits > 0 && (
+                    <Chip size="small" label={`Ще ${remainingRecoveryHabits}`} />
+                  )}
+                </div>
+                <Button
+                  size="small"
+                  onClick={() =>
+                    navigate(`${routes.calendar.tracker}?view=day&mode=planning`)
+                  }
+                >
+                  Відкрити план дня
+                </Button>
+              </>
+            ) : (
+              <Typography variant="body2" color="text.secondary" mt={1.5}>
+                Немає незавершених учорашніх звичок, які потребують повернення.
+              </Typography>
+            )}
+          </CardContent>
+        </Card>
+      </section>
 
       <section className="summary-grid" aria-label="Підсумок дня">
         {summaryCards.map((card) => (
@@ -730,9 +913,21 @@ const Main = () => {
       <TodayPlanDialog
         open={isPlanDialogOpen}
         canCopyYesterday={plannedYesterdayActivities.length > 0}
+        canCopyPreviousWeek={plannedPreviousWeekActivities.length > 0}
         isSaving={isCopyingPlan}
         onClose={() => setIsPlanDialogOpen(false)}
-        onCopyYesterday={handleCopyYesterdayPlan}
+        onCopyYesterday={() =>
+          handleCopyPlan(
+            plannedYesterdayActivities,
+            "Вчорашній план перенесено на сьогодні",
+          )
+        }
+        onCopyPreviousWeek={() =>
+          handleCopyPlan(
+            plannedPreviousWeekActivities,
+            "План аналогічного дня минулого тижня перенесено на сьогодні",
+          )
+        }
         onOpenPlanning={() => {
           setIsPlanDialogOpen(false);
           navigate(`${routes.calendar.tracker}?view=day&mode=planning`);
@@ -745,6 +940,26 @@ const Main = () => {
         onClose={() => setQuickMeasureItem(undefined)}
         onSave={handleSaveMeasuredHabit}
       />
+      <QuickTaskDialog
+        open={isQuickTaskOpen}
+        taskGroups={quickTaskGroups}
+        isSaving={isSavingQuickTask}
+        onClose={() => setIsQuickTaskOpen(false)}
+        onSave={handleAddQuickTask}
+      />
+      {isMobile && (
+        <Fab
+          className="mobile-quick-task-fab"
+          variant="extended"
+          color="primary"
+          aria-label="Додати швидку справу на сьогодні"
+          disabled={!quickTaskGroups.length}
+          onClick={() => setIsQuickTaskOpen(true)}
+        >
+          <AddTaskOutlined />
+          Справа
+        </Fab>
+      )}
     </StyledMain>
   );
 };

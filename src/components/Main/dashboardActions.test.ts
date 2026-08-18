@@ -2,6 +2,7 @@ import {
   completeBooleanHabit,
   completeMeasuredHabit,
   completeTaskAtIndex,
+  appendQuickTask,
   resetActivityForPlanning,
 } from "./dashboardActions";
 
@@ -68,6 +69,37 @@ describe("dashboard actions", () => {
     ).toMatchObject({
       progress: 50,
       tasks: [{ status: "pending" }, { status: "done" }],
+    });
+  });
+
+  it("appends a quick task using the existing task-list history shape", () => {
+    expect(
+      appendQuickTask(
+        {
+          id: "inbox",
+          title: "Список справ",
+          type: "tasksGroup",
+          valueType: "todoList",
+          description: "",
+        },
+        {
+          tasks: [{ id: "done", title: "Готове", status: "done", time: [0, 0] }],
+          progress: 100,
+        },
+        "  Подзвонити лікарю  ",
+        "new-task",
+      ),
+    ).toMatchObject({
+      id: "inbox",
+      type: "tasksGroup",
+      valueType: "todoList",
+      isPlanned: true,
+      progress: 50,
+      status: "pending",
+      tasks: [
+        { id: "done", status: "done" },
+        { id: "new-task", title: "Подзвонити лікарю", status: "pending" },
+      ],
     });
   });
 });

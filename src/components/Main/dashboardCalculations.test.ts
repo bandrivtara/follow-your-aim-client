@@ -6,6 +6,7 @@ import {
   getDashboardAgendaItems,
   getDashboardPlanPerformance,
   getDashboardLifeBalance,
+  getRecoveryHabits,
   getDashboardWeekData,
   isDashboardActivityPlanned,
 } from "./dashboardCalculations";
@@ -217,6 +218,39 @@ describe("dashboard calculations", () => {
 
   it("counts consecutive active days including yesterday when today is empty", () => {
     expect(getActivityStreak([julyHistory], dayjs("2026-07-29"))).toBe(2);
+  });
+
+  it("suggests active missed habits until they are recovered today", () => {
+    const recovery = getRecoveryHabits(
+      [
+        { id: "english", progress: 0, isPlanned: true, source: {} },
+        { id: "meditation", progress: 50, isPlanned: true, source: {} },
+        { id: "walk", progress: 100, isPlanned: true, source: {} },
+      ],
+      [
+        { id: "meditation", progress: 0, isPlanned: true, source: {} },
+        { id: "english", progress: 100, isPlanned: true, source: {} },
+      ],
+      [
+        { id: "english", title: "Англійська", type: "habit" },
+        {
+          id: "meditation",
+          title: "Медитація",
+          type: "habit",
+          startTime: [6, 25],
+        },
+        { id: "walk", title: "Ходьба", type: "habit" },
+      ] as any,
+    );
+
+    expect(recovery).toEqual([
+      {
+        id: "meditation",
+        title: "Медитація",
+        todayIsPlanned: true,
+        startTime: [6, 25],
+      },
+    ]);
   });
 
   it("compares planned and actual weekly life-area effort", () => {
