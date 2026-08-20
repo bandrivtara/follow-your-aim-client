@@ -9,7 +9,7 @@ Last verified: 2026-08-18.
 | Routes                  | src/components/Routes.tsx                                         | src/config/routes.ts, src/components/Layout/useMenuItems.tsx                             |
 | Redux and Firebase base | src/store/store.ts                                                | src/store/api/index.ts                                                                   |
 | Firestore services      | src/store/services/                                               | src/types/, src/share/fireBase/                                                          |
-| Main dashboard          | src/components/Main/Main.tsx                                      | dashboardCalculations.ts, DailyCounters/, Apple Health service, history, habits, task groups, and aims services |
+| Main dashboard          | src/components/Main/Main.tsx                                      | dashboardCalculations.ts, DailyCounters/, daily reviews, history, habits, task groups, and aims services |
 | Backup export           | src/share/backup/firebaseBackup.ts                                | read-only JSON export of all known Firestore collections                                 |
 | Network/PWA shell       | src/share/components/NetworkStatus/, src/registerServiceWorker.ts | public/service-worker.js, public/manifest.json                                           |
 | Life-area definitions   | src/config/lifeAreas.ts                                           | habit form/list, dashboard calculations                                                  |

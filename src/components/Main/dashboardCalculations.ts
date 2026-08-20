@@ -1,6 +1,7 @@
 import dayjs, { Dayjs } from "dayjs";
 import { IHabitData } from "types/habits.types";
 import { ITask, ITasksGroup } from "types/taskGroups";
+import { IDailyReviewMonth } from "types/dailyReview.types";
 import { LIFE_AREAS, LifeAreaId } from "config/lifeAreas";
 
 export interface DashboardActivity {
@@ -55,6 +56,13 @@ export interface RecoveryHabitData {
   title: string;
   todayIsPlanned: boolean;
   startTime?: Array<number | string>;
+}
+
+export interface DashboardReviewDayData {
+  date: string;
+  label: string;
+  mood: number | null;
+  energy: number | null;
 }
 
 const clampProgress = (value: number) => Math.min(100, Math.max(0, value));
@@ -284,6 +292,41 @@ export const getPendingDashboardAgendaItems = (
 
 const getMonday = (date: Dayjs) =>
   date.startOf("day").subtract((date.day() + 6) % 7, "day");
+
+export const getDashboardReviewWeekData = (
+  reviewMonths: IDailyReviewMonth[] = [],
+  currentDate: Dayjs,
+): DashboardReviewDayData[] => {
+  const weekStart = getMonday(currentDate);
+  const labels = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Нд"];
+
+  return labels.map((label, index) => {
+    const date = weekStart.add(index, "day");
+    const monthId = date.format("YYYY-MM");
+    const month = reviewMonths.find(
+      (candidate) =>
+        candidate.id === monthId ||
+        (typeof candidate.unix === "number" &&
+          dayjs.unix(candidate.unix).format("YYYY-MM") === monthId),
+    );
+    const review = month?.[date.format("DD")] || month?.[date.format("D")];
+    const mood =
+      review && typeof review === "object" && Number.isFinite(review.mood)
+        ? Math.min(5, Math.max(1, Number(review.mood)))
+        : null;
+    const energy =
+      review && typeof review === "object" && Number.isFinite(review.energy)
+        ? Math.min(5, Math.max(1, Number(review.energy)))
+        : null;
+
+    return {
+      date: date.format("YYYY-MM-DD"),
+      label,
+      mood,
+      energy,
+    };
+  });
+};
 
 export const getDashboardPlanPerformance = (
   activities: DashboardActivity[],

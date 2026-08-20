@@ -44,7 +44,6 @@ List services usually attach Firestore document IDs as id. English differs: IDs 
 - Dashboard quick completion merges a boolean habit, measured habit, or updated task list back into the same existing day/activity path. Quick task capture appends a pending task to an existing flat task-group activity at that path and marks the activity as planned. Copying yesterday's or the previous same weekday's plan creates current-day activity entries with progress/value/status reset while preserving targets, tasks, times, and IDs.
 - Measure values are nested under activity and measure IDs. Do not flatten or rename them.
 - The dashboard water and steps counters use the stable existing habit/measure IDs from `src/config/habitsIds.json`; both update only the matching daily measure value and do not introduce duplicate metric fields.
-- With explicit user approval on 2026-08-20, the Apple Health Shortcut bridge may lazily create `habit/appleHealthActiveCalories` using the existing measured-habit shape with measure `activeEnergyKcal`. It is created only after a valid first sync callback; subsequent syncs update the existing steps and active-calories measure values under `history/{YYYY-MM}.{DD}`.
 - History is read both by unix range in the RTK Query service and by document ID in src/share/fireBase/getHistoryBetweenDates.ts.
 
 Any date fix must keep both read paths consistent and test first/last-day and cross-month boundaries.
@@ -102,11 +101,6 @@ Observed live-data compatibility notes from the read-only audit on 2026-07-28:
 - Applied changes only merge planning data below `history/{YYYY-MM}/{DD}/{activityId}` and keep the existing month `unix` convention. No delete operation is implemented.
 - Because repository-only review cannot verify deployed rules, the bridge must remain a local personal tool and must not be exposed as a public API.
 
-## Apple Health Shortcut bridge
-
-- A dashboard action launches the local iPhone shortcut named `FYA Sync Health` with a one-time callback URL; the web client does not and cannot read HealthKit directly.
-- The callback is accepted only when its nonce matches a locally initiated request no older than 15 minutes, the payload date is today, and steps/calories are finite non-negative values within defensive limits.
-- The callback contains only today's aggregate step count and active energy. It reuses the existing Firebase client and history paths; no public HTTP write endpoint, secret, or new collection is introduced.
 
 ## Personal backup export
 

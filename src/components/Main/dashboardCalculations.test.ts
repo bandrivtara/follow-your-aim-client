@@ -7,6 +7,7 @@ import {
   getPendingDashboardAgendaItems,
   getDashboardPlanPerformance,
   getDashboardLifeBalance,
+  getDashboardReviewWeekData,
   getRecoveryHabits,
   getDashboardWeekData,
   isDashboardActivityPlanned,
@@ -262,6 +263,37 @@ describe("dashboard calculations", () => {
     ]);
     expect(week[0].progress).toBe(100);
     expect(week[1].progress).toBe(75);
+  });
+
+  it("builds a cross-month mood and energy week from daily reviews", () => {
+    const week = getDashboardReviewWeekData(
+      [
+        {
+          id: "2026-07",
+          unix: dayjs("2026-07").unix(),
+          "31": { mood: 3, energy: 2 } as any,
+        },
+        {
+          id: "2026-08",
+          unix: dayjs("2026-08").unix(),
+          "01": { mood: 4, energy: 5 } as any,
+        },
+      ],
+      dayjs("2026-08-01"),
+    );
+
+    expect(week).toHaveLength(7);
+    expect(week[4]).toMatchObject({
+      date: "2026-07-31",
+      mood: 3,
+      energy: 2,
+    });
+    expect(week[5]).toMatchObject({
+      date: "2026-08-01",
+      mood: 4,
+      energy: 5,
+    });
+    expect(week[6].mood).toBeNull();
   });
 
   it("counts consecutive active days including yesterday when today is empty", () => {

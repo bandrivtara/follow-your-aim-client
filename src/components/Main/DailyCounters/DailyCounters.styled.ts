@@ -31,14 +31,6 @@ const StyledDailyCounters = styled.div`
     background: linear-gradient(180deg, #14b8a6, #22c55e);
   }
 
-  .counter-card--calories::before {
-    background: linear-gradient(180deg, #f59e0b, #f97316);
-  }
-
-  .activity-card::before {
-    background: linear-gradient(180deg, #14b8a6 0 50%, #f97316 50% 100%);
-  }
-
   .counter-content {
     display: grid;
     align-content: center;
@@ -69,11 +61,6 @@ const StyledDailyCounters = styled.div`
   .counter-icon--steps {
     color: #0f9f8f;
     background: linear-gradient(145deg, #e8fbf7, #ebf9ec);
-  }
-
-  .counter-icon--calories {
-    color: #ea580c;
-    background: linear-gradient(145deg, #fff7e6, #ffede5);
   }
 
   .counter-value {
@@ -151,7 +138,7 @@ const StyledDailyCounters = styled.div`
   }
 
   .counter-actions .MuiIconButton-root,
-  .save-steps-button {
+  .steps-save {
     border: 1px solid #dfe3ec;
     border-radius: 11px;
   }
@@ -170,108 +157,6 @@ const StyledDailyCounters = styled.div`
 
   .steps-input .MuiOutlinedInput-root {
     border-radius: 11px;
-  }
-
-  .counter-content--calories {
-    align-content: center;
-  }
-
-  .health-sync-actions {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 15px;
-  }
-
-  .health-sync-actions .MuiButton-root {
-    flex: 1;
-    border-radius: 11px;
-    text-transform: none;
-  }
-
-  .health-sync-actions .MuiIconButton-root {
-    border: 1px solid #dfe3ec;
-    border-radius: 11px;
-  }
-
-  .activity-card {
-    display: grid;
-    grid-template-rows: minmax(0, 1fr) auto;
-  }
-
-  .activity-metrics {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .activity-metric {
-    min-width: 0;
-    padding: 14px 14px 8px;
-  }
-
-  .activity-metric + .activity-metric {
-    border-left: 1px solid #e8ebf2;
-  }
-
-  .mini-metric-heading {
-    position: relative;
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .mini-metric-heading .MuiTypography-h6 {
-    overflow: hidden;
-    font-size: 1rem;
-    line-height: 1.2;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .mini-metric-heading .counter-icon {
-    width: 34px;
-    height: 34px;
-    border-radius: 11px;
-  }
-
-  .metric-gauge-row {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    min-width: 0;
-    margin-top: 4px;
-  }
-
-  .mini-metric-value {
-    font-size: clamp(1.15rem, 2vw, 1.45rem);
-    font-weight: 800;
-    line-height: 1;
-    color: var(--fya-ink);
-    letter-spacing: -0.04em;
-    white-space: nowrap;
-  }
-
-  .health-sync-footer {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 12px;
-    border-top: 1px solid #e8ebf2;
-    background: linear-gradient(90deg, #f7fffd, #fffaf6);
-  }
-
-  .health-sync-footer .MuiButton-root {
-    min-height: 34px;
-    border-radius: 10px;
-    text-transform: none;
-  }
-
-  .health-sync-footer .MuiIconButton-root {
-    border: 1px solid #dfe3ec;
-    border-radius: 10px;
   }
 
   @media only screen and (max-width: 1180px) {
@@ -315,22 +200,6 @@ const StyledDailyCounters = styled.div`
       padding-inline: 7px;
     }
 
-    .activity-metric {
-      padding-inline: 10px;
-    }
-
-    .mini-metric-heading {
-      gap: 6px;
-    }
-
-    .metric-gauge-row {
-      gap: 4px;
-    }
-
-    .health-sync-footer {
-      grid-template-columns: auto minmax(0, 1fr) auto;
-    }
-
     .steps-controls .MuiButton-root:first-of-type {
       display: none;
     }
@@ -362,29 +231,6 @@ const StyledDailyCounters = styled.div`
       justify-content: flex-end;
     }
 
-    .mini-metric-heading {
-      grid-template-columns: auto minmax(0, 1fr);
-    }
-
-    .mini-metric-heading > .MuiIconButton-root {
-      position: absolute;
-      top: 0;
-      right: 0;
-      margin: 6px;
-    }
-
-    .metric-gauge-row {
-      align-items: flex-start;
-      flex-direction: column;
-    }
-
-    .health-sync-footer .MuiTypography-root {
-      display: none;
-    }
-
-    .health-sync-footer {
-      grid-template-columns: minmax(0, 1fr) auto;
-    }
   }
 `;
 

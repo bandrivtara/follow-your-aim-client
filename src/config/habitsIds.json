@@ -2,11 +2,6 @@
   "habits": {
     "water": { "details": "8kyTLLC8zDmBchy7ihwz", "measure": "lr0i2x56" },
     "steps": { "details": "sQjPm3kZLbYZda6nGc6W", "measure": "m8mwudub" },
-    "activeCalories": {
-      "details": "appleHealthActiveCalories",
-      "measure": "activeEnergyKcal",
-      "target": 300
-    },
     "dailyReview": { "details": "dRvw2026FYA9Kp7LmNxQ" },
     "goalsGratitude": { "details": "RWGB0nZJW7wqQdqPcESf" }
   },

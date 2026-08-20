@@ -21,6 +21,7 @@ import {
   ReplayOutlined,
 } from "@mui/icons-material";
 import { BarChart } from "@mui/x-charts/BarChart";
+import { LineChart } from "@mui/x-charts/LineChart";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
@@ -37,7 +38,10 @@ import {
   useUpdateHistoryMutation,
 } from "store/services/history";
 import { useGetTaskGroupListQuery } from "store/services/taskGroups";
-import { useGetDailyReviewMonthQuery } from "store/services/dailyReviews";
+import {
+  useGetDailyReviewMonthQuery,
+  useGetDailyReviewsBetweenDatesQuery,
+} from "store/services/dailyReviews";
 import useIsMobile from "share/hooks/useIsMobile";
 import uniqid from "uniqid";
 import { isDailyReviewComplete } from "share/functions/dailyReviewCompletion";
@@ -64,6 +68,7 @@ import {
   getDashboardActivitiesForDate,
   getDashboardLifeBalance,
   getDashboardPlanPerformance,
+  getDashboardReviewWeekData,
   getRecoveryHabits,
   getDashboardWeekData,
   getPendingDashboardAgendaItems,
@@ -131,6 +136,16 @@ const Main = () => {
     [aims.data, now],
   );
   const history = useGetHistoryBetweenDatesQuery(historyRange);
+  const reviewWeekRange = useMemo(() => {
+    const weekStart = now
+      .startOf("day")
+      .subtract((now.day() + 6) % 7, "day");
+    return [
+      weekStart.startOf("month").unix(),
+      weekStart.add(6, "day").startOf("month").unix(),
+    ] as [number, number];
+  }, [now]);
+  const weeklyReviews = useGetDailyReviewsBetweenDatesQuery(reviewWeekRange);
   const currentReview = useGetDailyReviewMonthQuery(now.format("YYYY-MM"));
   const previousMonthReview = useGetDailyReviewMonthQuery(
     yesterday.format("YYYY-MM"),
@@ -235,11 +250,6 @@ const Main = () => {
   const visibleAgendaItems = getPendingDashboardAgendaItems(
     dashboardData.agendaItems,
   );
-  const visibleAims = dashboardData.activeAims.slice(0, 3);
-  const remainingAims = Math.max(
-    0,
-    dashboardData.activeAims.length - visibleAims.length,
-  );
   const copyableActivityIds = new Set([
     ...(habits.data || [])
       .filter((habit) => !habit.isArchived && !habit.isHidden)
@@ -298,6 +308,13 @@ const Main = () => {
   );
   const hasLifeBalance = dashboardData.lifeBalance.some(
     (area) => area.plannedPoints > 0 || area.actualPoints > 0,
+  );
+  const reviewWeek = useMemo(
+    () => getDashboardReviewWeekData(weeklyReviews.data || [], now),
+    [now, weeklyReviews.data],
+  );
+  const hasReviewWeekData = reviewWeek.some(
+    (day) => day.mood !== null || day.energy !== null,
   );
 
   const getTodayHistoryUpdate = (activityId: string, data: unknown) => ({
@@ -768,6 +785,66 @@ const Main = () => {
             </CardContent>
           </Card>
 
+          <Card className="dashboard-card wellbeing-card">
+            <CardContent>
+              <Typography variant="h5">Настрій та енергія</Typography>
+              <Typography color="text.secondary">
+                Дані щоденних оглядів за шкалою від 1 до 5
+              </Typography>
+              {hasReviewWeekData ? (
+                <LineChart
+                  xAxis={[
+                    {
+                      scaleType: "band",
+                      data: reviewWeek.map((day) => day.label),
+                    },
+                  ]}
+                  yAxis={[
+                    {
+                      min: 1,
+                      max: 5,
+                      tickNumber: 5,
+                    },
+                  ]}
+                  series={[
+                    {
+                      data: reviewWeek.map((day) => day.mood),
+                      label: "Настрій",
+                      color: "#8b5cf6",
+                      valueFormatter: (value) =>
+                        value === null ? "Немає огляду" : `${value}/5`,
+                    },
+                    {
+                      data: reviewWeek.map((day) => day.energy),
+                      label: "Енергія",
+                      color: "#f59e0b",
+                      valueFormatter: (value) =>
+                        value === null ? "Немає огляду" : `${value}/5`,
+                    },
+                  ]}
+                  height={235}
+                  margin={{ left: 36, right: 12, top: 34, bottom: 24 }}
+                />
+              ) : (
+                <Box className="chart-empty-state">
+                  <Typography fontWeight={650}>
+                    За цей тиждень ще немає щоденних оглядів
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Після першого огляду тут з’явиться динаміка настрою та
+                    енергії.
+                  </Typography>
+                  <Button
+                    variant="outlined"
+                    onClick={() => navigate(routes.review.daily)}
+                  >
+                    Додати огляд
+                  </Button>
+                </Box>
+              )}
+            </CardContent>
+          </Card>
+
           <Card className="dashboard-card goals-card">
             <CardContent>
               <Box
@@ -787,51 +864,51 @@ const Main = () => {
                 </Button>
               </Box>
               {dashboardData.activeAims.length ? (
-                visibleAims.map((aim) => {
-                  const snapshot = dashboardData.aimProgressById.get(aim.id);
-                  const progress = snapshot?.progress || 0;
+                <Box className="goals-scroll">
+                  {dashboardData.activeAims.map((aim) => {
+                    const snapshot = dashboardData.aimProgressById.get(aim.id);
+                    const progress = snapshot?.progress || 0;
 
-                  return (
-                    <Box key={aim.id} mt={2}>
-                      <Box display="flex" justifyContent="space-between" mb={1}>
-                        <Typography fontWeight={600}>{aim.title}</Typography>
-                        <Typography>{Math.round(progress)}%</Typography>
+                    return (
+                      <Box className="goal-row" key={aim.id}>
+                        <Box
+                          display="flex"
+                          justifyContent="space-between"
+                          gap={2}
+                          mb={1}
+                        >
+                          <Typography fontWeight={600}>{aim.title}</Typography>
+                          <Typography flexShrink={0}>
+                            {Math.round(progress)}%
+                          </Typography>
+                        </Box>
+                        <LinearProgress
+                          variant="determinate"
+                          value={Math.min(100, Math.max(0, progress))}
+                        />
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          display="block"
+                          mt={0.75}
+                        >
+                          {aim.aimType === "number"
+                            ? `${Number((snapshot?.currentValue || 0).toFixed(2))} із ${aim.finalAim}`
+                            : aim.aimType === "boolean"
+                              ? progress >= 100
+                                ? "Ціль виконано"
+                                : "Ціль у процесі"
+                              : `${Math.round(progress)}% пов’язаних справ виконано`}
+                        </Typography>
                       </Box>
-                      <LinearProgress
-                        variant="determinate"
-                        value={Math.min(100, Math.max(0, progress))}
-                      />
-                      <Typography
-                        variant="caption"
-                        color="text.secondary"
-                        display="block"
-                        mt={0.75}
-                      >
-                        {aim.aimType === "number"
-                          ? `${Number((snapshot?.currentValue || 0).toFixed(2))} із ${aim.finalAim}`
-                          : aim.aimType === "boolean"
-                            ? progress >= 100
-                              ? "Ціль виконано"
-                              : "Ціль у процесі"
-                            : `${Math.round(progress)}% пов’язаних справ виконано`}
-                      </Typography>
-                    </Box>
-                  );
-                })
+                    );
+                  })}
+                </Box>
               ) : (
                 <Typography color="text.secondary" mt={2}>
                   На сьогодні активних цілей немає. Старі цілі залишаються в
                   загальному календарі.
                 </Typography>
-              )}
-              {remainingAims > 0 && (
-                <Button
-                  className="card-more-link"
-                  size="small"
-                  onClick={() => navigate(routes.aims.list)}
-                >
-                  Ще {remainingAims} {remainingAims === 1 ? "ціль" : "цілі"}
-                </Button>
               )}
             </CardContent>
           </Card>

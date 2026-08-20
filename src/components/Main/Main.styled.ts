@@ -85,7 +85,7 @@ const StyledMain = styled.main`
     display: grid;
     grid-template-areas:
       "goals goals plan plan water water"
-      "week week week balance balance balance";
+      "week week balance balance wellbeing wellbeing";
     grid-template-columns: repeat(6, minmax(0, 1fr));
     gap: 14px;
     align-items: stretch;
@@ -102,6 +102,10 @@ const StyledMain = styled.main`
 
   .balance-card {
     grid-area: balance;
+  }
+
+  .wellbeing-card {
+    grid-area: wellbeing;
   }
 
   .goals-card {
@@ -199,6 +203,27 @@ const StyledMain = styled.main`
     scrollbar-gutter: stable;
     touch-action: pan-y;
     -webkit-overflow-scrolling: touch;
+  }
+
+  .goals-scroll {
+    max-height: min(42vh, 360px);
+    margin-top: 6px;
+    padding-right: 5px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .goal-row {
+    padding: 12px 0;
+    border-bottom: 1px solid #edf0f5;
+  }
+
+  .goal-row:last-child {
+    border-bottom: 0;
   }
 
   .agenda-action {
@@ -309,7 +334,8 @@ const StyledMain = styled.main`
       grid-template-areas:
         "plan water"
         "goals goals"
-        "week balance";
+        "week balance"
+        "wellbeing wellbeing";
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
@@ -333,7 +359,8 @@ const StyledMain = styled.main`
         "goals"
         "water"
         "week"
-        "balance";
+        "balance"
+        "wellbeing";
       grid-template-columns: minmax(0, 1fr);
     }
 
@@ -369,6 +396,10 @@ const StyledMain = styled.main`
     }
 
     .agenda-scroll {
+      max-height: min(52vh, 460px);
+    }
+
+    .goals-scroll {
       max-height: min(52vh, 460px);
     }
 
