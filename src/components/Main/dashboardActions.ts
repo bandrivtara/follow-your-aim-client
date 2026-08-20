@@ -118,6 +118,8 @@ export const appendQuickTask = (
   source: Record<string, any> = {},
   title: string,
   taskId: string,
+  time: Array<number | string> = ["", ""],
+  category?: string,
 ) => {
   const tasks = [
     ...(Array.isArray(source.tasks) ? source.tasks : []),
@@ -126,7 +128,8 @@ export const appendQuickTask = (
       title: title.trim(),
       description: "",
       status: "pending" as const,
-      time: [0, 0],
+      time,
+      ...(category ? { category } : {}),
       isEditOn: false,
     },
   ];

@@ -4,6 +4,7 @@ import {
   getDashboardActivitiesForDate,
   getDashboardActivityProgress,
   getDashboardAgendaItems,
+  getPendingDashboardAgendaItems,
   getDashboardPlanPerformance,
   getDashboardLifeBalance,
   getRecoveryHabits,
@@ -198,6 +199,53 @@ describe("dashboard calculations", () => {
       startTime: [18, 0],
     });
     expect(agenda[2].isAllDay).toBe(true);
+  });
+
+  it("moves the next pending item into the visible agenda after completion", () => {
+    const items = [
+      { id: "1", progress: 100 },
+      { id: "2", progress: 0 },
+      { id: "3", progress: 50 },
+      { id: "4", progress: 0 },
+      { id: "5", progress: 0 },
+    ] as any;
+
+    expect(
+      getPendingDashboardAgendaItems(items, 3).map(({ id }) => id),
+    ).toEqual(["2", "3", "4"]);
+    expect(getPendingDashboardAgendaItems(items).map(({ id }) => id)).toEqual([
+      "2",
+      "3",
+      "4",
+      "5",
+    ]);
+  });
+
+  it("treats a task without a selected time as an all-day item", () => {
+    const [item] = getDashboardAgendaItems(
+      [
+        {
+          id: "inbox",
+          progress: 0,
+          isPlanned: true,
+          source: {
+            tasks: [
+              {
+                id: "task",
+                title: "Без часу",
+                status: "pending",
+                time: ["", ""],
+              },
+            ],
+          },
+        },
+      ],
+      [],
+      [{ id: "inbox", title: "Справи", type: "tasksGroup" } as any],
+    );
+
+    expect(item).toMatchObject({ title: "Без часу", isAllDay: true });
+    expect(item.startTime).toBeUndefined();
   });
 
   it("builds a Monday-to-Sunday completion chart", () => {

@@ -10,6 +10,8 @@ import {
   calculateTaskGroupProgress,
   getAimProgressDateTo,
 } from "./AimCellRenderer/aimProgressCalculations";
+import entityIds from "config/habitsIds.json";
+import { getPlannerConsistencyValues } from "./plannerConsistencyCalculations";
 
 export type AimPaceStatus =
   | "completed"
@@ -150,17 +152,26 @@ export const calculateAimProgressSnapshot = (
   let currentValue = 0;
   let progress = 0;
   let trend: IAimTrendPoint[] = [];
+  const isPlannerConsistencyAim =
+    aim.id === entityIds.aims.plannerConsistency.details;
 
-  if (aim.isRelatedWithHabit) {
+  if (isPlannerConsistencyAim || aim.isRelatedWithHabit) {
     const progressDateTo = getAimProgressDateTo(aim.dateTo, currentDate);
-    const relatedValues = getRelatedHabitValuesBetweenDates(
-      historyMonths,
-      aim.dateFrom,
-      progressDateTo,
-      aim.relatedHabit,
-    );
+    const relatedValues = isPlannerConsistencyAim
+      ? getPlannerConsistencyValues(
+          historyMonths,
+          aim.dateFrom,
+          progressDateTo,
+          entityIds.aims.plannerConsistency.minimumPlanCompletionExclusive,
+        )
+      : getRelatedHabitValuesBetweenDates(
+          historyMonths,
+          aim.dateFrom,
+          progressDateTo,
+          aim.relatedHabit,
+        );
 
-    if (aim.calculationType === "sum") {
+    if (isPlannerConsistencyAim || aim.calculationType === "sum") {
       let total = 0;
       trend = relatedValues.map(({ date, value }) => {
         total += value;

@@ -159,6 +159,9 @@ export const buildTrackerExport = ({
       lines.push(
         "",
         `- ${title} (${type}) — ${activity.isPlanned ? "у плані" : "поза планом"}; прогрес ${Math.round(activity.progress)}%; статус ${statusLabels[source.status] || source.status || "не вказано"}${time ? `; час ${time}` : ""}`,
+        ...(typeof source.note === "string" && source.note.trim()
+          ? ["", "  Запис:", ...source.note.trim().split("\n").map((line) => `  ${line}`)]
+          : []),
         ...formatMeasures(
           source,
           definition?.type === "habit" ? definition : undefined,

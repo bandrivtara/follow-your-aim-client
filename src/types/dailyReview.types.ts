@@ -3,6 +3,7 @@ export interface IDailyReview {
   mood: number;
   energy: number;
   answers: Record<string, string>;
+  summary?: string;
   updatedAt: number;
 }
 

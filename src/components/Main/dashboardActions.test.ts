@@ -88,6 +88,8 @@ describe("dashboard actions", () => {
         },
         "  Подзвонити лікарю  ",
         "new-task",
+        [18, 30],
+        "workFinance",
       ),
     ).toMatchObject({
       id: "inbox",
@@ -98,7 +100,13 @@ describe("dashboard actions", () => {
       status: "pending",
       tasks: [
         { id: "done", status: "done" },
-        { id: "new-task", title: "Подзвонити лікарю", status: "pending" },
+        {
+          id: "new-task",
+          title: "Подзвонити лікарю",
+          status: "pending",
+          time: [18, 30],
+          category: "workFinance",
+        },
       ],
     });
   });

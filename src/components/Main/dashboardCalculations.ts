@@ -29,6 +29,7 @@ export interface DashboardAgendaItem {
   taskIndex?: number;
   title: string;
   parentTitle?: string;
+  category?: string;
   progress: number;
   status?: string;
   startTime?: Array<number | string>;
@@ -61,6 +62,8 @@ const clampProgress = (value: number) => Math.min(100, Math.max(0, value));
 const isTimeValue = (value: unknown): value is Array<number | string> =>
   Array.isArray(value) &&
   value.length >= 2 &&
+  value[0] !== "" &&
+  value[1] !== "" &&
   Number.isFinite(Number(value[0])) &&
   Number.isFinite(Number(value[1]));
 
@@ -251,6 +254,7 @@ export const getDashboardAgendaItems = (
           taskIndex: index,
           title: task.title,
           parentTitle: taskGroup.title,
+          category: task.category,
           progress: task.status === "done" ? 100 : 0,
           status: task.status,
           startTime,
@@ -272,6 +276,11 @@ export const getDashboardAgendaItems = (
     return left.title.localeCompare(right.title, "uk");
   });
 };
+
+export const getPendingDashboardAgendaItems = (
+  items: DashboardAgendaItem[] = [],
+  limit = Number.POSITIVE_INFINITY,
+) => items.filter((item) => item.progress < 100).slice(0, limit);
 
 const getMonday = (date: Dayjs) =>
   date.startOf("day").subtract((date.day() + 6) % 7, "day");

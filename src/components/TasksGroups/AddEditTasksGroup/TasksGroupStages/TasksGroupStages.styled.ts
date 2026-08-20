@@ -34,6 +34,20 @@ const StyledTasksGroupStages = styled.div`
     padding: 16px;
   }
 
+  .subtask-category-row .ant-form-item {
+    margin-bottom: 4px;
+  }
+
+  .subtask-category-row .ant-form-item-label {
+    padding-bottom: 4px;
+  }
+
+  .subtask-category-row .ant-form-item-label > label {
+    color: #667085;
+    font-size: 12px;
+    font-weight: 650;
+  }
+
   .add-btn {
     margin: 4px 0 0;
   }

@@ -6,6 +6,7 @@ import {
   getExpectedAimProgress,
   getTodayTimelinePosition,
 } from "./aimRoadmapCalculations";
+import entityIds from "config/habitsIds.json";
 
 const makeAim = (overrides: Partial<IAimData> = {}): IAimData => ({
   id: "aim-1",
@@ -69,6 +70,42 @@ describe("aim roadmap calculations", () => {
       trend: [
         { date: "2026-08-01", value: 5 },
         { date: "2026-08-02", value: 12 },
+      ],
+    });
+  });
+
+  it("calculates the known planner goal from days completed above 50 percent", () => {
+    const aim = makeAim({
+      id: entityIds.aims.plannerConsistency.details,
+      isRelatedWithHabit: false,
+      currentValue: 0,
+      finalAim: 36,
+      dateFrom: "2026/08/19",
+      dateTo: "2026/09/30",
+    });
+    const historyMonths = [
+      {
+        id: "2026-08",
+        data: {
+          "19": { habit: { isPlanned: true, progress: 50 } },
+          "20": { habit: { isPlanned: true, progress: 75 } },
+        },
+      },
+    ];
+
+    expect(
+      calculateAimProgressSnapshot(
+        aim,
+        [],
+        historyMonths,
+        dayjs("2026-08-20"),
+      ),
+    ).toMatchObject({
+      currentValue: 1,
+      progress: 100 / 36,
+      trend: [
+        { date: "2026-08-19", value: 0 },
+        { date: "2026-08-20", value: 1 },
       ],
     });
   });

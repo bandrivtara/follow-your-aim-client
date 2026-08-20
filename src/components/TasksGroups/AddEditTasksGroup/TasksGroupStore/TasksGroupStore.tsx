@@ -16,12 +16,14 @@ import {
   Input,
   Radio,
   Row,
+  Select,
   Space,
 } from "antd";
 import { useCallback, useState } from "react";
 import { ITask } from "types/taskGroups";
 import { FormInstance, useWatch } from "antd/es/form/Form";
 import { getTimeOptions } from "share/functions/getTimeOptions";
+import { LIFE_AREAS } from "config/lifeAreas";
 import StyledTasksGroupStore from "./TasksGroupStore.styled";
 
 interface IProps {
@@ -35,6 +37,7 @@ const initValues = {
   link: "",
   status: "pending",
   time: ["", ""],
+  category: "",
   isEditOn: false,
 };
 
@@ -141,28 +144,46 @@ const TasksGroupStore = ({ dayForm, form }: IProps) => {
                         </Form.Item>
                       </Col>
                     </Row>
-                    <Row>
-                      <Col style={{ marginRight: "10px" }}>
+                    <Row gutter={[8, 8]} className="task-details">
+                      <Col md={8} xs={24}>
                         <Form.Item
-                          name={[index, "time"]}
-                          hidden={!isTaskFieldVisible(index, "time")}
-                          initialValue={initValues.time}
-                          noStyle
+                          label="Категорія"
+                          name={[index, "category"]}
+                          hidden={!isTaskFieldVisible(index, "category")}
+                          initialValue={initValues.category}
                         >
-                          <Cascader
-                            suffixIcon={<ClockCircleOutlined rev={"value"} />}
-                            style={{ width: "100px" }}
-                            options={getTimeOptions(15)}
+                          <Select
+                            allowClear
+                            placeholder="Без категорії"
+                            options={LIFE_AREAS.map((area) => ({
+                              value: area.id,
+                              label: area.title,
+                            }))}
                           />
                         </Form.Item>
                       </Col>
-                      <Col flex="auto">
+                      <Col md={6} xs={24}>
+                        <Form.Item
+                          label="Час"
+                          name={[index, "time"]}
+                          hidden={!isTaskFieldVisible(index, "time")}
+                          initialValue={initValues.time}
+                        >
+                          <Cascader
+                            suffixIcon={<ClockCircleOutlined rev={"value"} />}
+                            style={{ width: "100%" }}
+                            options={getTimeOptions(15)}
+                            placeholder="Не вказано"
+                          />
+                        </Form.Item>
+                      </Col>
+                      <Col md={10} xs={24}>
                         <Form.Item
                           required={false}
+                          label="Посилання"
                           name={[index, "link"]}
                           hidden={!isTaskFieldVisible(index, "link")}
                           initialValue={initValues.link}
-                          noStyle
                         >
                           <Input
                             addonAfter={<LinkOutlined rev={"value"} />}
@@ -171,14 +192,14 @@ const TasksGroupStore = ({ dayForm, form }: IProps) => {
                         </Form.Item>
                       </Col>
                     </Row>
-                    <Row>
+                    <Row className="task-description-row">
                       <Col span={24}>
                         <Form.Item
                           required={false}
+                          label="Опис"
                           name={[index, "description"]}
                           initialValue={initValues.description}
                           hidden={!isTaskFieldVisible(index, "description")}
-                          noStyle
                         >
                           <Input.TextArea placeholder="Опис" />
                         </Form.Item>
@@ -187,7 +208,15 @@ const TasksGroupStore = ({ dayForm, form }: IProps) => {
                   </div>
                 ))}
                 <Form.Item className="add-btn">
-                  <Button type="dashed" block onClick={() => add()}>
+                  <Button
+                    type="dashed"
+                    block
+                    onClick={() => {
+                      const nextIndex = form.getFieldValue("tasksStore")?.length || 0;
+                      add({ ...initValues });
+                      setEditFiledIndex(nextIndex);
+                    }}
+                  >
                     Додати завдання
                   </Button>
                 </Form.Item>

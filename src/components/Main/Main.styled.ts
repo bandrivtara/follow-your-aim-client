@@ -112,7 +112,7 @@ const StyledMain = styled.main`
     grid-area: plan;
   }
 
-  .water-card {
+  .daily-counters {
     grid-area: water;
   }
 
@@ -188,6 +188,17 @@ const StyledMain = styled.main`
     gap: 12px;
     padding: 8px 0;
     border-bottom: 1px solid #edf0f5;
+  }
+
+  .agenda-scroll {
+    max-height: min(42vh, 360px);
+    padding-right: 5px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
   }
 
   .agenda-action {
@@ -355,6 +366,10 @@ const StyledMain = styled.main`
     .agenda-row {
       grid-template-columns: 66px minmax(0, 1fr) auto;
       gap: 8px;
+    }
+
+    .agenda-scroll {
+      max-height: min(52vh, 460px);
     }
 
     .agenda-action .MuiChip-root {

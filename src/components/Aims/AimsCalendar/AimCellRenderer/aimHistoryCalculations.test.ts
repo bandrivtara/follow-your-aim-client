@@ -104,6 +104,38 @@ describe("aim history calculations", () => {
     ).toBe(0);
   });
 
+  it("counts each completed boolean habit day as one", () => {
+    const values = getRelatedHabitValuesBetweenDates(
+      [
+        {
+          id: "2026-08",
+          data: {
+            "18": { review: { progress: 100, status: "done" } },
+            "19": { review: { progress: 100 } },
+            "20": { review: { progress: 0, status: "pending" } },
+          },
+        },
+      ],
+      "2026/08/18",
+      "2026/08/20",
+      ["review"],
+    );
+
+    expect(values).toEqual([
+      { date: "2026-08-18", value: 1 },
+      { date: "2026-08-19", value: 1 },
+      { date: "2026-08-20", value: 0 },
+    ]);
+    expect(
+      sumRelatedHabitValuesBetweenDates(
+        [{ id: "2026-08", data: { "18": { review: { progress: 100 } }, "19": { review: { status: "done" } } } }],
+        "2026/08/18",
+        "2026/08/19",
+        ["review"],
+      ),
+    ).toBe(2);
+  });
+
   it("returns no values for invalid ranges or incomplete relationships", () => {
     expect(
       getRelatedHabitValuesBetweenDates(

@@ -42,6 +42,7 @@ export interface IActivityHistoryData extends IActivityData {
   valueType?: "measures" | "boolean" | "todoList";
   isPlanned?: boolean;
   tasks?: ITask[];
+  note?: string;
 }
 
 export type IHistoryDayRow = {

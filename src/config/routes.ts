@@ -11,6 +11,7 @@ const routes = {
   },
   review: {
     daily: "/review/daily",
+    goalsGratitude: "/review/goals-gratitude",
     weekly: "/review/weekly",
     codex: "/review/codex",
   },

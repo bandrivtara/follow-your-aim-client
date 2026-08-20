@@ -28,5 +28,6 @@ export interface ITask {
   link?: string;
   status: ITaskStatus;
   time: Array<number | string>;
+  category?: string;
   isEditOn?: boolean;
 }

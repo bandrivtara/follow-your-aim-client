@@ -37,13 +37,39 @@ const ReviewLayout = styled.main`
     margin-top: 20px;
   }
 
+  .ai-reflection-editor {
+    display: grid;
+    gap: 16px;
+    margin-top: 20px;
+  }
+
+  .ai-prompt-card {
+    border-color: rgba(91, 108, 249, 0.2);
+    border-radius: 16px;
+    background: linear-gradient(135deg, #f5f6ff, #f7fbff);
+  }
+
+  .ai-prompt-card .MuiButton-root {
+    flex-shrink: 0;
+    border-radius: 11px;
+    text-transform: none;
+  }
+
   .review-actions {
     position: sticky;
     z-index: 5;
     bottom: 76px;
     display: flex;
-    justify-content: flex-end;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px;
+    border: 1px solid var(--fya-border);
+    border-radius: 16px;
     margin-top: 20px;
+    background: rgba(255, 255, 255, 0.92);
+    box-shadow: var(--fya-shadow);
+    backdrop-filter: blur(12px);
   }
 
   .review-actions button {
@@ -79,6 +105,20 @@ const ReviewLayout = styled.main`
     }
 
     .review-actions button {
+      width: 100%;
+    }
+
+    .review-actions {
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    .ai-prompt-card .MuiCardContent-root > .MuiBox-root {
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    .ai-prompt-card .MuiButton-root {
       width: 100%;
     }
   }

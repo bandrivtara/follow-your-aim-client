@@ -125,12 +125,18 @@ const useMenuItems = () => {
         },
         {
           key: 62,
+          label: "5 цілей і 5 подяк",
+          onClick: () => navigate(routes.review.goalsGratitude),
+          icon: <CheckOutlined rev="string" />,
+        },
+        {
+          key: 63,
           label: "Підсумок тижня",
           onClick: () => navigate(routes.review.weekly),
           icon: <BarChartOutlined rev="string" />,
         },
         {
-          key: 63,
+          key: 64,
           label: "Codex-помічник",
           onClick: () => navigate(routes.review.codex),
           icon: <CodeOutlined rev="string" />,

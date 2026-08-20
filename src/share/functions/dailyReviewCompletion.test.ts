@@ -27,6 +27,11 @@ describe("daily review completion", () => {
     ).toBe(false);
   });
 
+  it("accepts one non-empty AI summary while preserving legacy answers", () => {
+    expect(isDailyReviewComplete({}, "СТАН: спокійний день")).toBe(true);
+    expect(isDailyReviewComplete({}, "   ")).toBe(false);
+  });
+
   it("builds a completed, planned boolean habit entry", () => {
     expect(buildDailyReviewHabitCompletion("daily-review-id")).toEqual({
       id: "daily-review-id",

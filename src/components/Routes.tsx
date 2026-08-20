@@ -20,6 +20,7 @@ import AddEditWord from "./English/Vocabulary/Words/AddEditWord/AddEditWord";
 import WordsList from "./English/Vocabulary/Words/WordsList/WordsList";
 import WordsTest from "./English/Tests/WordsTest";
 import DailyReview from "./Review/DailyReview/DailyReview";
+import GoalsGratitude from "./Review/GoalsGratitude/GoalsGratitude";
 import WeeklyReview from "./Review/WeeklyReview/WeeklyReview";
 import CodexGuide from "./Review/CodexGuide/CodexGuide";
 import CareerDashboard from "./Career/CareerDashboard";
@@ -38,6 +39,10 @@ const AppRoutes = () => {
           <Route path={routes.calendar.tracker} element={<TrackerCalendar />} />
           <Route path={routes.calendar.aims} element={<AimCalendar />} />
           <Route path={routes.review.daily} element={<DailyReview />} />
+          <Route
+            path={routes.review.goalsGratitude}
+            element={<GoalsGratitude />}
+          />
           <Route path={routes.review.weekly} element={<WeeklyReview />} />
           <Route path={routes.review.codex} element={<CodexGuide />} />
           <Route path={routes.career} element={<CareerDashboard />} />

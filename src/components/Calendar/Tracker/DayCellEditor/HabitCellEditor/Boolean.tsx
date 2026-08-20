@@ -52,6 +52,8 @@ const Boolean = ({ colDef, stopEditing, data }: IProps) => {
   const { calendarMode, dayData } = colDef.cellRendererParams;
   const isDailyReviewHabit =
     data.id === habitsConfig.habits.dailyReview.details;
+  const isGoalsGratitudeHabit =
+    data.id === habitsConfig.habits.goalsGratitude.details;
 
   useEffect(() => {
     const newInitValues: IActivityHistoryData = {
@@ -156,7 +158,11 @@ const Boolean = ({ colDef, stopEditing, data }: IProps) => {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Enter") {
+      if (
+        event.key === "Enter" &&
+        !(calendarMode === "tracking" &&
+          (isDailyReviewHabit || isGoalsGratitudeHabit))
+      ) {
         event.preventDefault();
         handleSubmit(handleConfirm)();
       }
@@ -167,9 +173,18 @@ const Boolean = ({ colDef, stopEditing, data }: IProps) => {
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [handleSubmit, handleConfirm]);
+  }, [
+    calendarMode,
+    handleSubmit,
+    handleConfirm,
+    isDailyReviewHabit,
+    isGoalsGratitudeHabit,
+  ]);
 
-  if (isDailyReviewHabit && calendarMode === "tracking") {
+  if (
+    (isDailyReviewHabit || isGoalsGratitudeHabit) &&
+    calendarMode === "tracking"
+  ) {
     const reviewDate = `${dayData.year}-${String(dayData.month).padStart(
       2,
       "0",
@@ -178,17 +193,26 @@ const Boolean = ({ colDef, stopEditing, data }: IProps) => {
     return (
       <Box sx={{ maxWidth: 340, margin: 2 }}>
         <Typography mb={2} color="text.secondary">
-          Ця звичка виконується лише після збереження всіх п’яти відповідей
-          щоденного огляду.
+          {isDailyReviewHabit
+            ? "Ця звичка виконується лише після збереження AI-підсумку щоденного огляду."
+            : "Ця звичка виконується лише після збереження тексту з 5 цілями та 5 подяками."}
         </Typography>
         <Button
           variant="contained"
           onClick={() => {
             stopEditing();
-            navigate(`${routes.review.daily}?date=${reviewDate}`);
+            navigate(
+              `${
+                isDailyReviewHabit
+                  ? routes.review.daily
+                  : routes.review.goalsGratitude
+              }?date=${reviewDate}`,
+            );
           }}
         >
-          Заповнити щоденний огляд
+          {isDailyReviewHabit
+            ? "Заповнити щоденний огляд"
+            : "Заповнити 5 цілей і 5 подяк"}
         </Button>
       </Box>
     );

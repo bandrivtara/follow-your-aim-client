@@ -28,6 +28,8 @@ import "dayjs/locale/uk";
 import { message } from "antd";
 import routes from "config/routes";
 import habitsConfig from "config/habitsIds.json";
+import { getLifeArea } from "config/lifeAreas";
+import { calculateAimProgressSnapshot } from "components/Aims/AimsCalendar/aimRoadmapCalculations";
 import { useGetAimsListQuery } from "store/services/aims";
 import { useGetHabitListQuery } from "store/services/habits";
 import {
@@ -43,7 +45,7 @@ import {
   buildFirebaseBackup,
   downloadFirebaseBackup,
 } from "share/backup/firebaseBackup";
-import WaterCounter from "./WaterCounter/WaterCounter";
+import DailyCounters from "./DailyCounters/DailyCounters";
 import StyledMain from "./Main.styled";
 import TodayPlanDialog from "./TodayPlanDialog";
 import QuickMeasureDialog from "./QuickMeasureDialog";
@@ -64,6 +66,7 @@ import {
   getDashboardPlanPerformance,
   getRecoveryHabits,
   getDashboardWeekData,
+  getPendingDashboardAgendaItems,
 } from "./dashboardCalculations";
 
 const formatTime = (time?: Array<number | string>) =>
@@ -100,17 +103,34 @@ const Main = () => {
   const [isCopyingPlan, setIsCopyingPlan] = useState(false);
   const [isSavingQuickTask, setIsSavingQuickTask] = useState(false);
   const [isDownloadingBackup, setIsDownloadingBackup] = useState(false);
-  const historyRange = useMemo(
-    () => [
-      now.subtract(90, "day").startOf("month").unix(),
-      now.startOf("month").unix(),
-    ],
-    [now],
-  );
-  const history = useGetHistoryBetweenDatesQuery(historyRange);
   const habits = useGetHabitListQuery();
   const taskGroups = useGetTaskGroupListQuery();
   const aims = useGetAimsListQuery();
+  const historyRange = useMemo(
+    () => {
+      const analyticsStart = now.subtract(90, "day").startOf("month");
+      const earliestActiveAimStart = (aims.data || [])
+        .filter(
+          (aim) =>
+            !aim.isArchived &&
+            !now.isBefore(dayjs(aim.dateFrom), "day") &&
+            !now.isAfter(dayjs(aim.dateTo), "day"),
+        )
+        .map((aim) => dayjs(aim.dateFrom).startOf("month"))
+        .filter((date) => date.isValid())
+        .reduce(
+          (earliest, date) => (date.isBefore(earliest) ? date : earliest),
+          analyticsStart,
+        );
+
+      return [
+        earliestActiveAimStart.unix(),
+        now.startOf("month").unix(),
+      ];
+    },
+    [aims.data, now],
+  );
+  const history = useGetHistoryBetweenDatesQuery(historyRange);
   const currentReview = useGetDailyReviewMonthQuery(now.format("YYYY-MM"));
   const previousMonthReview = useGetDailyReviewMonthQuery(
     yesterday.format("YYYY-MM"),
@@ -145,6 +165,27 @@ const Main = () => {
         !now.isBefore(dayjs(aim.dateFrom), "day") &&
         !now.isAfter(dayjs(aim.dateTo), "day"),
     );
+    const historyMonths = historyData.flatMap((month) => {
+      const monthId =
+        typeof month.id === "string" && /^\d{4}-\d{2}$/.test(month.id)
+          ? month.id
+          : typeof month.unix === "number"
+            ? dayjs.unix(month.unix).format("YYYY-MM")
+            : "";
+
+      return monthId ? [{ id: monthId, data: month }] : [];
+    });
+    const aimProgressById = new Map(
+      activeAims.map((aim) => [
+        aim.id,
+        calculateAimProgressSnapshot(
+          aim,
+          taskGroups.data || [],
+          historyMonths,
+          now,
+        ),
+      ]),
+    );
     const agendaItems = getDashboardAgendaItems(
       todayActivities,
       habitData,
@@ -159,6 +200,7 @@ const Main = () => {
       lifeBalance,
       todayPerformance,
       activeAims,
+      aimProgressById,
       agendaItems,
       recoveryHabits: getRecoveryHabits(
         yesterdayActivities,
@@ -187,10 +229,11 @@ const Main = () => {
     history.isLoading || habits.isLoading || taskGroups.isLoading;
   const agendaHasError =
     history.isError || habits.isError || taskGroups.isError;
-  const visibleAgendaItems = dashboardData.agendaItems.slice(0, 3);
-  const remainingAgendaItems = Math.max(
-    0,
-    dashboardData.agendaItems.length - visibleAgendaItems.length,
+  const pendingAgendaItems = dashboardData.agendaItems.filter(
+    (item) => item.progress < 100,
+  );
+  const visibleAgendaItems = getPendingDashboardAgendaItems(
+    dashboardData.agendaItems,
   );
   const visibleAims = dashboardData.activeAims.slice(0, 3);
   const remainingAims = Math.max(
@@ -224,7 +267,10 @@ const Main = () => {
   const isReviewComplete = Boolean(
     savedDailyReview &&
     typeof savedDailyReview === "object" &&
-    isDailyReviewComplete(savedDailyReview.answers || {}),
+    isDailyReviewComplete(
+      savedDailyReview.answers || {},
+      savedDailyReview.summary,
+    ),
   );
   const hasWeekActivity = dashboardData.week.some(
     (day) => day.planned > 0 || day.total > 0,
@@ -280,6 +326,13 @@ const Main = () => {
   const handleQuickComplete = async (item: DashboardAgendaItem) => {
     if (item.activityId === habitsConfig.habits.dailyReview.details) {
       navigate(`${routes.review.daily}?date=${now.format("YYYY-MM-DD")}`);
+      return;
+    }
+
+    if (item.activityId === habitsConfig.habits.goalsGratitude.details) {
+      navigate(
+        `${routes.review.goalsGratitude}?date=${now.format("YYYY-MM-DD")}`,
+      );
       return;
     }
 
@@ -344,9 +397,13 @@ const Main = () => {
   const handleAddQuickTask = async ({
     title,
     taskGroupId,
+    time,
+    category,
   }: {
     title: string;
     taskGroupId: string;
+    time: Array<number | string>;
+    category?: string;
   }) => {
     const taskGroup = quickTaskGroups.find(({ id }) => id === taskGroupId);
     if (!taskGroup) return;
@@ -359,7 +416,14 @@ const Main = () => {
       await updateHistory(
         getTodayHistoryUpdate(
           taskGroup.id,
-          appendQuickTask(taskGroup, currentSource, title, uniqid()),
+          appendQuickTask(
+            taskGroup,
+            currentSource,
+            title,
+            uniqid(),
+            time,
+            category,
+          ),
         ),
       ).unwrap();
       message.success(`Справу додано до «${taskGroup.title}»`);
@@ -723,18 +787,37 @@ const Main = () => {
                 </Button>
               </Box>
               {dashboardData.activeAims.length ? (
-                visibleAims.map((aim) => (
-                  <Box key={aim.id} mt={2}>
-                    <Box display="flex" justifyContent="space-between" mb={1}>
-                      <Typography fontWeight={600}>{aim.title}</Typography>
-                      <Typography>{Math.round(aim.progress || 0)}%</Typography>
+                visibleAims.map((aim) => {
+                  const snapshot = dashboardData.aimProgressById.get(aim.id);
+                  const progress = snapshot?.progress || 0;
+
+                  return (
+                    <Box key={aim.id} mt={2}>
+                      <Box display="flex" justifyContent="space-between" mb={1}>
+                        <Typography fontWeight={600}>{aim.title}</Typography>
+                        <Typography>{Math.round(progress)}%</Typography>
+                      </Box>
+                      <LinearProgress
+                        variant="determinate"
+                        value={Math.min(100, Math.max(0, progress))}
+                      />
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        display="block"
+                        mt={0.75}
+                      >
+                        {aim.aimType === "number"
+                          ? `${Number((snapshot?.currentValue || 0).toFixed(2))} із ${aim.finalAim}`
+                          : aim.aimType === "boolean"
+                            ? progress >= 100
+                              ? "Ціль виконано"
+                              : "Ціль у процесі"
+                            : `${Math.round(progress)}% пов’язаних справ виконано`}
+                      </Typography>
                     </Box>
-                    <LinearProgress
-                      variant="determinate"
-                      value={Math.min(100, Math.max(0, aim.progress || 0))}
-                    />
-                  </Box>
-                ))
+                  );
+                })
               ) : (
                 <Typography color="text.secondary" mt={2}>
                   На сьогодні активних цілей немає. Старі цілі залишаються в
@@ -808,8 +891,13 @@ const Main = () => {
                   )}
                 </div>
               )}
-              {!agendaHasError &&
-                visibleAgendaItems.map((item) => {
+              {!agendaHasError && Boolean(visibleAgendaItems.length) && (
+                <div
+                  className="agenda-scroll"
+                  role="list"
+                  aria-label="Незавершений план дня"
+                >
+                  {visibleAgendaItems.map((item) => {
                   const isCurrent = currentAgendaItem?.id === item.id;
                   const isNext =
                     !currentAgendaItem && nextAgendaItem?.id === item.id;
@@ -817,6 +905,7 @@ const Main = () => {
                     <div
                       className={`agenda-row${isCurrent ? " agenda-row--current" : ""}`}
                       key={item.id}
+                      role="listitem"
                     >
                       <div className="agenda-time">
                         {formatAgendaTime(
@@ -828,8 +917,15 @@ const Main = () => {
                       <Box minWidth={0}>
                         <Typography fontWeight={600}>{item.title}</Typography>
                         <Typography variant="body2" color="text.secondary">
-                          {item.parentTitle ||
-                            (item.kind === "habit" ? "Звичка" : "Список справ")}
+                          {[
+                            item.parentTitle ||
+                              (item.kind === "habit"
+                                ? "Звичка"
+                                : "Список справ"),
+                            getLifeArea(item.category)?.shortTitle,
+                          ]
+                            .filter(Boolean)
+                            .join(" · ")}
                         </Typography>
                       </Box>
                       <div className="agenda-action">
@@ -877,37 +973,32 @@ const Main = () => {
                       </div>
                     </div>
                   );
-                })}
-              {remainingAgendaItems > 0 && (
-                <Button
-                  className="card-more-link"
-                  size="small"
-                  onClick={() =>
-                    navigate(`${routes.calendar.tracker}?view=day`)
-                  }
-                >
-                  Ще {remainingAgendaItems} у трекері
-                </Button>
+                  })}
+                </div>
               )}
               {!agendaIsLoading &&
                 !agendaHasError &&
-                !dashboardData.agendaItems.length && (
+                !pendingAgendaItems.length && (
                   <Box className="plan-empty-state">
                     <Typography color="text.secondary">
-                      План на сьогодні ще не сформовано.
+                      {dashboardData.agendaItems.length
+                        ? "Усі заплановані справи на сьогодні виконано."
+                        : "План на сьогодні ще не сформовано."}
                     </Typography>
-                    <Button
-                      variant="contained"
-                      size="small"
-                      onClick={() => setIsPlanDialogOpen(true)}
-                    >
-                      Сформувати план дня
-                    </Button>
+                    {!dashboardData.agendaItems.length && (
+                      <Button
+                        variant="contained"
+                        size="small"
+                        onClick={() => setIsPlanDialogOpen(true)}
+                      >
+                        Сформувати план дня
+                      </Button>
+                    )}
                   </Box>
                 )}
             </CardContent>
           </Card>
-          <WaterCounter className="water-card" compact />
+          <DailyCounters className="daily-counters" />
         </aside>
       </section>
       <TodayPlanDialog

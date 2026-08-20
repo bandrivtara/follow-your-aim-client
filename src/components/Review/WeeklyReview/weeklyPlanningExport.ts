@@ -157,6 +157,37 @@ const formatUnfinishedWork = (
   return lines.length ? lines : ["- Важливого незавершеного не знайдено."];
 };
 
+const formatActivityNotes = (
+  contextFrom: Dayjs,
+  contextTo: Dayjs,
+  history: Record<string, any>[],
+  habits: IHabitData[],
+) => {
+  const habitById = new Map(habits.map((habit) => [habit.id, habit]));
+  const lines: string[] = [];
+
+  for (
+    let cursor = contextFrom.startOf("day");
+    !cursor.isAfter(contextTo, "day");
+    cursor = cursor.add(1, "day")
+  ) {
+    getDashboardActivitiesForDate(history, cursor, habits).forEach(
+      (activity) => {
+        const note = activity.source.note;
+        if (typeof note !== "string" || !note.trim()) return;
+        const title = habitById.get(activity.id)?.title || activity.id;
+        lines.push(
+          `## ${cursor.locale("uk").format("DD MMMM YYYY")} · ${title}`,
+          note.trim(),
+          "",
+        );
+      },
+    );
+  }
+
+  return lines.length ? lines : ["- Текстових записів звичок немає."];
+};
+
 export const buildWeeklyPlanningExport = ({
   lastWeekFrom,
   lastWeekTo,
@@ -238,11 +269,22 @@ export const buildWeeklyPlanningExport = ({
       `## ${cursor.locale("uk").format("dddd, DD MMMM YYYY")}`,
       `Настрій: ${review.mood}/5 · енергія: ${review.energy}/5`,
     );
-    DAILY_REVIEW_QUESTIONS.forEach((question) => {
-      const answer = review.answers?.[question.id]?.trim();
-      if (answer) lines.push(`- ${question.title} ${answer}`);
-    });
+    if (review.summary?.trim()) {
+      lines.push(review.summary.trim());
+    } else {
+      DAILY_REVIEW_QUESTIONS.forEach((question) => {
+        const answer = review.answers?.[question.id]?.trim();
+        if (answer) lines.push(`- ${question.title} ${answer}`);
+      });
+    }
   }
+
+  lines.push(
+    "",
+    "# Текстові записи звичок · чотири тижні",
+    "",
+    ...formatActivityNotes(contextFrom, contextTo, history, habits),
+  );
 
   lines.push(
     "",

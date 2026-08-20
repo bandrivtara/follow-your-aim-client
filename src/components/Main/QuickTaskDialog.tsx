@@ -13,11 +13,14 @@ import {
 } from "@mui/material";
 import AddTaskOutlined from "@mui/icons-material/AddTaskOutlined";
 import VoiceTextField from "components/Review/VoiceTextField";
+import { LIFE_AREAS } from "config/lifeAreas";
 import { ITasksGroup } from "types/taskGroups";
 
 interface QuickTaskDraft {
   title: string;
   taskGroupId: string;
+  time: Array<number | string>;
+  category?: string;
 }
 
 interface QuickTaskDialogProps {
@@ -45,16 +48,28 @@ const QuickTaskDialog = ({
   );
   const [title, setTitle] = useState("");
   const [taskGroupId, setTaskGroupId] = useState(defaultTaskGroupId);
+  const [time, setTime] = useState("");
+  const [category, setCategory] = useState("");
 
   useEffect(() => {
     if (!open) return;
     setTitle("");
     setTaskGroupId(defaultTaskGroupId);
+    setTime("");
+    setCategory("");
   }, [defaultTaskGroupId, open]);
 
   const handleSave = async () => {
     if (!title.trim() || !taskGroupId) return;
-    await onSave({ title: title.trim(), taskGroupId });
+    const parsedTime = time
+      ? time.split(":").map((value) => Number(value))
+      : ["", ""];
+    await onSave({
+      title: title.trim(),
+      taskGroupId,
+      time: parsedTime,
+      ...(category ? { category } : {}),
+    });
   };
 
   return (
@@ -87,6 +102,32 @@ const QuickTaskDialog = ({
                 </MenuItem>
               ))}
             </TextField>
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+              <TextField
+                fullWidth
+                type="time"
+                label="Час"
+                value={time}
+                onChange={(event) => setTime(event.target.value)}
+                InputLabelProps={{ shrink: true }}
+                helperText="Необов’язково"
+              />
+              <TextField
+                select
+                fullWidth
+                label="Категорія"
+                value={category}
+                onChange={(event) => setCategory(event.target.value)}
+                helperText="Необов’язково"
+              >
+                <MenuItem value="">Без категорії</MenuItem>
+                {LIFE_AREAS.map((area) => (
+                  <MenuItem key={area.id} value={area.id}>
+                    {area.title}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Stack>
           </Stack>
         ) : (
           <Typography color="text.secondary">

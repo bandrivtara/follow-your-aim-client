@@ -20,6 +20,23 @@ const StyledTasksGroupStore = styled.div`
     margin-top: 8px;
   }
 
+  .task-details .ant-form-item,
+  .task-description-row .ant-form-item {
+    margin-bottom: 0;
+  }
+
+  .task-details .ant-form-item-label,
+  .task-description-row .ant-form-item-label {
+    padding-bottom: 4px;
+  }
+
+  .task-details .ant-form-item-label > label,
+  .task-description-row .ant-form-item-label > label {
+    color: #667085;
+    font-size: 12px;
+    font-weight: 650;
+  }
+
   .ant-col {
     margin-top: 4px;
   }

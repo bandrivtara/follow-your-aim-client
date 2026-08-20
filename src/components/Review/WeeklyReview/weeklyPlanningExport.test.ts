@@ -18,6 +18,15 @@ describe("weekly planning export", () => {
               tasks: [{ title: "Перенести мене", status: "pending" }],
               progress: 0,
             },
+            habit: {
+              id: "habit",
+              type: "habit",
+              valueType: "boolean",
+              isPlanned: true,
+              progress: 100,
+              status: "done",
+              note: "5 ЦІЛЕЙ\n1. Завершити головну задачу",
+            },
           },
           "24": {
             habit: {
@@ -75,6 +84,7 @@ describe("weekly planning export", () => {
     expect(report).toContain("останніх чотирьох тижнів");
     expect(report).toContain("Завершити проєкт: 40%");
     expect(report).toContain("Перенести мене");
+    expect(report).toContain("Завершити головну задачу");
     expect(report).toContain("Уже заплановано на наступний тиждень");
     expect(report).toContain("Fact → Observation → Hypothesis → Recommendation");
     expect(report).toContain("fya-plan-v1");

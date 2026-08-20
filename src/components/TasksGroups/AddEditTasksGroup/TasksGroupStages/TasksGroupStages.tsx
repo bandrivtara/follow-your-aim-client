@@ -16,6 +16,7 @@ import {
   InputNumber,
   Radio,
   Row,
+  Select,
   Space,
 } from "antd";
 import { Fragment, useCallback, useState } from "react";
@@ -23,6 +24,7 @@ import { ITask } from "types/taskGroups";
 import { FormInstance, useWatch } from "antd/es/form/Form";
 import StyledTasksGroupStages from "./TasksGroupStages.styled";
 import uniqid from "uniqid";
+import { LIFE_AREAS } from "config/lifeAreas";
 
 interface IProps {
   dayForm?: FormInstance<any>;
@@ -33,6 +35,7 @@ const initValues = {
   title: "",
   description: "",
   status: "pending",
+  category: "",
   isEditOn: false,
   stagePercentage: 0,
 };
@@ -215,6 +218,25 @@ const TasksGroupStages = ({ dayForm, form }: IProps) => {
                                           <DeleteOutlined rev={"value"} />
                                         </Button>
                                       </Space.Compact>
+                                    </Form.Item>
+                                  </Col>
+                                </Row>
+
+                                <Row className="subtask-category-row">
+                                  <Col span={24}>
+                                    <Form.Item
+                                      label="Категорія"
+                                      name={[index, "category"]}
+                                      initialValue={initValues.category}
+                                    >
+                                      <Select
+                                        allowClear
+                                        placeholder="Без категорії"
+                                        options={LIFE_AREAS.map((area) => ({
+                                          value: area.id,
+                                          label: area.title,
+                                        }))}
+                                      />
                                     </Form.Item>
                                   </Col>
                                 </Row>

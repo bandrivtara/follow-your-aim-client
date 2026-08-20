@@ -13,15 +13,24 @@ export interface IRelatedHabitValue {
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
-const getMeasureValue = (
+const getRelatedHabitValue = (
   dayData: unknown,
   relatedHabit: string[],
 ): number | undefined => {
   const [habitId, measureId] = relatedHabit;
-  if (!habitId || !measureId || !isRecord(dayData)) return undefined;
+  if (!habitId || !isRecord(dayData)) return undefined;
 
   const habitData = dayData[habitId];
   if (!isRecord(habitData)) return undefined;
+
+  if (!measureId) {
+    const progress = Number(habitData.progress);
+    if (Number.isFinite(progress)) return progress >= 100 ? 1 : 0;
+    if (typeof habitData.status === "string") {
+      return habitData.status === "done" ? 1 : 0;
+    }
+    return undefined;
+  }
 
   const measures = habitData.measures;
   if (!isRecord(measures)) return undefined;
@@ -71,7 +80,7 @@ export const getRelatedHabitValuesBetweenDates = (
           return [];
         }
 
-        const value = getMeasureValue(dayData, relatedHabit);
+        const value = getRelatedHabitValue(dayData, relatedHabit);
         return value === undefined ? [] : [{ date: normalizedDate, value }];
       });
     })

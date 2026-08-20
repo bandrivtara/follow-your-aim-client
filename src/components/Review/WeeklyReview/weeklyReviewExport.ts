@@ -81,13 +81,17 @@ export const buildWeeklyReviewExport = ({
       "",
       `Настрій: ${review.mood}/5 · енергія: ${review.energy}/5`,
     );
-    DAILY_REVIEW_QUESTIONS.forEach((question) => {
-      lines.push(
-        "",
-        `**${question.title}**`,
-        review.answers?.[question.id]?.trim() || "—",
-      );
-    });
+    if (review.summary?.trim()) {
+      lines.push("", "**AI-підсумок дня**", review.summary.trim());
+    } else {
+      DAILY_REVIEW_QUESTIONS.forEach((question) => {
+        lines.push(
+          "",
+          `**${question.title}**`,
+          review.answers?.[question.id]?.trim() || "—",
+        );
+      });
+    }
   }
 
   lines.push(

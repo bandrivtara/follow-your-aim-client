@@ -9,42 +9,40 @@ import {
 interface IProps {
   handleDecline: (event: MouseEvent<HTMLElement>) => void;
   handleDelete?: (event: MouseEvent<HTMLElement>) => void;
-  handleConfirm?: (formValues: any) => Promise<void>;
 }
 
 const FormButtons = ({
   handleDecline,
   handleDelete,
-  handleConfirm = async () => {},
 }: IProps) => {
   return (
-    <>
+    <div className="form-buttons">
       <Button
         htmlType="submit"
         type="primary"
         icon={<CheckOutlined rev={"value"} />}
-        size={"large"}
-        onClick={handleConfirm}
-      />
+        size="large"
+      >
+        Зберегти
+      </Button>
       <Button
-        style={{ marginLeft: 20 }}
-        danger
-        type="primary"
         icon={<CloseOutlined rev={"value"} />}
-        size={"large"}
+        size="large"
         onClick={handleDecline}
-      />
+      >
+        Скасувати
+      </Button>
       {handleDelete && (
         <Button
-          style={{ marginLeft: 20 }}
           danger
-          type="primary"
           icon={<DeleteOutlined rev="value" />}
-          size={"large"}
+          size="large"
           onClick={handleDelete}
-        />
+        >
+          Очистити запис
+        </Button>
       )}
-    </>
+    </div>
   );
 };
 

@@ -9,11 +9,11 @@ Last verified: 2026-08-18.
 | Routes                  | src/components/Routes.tsx                                         | src/config/routes.ts, src/components/Layout/useMenuItems.tsx                             |
 | Redux and Firebase base | src/store/store.ts                                                | src/store/api/index.ts                                                                   |
 | Firestore services      | src/store/services/                                               | src/types/, src/share/fireBase/                                                          |
-| Main dashboard          | src/components/Main/Main.tsx                                      | dashboardCalculations.ts, WaterCounter/, history, habits, task groups, and aims services |
+| Main dashboard          | src/components/Main/Main.tsx                                      | dashboardCalculations.ts, DailyCounters/, Apple Health service, history, habits, task groups, and aims services |
 | Backup export           | src/share/backup/firebaseBackup.ts                                | read-only JSON export of all known Firestore collections                                 |
 | Network/PWA shell       | src/share/components/NetworkStatus/, src/registerServiceWorker.ts | public/service-worker.js, public/manifest.json                                           |
 | Life-area definitions   | src/config/lifeAreas.ts                                           | habit form/list, dashboard calculations                                                  |
-| Daily/weekly reviews    | src/components/Review/                                            | dailyReviews service, tracker export, dashboard calculations                             |
+| Daily/weekly reviews    | src/components/Review/                                            | DailyReview, GoalsGratitude, shared AI reflection prompts, dailyReviews service, tracker export, dashboard calculations |
 | Codex helper page       | src/components/Review/CodexGuide/                                 | ready prompts, weekly protocols, local bridge safety flow                                |
 | Career compass          | src/components/Career/                                            | read-only 12-month roadmap, evidence skills, course progress, and linked active aims     |
 | Weekly planning export  | src/components/Review/WeeklyReview/weeklyPlanningExport.ts        | weekly planning protocol, aims, four-week tracker/review context                         |

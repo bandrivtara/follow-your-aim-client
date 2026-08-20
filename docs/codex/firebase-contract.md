@@ -1,6 +1,6 @@
 # Observed Firebase contract
 
-Last verified from client code: 2026-08-18. This describes the existing integration; it does not authorize further schema or rule changes.
+Last verified from client code: 2026-08-20. This describes the existing integration; it does not authorize further schema or rule changes.
 
 ## Safety boundary
 
@@ -38,10 +38,13 @@ List services usually attach Firestore document IDs as id. English differs: IDs 
 - Each month document stores unix for range queries.
 - Day keys are strings such as DD; activity IDs below them map to habit or task-group history.
 - updateHistory accepts id, path, and data and updates the dynamic field path without replacing the month.
-- Activity history can contain type, valueType, isPlanned, status, progress, times, measures, or tasks.
+- Activity history can contain type, valueType, isPlanned, status, progress, times, measures, tasks, or an optional text `note`. The note is currently used by the existing “5 цілей і 5 подяк” habit and does not introduce a collection or nested activity ID.
+- Task objects inside task-group definitions and history keep their existing title/status/time shape and may additionally contain an optional `category` using one of the client life-area IDs. Missing categories and empty times remain valid for legacy and all-day tasks.
 - New task-list history entries persist the already-supported isPlanned flag so work added during tracking can be distinguished from the daily plan. Legacy task lists without the flag remain treated as planned for compatibility.
 - Dashboard quick completion merges a boolean habit, measured habit, or updated task list back into the same existing day/activity path. Quick task capture appends a pending task to an existing flat task-group activity at that path and marks the activity as planned. Copying yesterday's or the previous same weekday's plan creates current-day activity entries with progress/value/status reset while preserving targets, tasks, times, and IDs.
 - Measure values are nested under activity and measure IDs. Do not flatten or rename them.
+- The dashboard water and steps counters use the stable existing habit/measure IDs from `src/config/habitsIds.json`; both update only the matching daily measure value and do not introduce duplicate metric fields.
+- With explicit user approval on 2026-08-20, the Apple Health Shortcut bridge may lazily create `habit/appleHealthActiveCalories` using the existing measured-habit shape with measure `activeEnergyKcal`. It is created only after a valid first sync callback; subsequent syncs update the existing steps and active-calories measure values under `history/{YYYY-MM}.{DD}`.
 - History is read both by unix range in the RTK Query service and by document ID in src/share/fireBase/getHistoryBetweenDates.ts.
 
 Any date fix must keep both read paths consistent and test first/last-day and cross-month boundaries.
@@ -51,7 +54,7 @@ Any date fix must keep both read paths consistent and test first/last-day and cr
 - Added with explicit user approval on 2026-08-18; review content remains independent from tracker `history` so reflection fields cannot be mistaken for activity IDs.
 - Collection: `dailyReview`; document ID: `YYYY-MM`; month documents keep `unix` for the same month-range query pattern as history.
 - Day fields use padded `DD` keys. Each value contains `date` (`YYYY-MM-DD`), `mood` (1–5), `energy` (1–5), `answers` keyed by stable question IDs, and `updatedAt` as Unix seconds.
-- A review is complete only when all five stable question IDs contain non-empty answers.
+- A current review is complete when its optional `summary` string is non-empty. Legacy reviews remain complete when all five stable question IDs contain non-empty answers; their existing `answers` object is preserved for compatibility.
 - Completing a review uses one batched merge: it saves the selected `dailyReview` day and writes the configured `dailyReview` boolean habit as planned, `done`, and `100%` under the matching `history/{YYYY-MM}.{D}.{habitId}` path. Other days and activities are preserved.
 
 ## Archive fields
@@ -74,6 +77,7 @@ Any date fix must keep both read paths consistent and test first/last-day and cr
 - Relationship screens therefore derive their displayed and selected items from child IDs. Saving a relationship updates selected children and clears the same relationship on deselected children.
 - Missing referenced IDs must remain visible as a fallback such as "Не знайдено (ID)" instead of rendering a raw unexplained ID or crashing.
 - Aims can reference a habit/measure pair through relatedHabit or task-group/stage selections through relatedList.
+- The known personal planner-consistency aim is identified by its stable document ID in `src/config/habitsIds.json` and calculated read-only from existing history: a day counts when it has at least one planned activity and dashboard plan completion is strictly greater than 50%. This introduces no new Firestore field and does not rewrite the aim document.
 - Relationship saves currently issue multiple document updates and are not atomic. Do not replace this with a schema migration or new Firebase integration without explicit approval.
 
 Observed live-data compatibility notes from the read-only audit on 2026-07-28:
@@ -97,6 +101,12 @@ Observed live-data compatibility notes from the read-only audit on 2026-07-28:
 - `apply-habit-metadata` is also dry-run unless `--apply` is supplied. It can update only `lifeArea` and `complexity` for existing non-archived habits, including hidden compatibility habits, whose IDs and titles both match the reviewed document.
 - Applied changes only merge planning data below `history/{YYYY-MM}/{DD}/{activityId}` and keep the existing month `unix` convention. No delete operation is implemented.
 - Because repository-only review cannot verify deployed rules, the bridge must remain a local personal tool and must not be exposed as a public API.
+
+## Apple Health Shortcut bridge
+
+- A dashboard action launches the local iPhone shortcut named `FYA Sync Health` with a one-time callback URL; the web client does not and cannot read HealthKit directly.
+- The callback is accepted only when its nonce matches a locally initiated request no older than 15 minutes, the payload date is today, and steps/calories are finite non-negative values within defensive limits.
+- The callback contains only today's aggregate step count and active energy. It reuses the existing Firebase client and history paths; no public HTTP write endpoint, secret, or new collection is introduced.
 
 ## Personal backup export
 

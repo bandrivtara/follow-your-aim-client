@@ -6,7 +6,6 @@ import {
   CardContent,
   CircularProgress,
   Rating,
-  Stack,
   Typography,
 } from "@mui/material";
 import SaveOutlined from "@mui/icons-material/SaveOutlined";
@@ -19,8 +18,12 @@ import {
 } from "store/services/dailyReviews";
 import { IDailyReview } from "types/dailyReview.types";
 import ReviewLayout from "../ReviewLayout.styled";
-import VoiceTextField from "../VoiceTextField";
 import { DAILY_REVIEW_QUESTIONS } from "../reviewQuestions";
+import AiReflectionField from "../AiReflectionField";
+import {
+  DAILY_REVIEW_AI_PROMPT,
+  buildLegacyDailyReviewSummary,
+} from "../reflectionPrompts";
 import { useSearchParams } from "react-router-dom";
 import { isDailyReviewComplete } from "share/functions/dailyReviewCompletion";
 
@@ -45,7 +48,8 @@ const DailyReview = () => {
   const [energy, setEnergy] = useState(3);
   const [answers, setAnswers] =
     useState<Record<string, string>>(createEmptyAnswers);
-  const isComplete = isDailyReviewComplete(answers);
+  const [summary, setSummary] = useState("");
+  const isComplete = isDailyReviewComplete(answers, summary);
 
   const savedReview = useMemo(() => {
     const value = reviewMonth.data?.[dayId];
@@ -56,11 +60,15 @@ const DailyReview = () => {
     setMood(savedReview?.mood || 3);
     setEnergy(savedReview?.energy || 3);
     setAnswers({ ...createEmptyAnswers(), ...savedReview?.answers });
+    setSummary(
+      savedReview?.summary ||
+        buildLegacyDailyReviewSummary(savedReview?.answers || {}),
+    );
   }, [savedReview, selectedDate]);
 
   const saveReview = async () => {
     if (!isComplete) {
-      message.warning("Відповідай на всі п’ять запитань, щоб завершити огляд");
+      message.warning("Встав фінальний AI-підсумок, щоб завершити огляд");
       return;
     }
 
@@ -73,6 +81,7 @@ const DailyReview = () => {
           mood,
           energy,
           answers,
+          summary: summary.trim(),
           updatedAt: dayjs().unix(),
         },
       }).unwrap();
@@ -90,7 +99,7 @@ const DailyReview = () => {
             Щоденний огляд
           </Typography>
           <Typography color="text.secondary">
-            П’ять коротких відповідей, щоб не загубити контекст дня
+            Коротке AI-інтерв’ю та один підсумок, щоб не загубити контекст дня
           </Typography>
         </Box>
         <DatePicker
@@ -132,22 +141,15 @@ const DailyReview = () => {
                 </Box>
               </div>
 
-              <Stack className="review-question-list">
-                {DAILY_REVIEW_QUESTIONS.map((question, index) => (
-                  <VoiceTextField
-                    key={question.id}
-                    label={`${index + 1}. ${question.title}`}
-                    placeholder={question.placeholder}
-                    value={answers[question.id] || ""}
-                    onChange={(value) =>
-                      setAnswers((current) => ({
-                        ...current,
-                        [question.id]: value,
-                      }))
-                    }
-                  />
-                ))}
-              </Stack>
+              <AiReflectionField
+                title="Проведи огляд із ChatGPT"
+                description="Скопіюй промпт, відповідай на п’ять питань по черзі, а фінальний текст встав сюди."
+                prompt={DAILY_REVIEW_AI_PROMPT}
+                label="Фінальний підсумок дня"
+                placeholder="Встав сюди фінальний текст ChatGPT: стан, перемоги, перешкоди, урок і фокус на завтра…"
+                value={summary}
+                onChange={setSummary}
+              />
             </>
           )}
         </CardContent>
@@ -156,8 +158,8 @@ const DailyReview = () => {
       <div className="review-actions">
         <Typography color={isComplete ? "success.main" : "text.secondary"}>
           {isComplete
-            ? "Усі відповіді заповнені — звичка буде виконана автоматично."
-            : "Заповни всі п’ять відповідей, щоб виконати звичку."}
+            ? "Підсумок готовий — звичка буде виконана автоматично."
+            : "Встав фінальний AI-підсумок, щоб виконати звичку."}
         </Typography>
         <Button
           variant="contained"

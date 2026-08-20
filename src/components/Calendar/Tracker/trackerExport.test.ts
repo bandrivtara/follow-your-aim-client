@@ -23,6 +23,12 @@ describe("tracker export", () => {
               progress: 50,
             },
             bonus: { isPlanned: false, status: "done", progress: 100 },
+            reflection: {
+              isPlanned: true,
+              status: "done",
+              progress: 100,
+              note: "5 ЦІЛЕЙ\n1. Завершити важливу задачу",
+            },
           },
         },
       ],
@@ -37,6 +43,12 @@ describe("tracker export", () => {
         {
           id: "bonus",
           title: "Додаткова прогулянка",
+          type: "habit",
+          valueType: "boolean",
+        } as any,
+        {
+          id: "reflection",
+          title: "5 цілей і 5 подяк",
           type: "habit",
           valueType: "boolean",
         } as any,
@@ -55,6 +67,8 @@ describe("tracker export", () => {
     expect(report).toContain("Купити продукти");
     expect(report).toContain("Забрати посилку");
     expect(report).toContain("Обсяг: факт 1000 мл; план 2000 мл");
+    expect(report).toContain("5 ЦІЛЕЙ");
+    expect(report).toContain("Завершити важливу задачу");
     expect(report).toContain("# Промпт для AI-аналізу");
     expect(report).toContain("Що заважає");
   });

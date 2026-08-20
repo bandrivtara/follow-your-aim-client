@@ -1,4 +1,4 @@
-import { Fragment, useEffect } from "react";
+import { useEffect } from "react";
 import {
   useForm,
   Controller,
@@ -15,6 +15,7 @@ import {
   ToggleButtonGroup,
   ToggleButton,
   ButtonGroup,
+  MenuItem,
 } from "@mui/material";
 import {
   ExpandMore as ExpandMoreIcon,
@@ -33,6 +34,7 @@ import { TimePicker } from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import { ITasksHistoryData } from "types/history.types";
 import { ITask } from "types/taskGroups";
+import { LIFE_AREAS } from "config/lifeAreas";
 
 interface IProps {
   colDef: ColDef<ITasksHistoryData>;
@@ -44,7 +46,8 @@ const initTask: ITask = {
   title: "",
   description: "",
   status: "pending",
-  time: [0, 0],
+  time: ["", ""],
+  category: "",
   isEditOn: false,
 };
 
@@ -133,7 +136,7 @@ const TodoList = ({ data, colDef, stopEditing }: IProps) => {
   };
 
   const parseTime = (timeArray?: Array<number | string>) => {
-    if (!timeArray) return;
+    if (!timeArray || timeArray[0] === "" || timeArray[1] === "") return null;
     const [hours, minutes] = timeArray;
     const date = dayjs()
       .set("hour", Number(hours))
@@ -144,7 +147,7 @@ const TodoList = ({ data, colDef, stopEditing }: IProps) => {
   };
 
   const formatTime = (date: Date | null | undefined) => {
-    if (!date) return [0, 0];
+    if (!date) return ["", ""];
     const hours = dayjs(date).hour();
     const minutes = dayjs(date).minute();
     return [hours, minutes];
@@ -165,11 +168,11 @@ const TodoList = ({ data, colDef, stopEditing }: IProps) => {
     initTask && (
       <StyledTodoList>
         <form onSubmit={handleSubmit(handleConfirm)}>
-          <Box sx={{ minWidth: 300, margin: 2 }}>
+          <Box className="todo-list-form">
             <Grid container spacing={2}>
               <Grid item xs={12}>
                 {!!storedTasks.length && (
-                  <Box marginBottom={2}>
+                  <Box className="stored-tasks" marginBottom={2}>
                     <strong>Сховище завдань</strong>
                     <Box display="flex" flexWrap="wrap" gap={1} marginTop={1}>
                       {storedTasks.map((task, index) => (
@@ -186,7 +189,7 @@ const TodoList = ({ data, colDef, stopEditing }: IProps) => {
                   </Box>
                 )}
                 {fields.map((task, index) => (
-                  <Fragment key={task.id}>
+                  <Box className="todo-task-card" key={task.id}>
                     <Grid container spacing={2} marginBottom={2}>
                       <Grid item xs={12} md={12}>
                         <Controller
@@ -210,7 +213,7 @@ const TodoList = ({ data, colDef, stopEditing }: IProps) => {
                       spacing={2}
                       justifyContent={"space-between"}
                     >
-                      <Grid item xs={12} md={4} marginBottom={2}>
+                      <Grid item xs={12} md={6} marginBottom={2}>
                         <Controller
                           name={`tasks.${index}.time`}
                           control={control}
@@ -232,7 +235,29 @@ const TodoList = ({ data, colDef, stopEditing }: IProps) => {
                           )}
                         />
                       </Grid>
-                      <Grid item xs={12} md={4} marginBottom={2}>
+                      <Grid item xs={12} md={6} marginBottom={2}>
+                        <Controller
+                          name={`tasks.${index}.category`}
+                          control={control}
+                          defaultValue=""
+                          render={({ field }) => (
+                            <TextField
+                              {...field}
+                              select
+                              fullWidth
+                              label="Категорія"
+                            >
+                              <MenuItem value="">Без категорії</MenuItem>
+                              {LIFE_AREAS.map((area) => (
+                                <MenuItem key={area.id} value={area.id}>
+                                  {area.title}
+                                </MenuItem>
+                              ))}
+                            </TextField>
+                          )}
+                        />
+                      </Grid>
+                      <Grid item xs={12} md={6} marginBottom={2}>
                         <Controller
                           name={`tasks.${index}.status`}
                           control={control}
@@ -262,7 +287,7 @@ const TodoList = ({ data, colDef, stopEditing }: IProps) => {
                           )}
                         />
                       </Grid>
-                      <Grid item xs={12} md={4}>
+                      <Grid item xs={12} md={6} className="task-actions">
                         <ButtonGroup
                           size="large"
                           variant="outlined"
@@ -302,10 +327,10 @@ const TodoList = ({ data, colDef, stopEditing }: IProps) => {
                         )}
                       />
                     </Grid>
-                    <Divider style={{ margin: "12px 0" }} />
-                  </Fragment>
+                    <Divider style={{ margin: "16px 0 0" }} />
+                  </Box>
                 ))}
-                <Grid container>
+                <Grid container className="todo-list-footer" spacing={1.5}>
                   <Grid item md={6}>
                     <Button
                       variant="outlined"
@@ -323,7 +348,6 @@ const TodoList = ({ data, colDef, stopEditing }: IProps) => {
                     <FormButtons
                       handleDecline={handleDecline}
                       handleDelete={handleDelete}
-                      handleConfirm={handleSubmit(handleConfirm)}
                     />
                   </Grid>
                 </Grid>
