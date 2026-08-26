@@ -43,6 +43,7 @@ List services usually attach Firestore document IDs as id. English differs: IDs 
 - New task-list history entries persist the already-supported isPlanned flag so work added during tracking can be distinguished from the daily plan. Legacy task lists without the flag remain treated as planned for compatibility.
 - Dashboard quick completion merges a boolean habit, measured habit, or updated task list back into the same existing day/activity path. Quick task capture appends a pending task to an existing flat task-group activity at that path and marks the activity as planned. Copying yesterday's or the previous same weekday's plan creates current-day activity entries with progress/value/status reset while preserving targets, tasks, times, and IDs.
 - Measure values are nested under activity and measure IDs. Do not flatten or rename them.
+- The dashboard focus timer is offered only for measured habit fields whose unit is minutes. An unfinished elapsed duration is device-local in `localStorage`; completing a session adds the actual focused minutes to the existing daily measure value and uses the normal dashboard history mutation without introducing a Firestore field.
 - The dashboard water and steps counters use the stable existing habit/measure IDs from `src/config/habitsIds.json`; both update only the matching daily measure value and do not introduce duplicate metric fields.
 - History is read both by unix range in the RTK Query service and by document ID in src/share/fireBase/getHistoryBetweenDates.ts.
 

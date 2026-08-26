@@ -11,6 +11,8 @@ import dayjs, { Dayjs } from "dayjs";
 import { CSSProperties, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import routes from "config/routes";
+import entityIds from "config/habitsIds.json";
+import englishProgress from "config/englishProgress.generated.json";
 import { getHistoryBetweenDates } from "share/fireBase/getHistoryBetweenDates";
 import { getRelationTitle } from "share/functions/getRelationshipUpdates";
 import { useGetAimsListQuery } from "store/services/aims";
@@ -158,7 +160,15 @@ const AimCalendar = () => {
     activeAims.forEach((aim) => {
       progressMap.set(
         aim.id,
-        calculateAimProgressSnapshot(aim, taskGroups.data || [], historyMonths),
+        calculateAimProgressSnapshot(
+          aim,
+          taskGroups.data || [],
+          historyMonths,
+          dayjs(),
+          aim.id === entityIds.aims.englishVocabulary.details
+            ? englishProgress.learnedCount
+            : undefined,
+        ),
       );
     });
     return progressMap;
@@ -223,6 +233,7 @@ const AimCalendar = () => {
   };
 
   const getAimUnit = (aim: IAimData) => {
+    if (aim.id === entityIds.aims.englishVocabulary.details) return "слів";
     if (!aim.isRelatedWithHabit) return "";
     const [habitId, measureId] = aim.relatedHabit || [];
     return (
@@ -233,6 +244,9 @@ const AimCalendar = () => {
   };
 
   const getAimContext = (aim: IAimData) => {
+    if (aim.id === entityIds.aims.englishVocabulary.details) {
+      return `Дані з English repository · ${englishProgress.totalTracked} відстежується`;
+    }
     if (aim.isRelatedWithHabit) {
       const habit = habits.data?.find(
         (item) => item.id === aim.relatedHabit?.[0],

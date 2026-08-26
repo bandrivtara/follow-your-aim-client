@@ -29,6 +29,7 @@ import "dayjs/locale/uk";
 import { message } from "antd";
 import routes from "config/routes";
 import habitsConfig from "config/habitsIds.json";
+import englishProgress from "config/englishProgress.generated.json";
 import { getLifeArea } from "config/lifeAreas";
 import { calculateAimProgressSnapshot } from "components/Aims/AimsCalendar/aimRoadmapCalculations";
 import { useGetAimsListQuery } from "store/services/aims";
@@ -66,6 +67,7 @@ import {
   getActivityStreak,
   getDashboardAgendaItems,
   getDashboardActivitiesForDate,
+  getCompletedHabitDaysInMonth,
   getDashboardLifeBalance,
   getDashboardPlanPerformance,
   getDashboardReviewWeekData,
@@ -198,6 +200,9 @@ const Main = () => {
           taskGroups.data || [],
           historyMonths,
           now,
+          aim.id === habitsConfig.aims.englishVocabulary.details
+            ? englishProgress.learnedCount
+            : undefined,
         ),
       ]),
     );
@@ -223,6 +228,12 @@ const Main = () => {
         habitData,
       ),
       streak: getActivityStreak(historyData, now, 90, habitData),
+      officeDaysThisMonth: getCompletedHabitDaysInMonth(
+        historyData,
+        now,
+        habitsConfig.habits.office.details,
+        habitData,
+      ),
     };
   }, [aims.data, habits.data, history.data, now, taskGroups.data, yesterday]);
 
@@ -487,9 +498,12 @@ const Main = () => {
       hint: "Дні поспіль із зафіксованою активністю",
     },
     {
-      label: "Активні цілі",
-      value: dashboardData.activeAims.length,
-      hint: `${aims.data?.length || 0} цілей загалом`,
+      label: "Офіс цього місяця",
+      value: `${dashboardData.officeDaysThisMonth} із 6`,
+      hint:
+        dashboardData.officeDaysThisMonth >= 6
+          ? "Місячний мінімум виконано"
+          : `Ще ${6 - dashboardData.officeDaysThisMonth} до місячного мінімуму`,
     },
     {
       label: "Огляд дня",

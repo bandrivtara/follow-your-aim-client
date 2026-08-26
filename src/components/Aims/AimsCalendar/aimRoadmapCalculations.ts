@@ -148,6 +148,7 @@ export const calculateAimProgressSnapshot = (
   taskGroups: ITasksGroup[] = [],
   historyMonths: IHistoryMonthSnapshot[] = [],
   currentDate: Dayjs = dayjs(),
+  externalCurrentValue?: number,
 ): IAimProgressSnapshot => {
   let currentValue = 0;
   let progress = 0;
@@ -155,7 +156,14 @@ export const calculateAimProgressSnapshot = (
   const isPlannerConsistencyAim =
     aim.id === entityIds.aims.plannerConsistency.details;
 
-  if (isPlannerConsistencyAim || aim.isRelatedWithHabit) {
+  if (
+    aim.aimType === "number" &&
+    typeof externalCurrentValue === "number" &&
+    Number.isFinite(externalCurrentValue)
+  ) {
+    currentValue = Math.max(0, externalCurrentValue);
+    progress = aim.finalAim ? (currentValue / aim.finalAim) * 100 : 0;
+  } else if (isPlannerConsistencyAim || aim.isRelatedWithHabit) {
     const progressDateTo = getAimProgressDateTo(aim.dateTo, currentDate);
     const relatedValues = isPlannerConsistencyAim
       ? getPlannerConsistencyValues(

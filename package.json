@@ -46,7 +46,9 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
+    "prestart": "node scripts/sync-english-progress.cjs",
     "start": "react-scripts start",
+    "prebuild": "node scripts/sync-english-progress.cjs",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "test:bridge": "node scripts/fya-plan-core.test.cjs && node scripts/fya-habit-metadata-core.test.cjs",

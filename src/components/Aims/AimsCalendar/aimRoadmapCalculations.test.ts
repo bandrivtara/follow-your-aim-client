@@ -29,6 +29,18 @@ const makeAim = (overrides: Partial<IAimData> = {}): IAimData => ({
 });
 
 describe("aim roadmap calculations", () => {
+  it("uses a safe external value for a numeric goal", () => {
+    expect(
+      calculateAimProgressSnapshot(
+        makeAim({ finalAim: 100, currentValue: 3 }),
+        [],
+        [],
+        dayjs("2026-08-26"),
+        12,
+      ),
+    ).toMatchObject({ currentValue: 12, progress: 12 });
+  });
+
   it("calculates expected progress and pace independently from actual progress", () => {
     const aim = makeAim();
     const today = dayjs("2026-08-16");

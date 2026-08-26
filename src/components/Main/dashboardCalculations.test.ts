@@ -4,6 +4,7 @@ import {
   getDashboardActivitiesForDate,
   getDashboardActivityProgress,
   getDashboardAgendaItems,
+  getCompletedHabitDaysInMonth,
   getPendingDashboardAgendaItems,
   getDashboardPlanPerformance,
   getDashboardLifeBalance,
@@ -141,6 +142,26 @@ describe("dashboard calculations", () => {
     );
     expect(activities).toHaveLength(2);
     expect(activities.find(({ id }) => id === "habitA")?.progress).toBe(100);
+  });
+
+  it("counts completed office days in the current month through today", () => {
+    const history = [
+      {
+        unix: dayjs("2026-08").unix(),
+        "01": { office: { status: "done" } },
+        "2": { office: { progress: 100 } },
+        "03": { office: { progress: 50 } },
+        "28": { office: { progress: 100 } },
+      },
+    ];
+
+    expect(
+      getCompletedHabitDaysInMonth(
+        history,
+        dayjs("2026-08-26"),
+        "office",
+      ),
+    ).toBe(2);
   });
 
   it("builds a daily agenda from planned habits and concrete list tasks", () => {

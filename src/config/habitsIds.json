@@ -2,6 +2,7 @@
   "habits": {
     "water": { "details": "8kyTLLC8zDmBchy7ihwz", "measure": "lr0i2x56" },
     "steps": { "details": "sQjPm3kZLbYZda6nGc6W", "measure": "m8mwudub" },
+    "office": { "details": "HSpJI3qbJFJLsjhe3fiF" },
     "dailyReview": { "details": "dRvw2026FYA9Kp7LmNxQ" },
     "goalsGratitude": { "details": "RWGB0nZJW7wqQdqPcESf" }
   },
@@ -10,6 +11,9 @@
     "plannerConsistency": {
       "details": "5QA4LPpxIGZWWjcvoojY",
       "minimumPlanCompletionExclusive": 50
+    },
+    "englishVocabulary": {
+      "details": "TNsFehKWLUC9d3t07HbQ"
     }
   },
 

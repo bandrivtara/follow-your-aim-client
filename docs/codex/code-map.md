@@ -26,6 +26,7 @@ Last verified: 2026-08-18.
 | Task groups             | src/components/TasksGroups/                                       | task-group service and tracker editors                                                   |
 | Legacy spheres          | src/components/Spheres/                                           | unmounted compatibility code; no active route or UI                                      |
 | English                 | src/components/English/                                           | src/store/services/english.ts                                                            |
+| External English progress | scripts/sync-english-progress.cjs                                | src/config/englishProgress.generated.json, numeric English-vocabulary aim                 |
 | Shared helpers          | src/share/                                                        | dates, errors, forms, mobile detection                                                   |
 | Domain types            | src/types/                                                        | runtime Firestore shapes                                                                 |
 

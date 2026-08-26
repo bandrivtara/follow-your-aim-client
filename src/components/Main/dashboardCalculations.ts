@@ -182,6 +182,31 @@ export const getDashboardActivitiesForDate = (
   );
 };
 
+export const getCompletedHabitDaysInMonth = (
+  history: Record<string, any>[] = [],
+  currentDate: Dayjs,
+  habitId: string,
+  habits: IHabitData[] = [],
+) => {
+  if (!habitId) return 0;
+
+  const lastDay = currentDate.endOf("day");
+  let cursor = currentDate.startOf("month");
+  let completedDays = 0;
+
+  while (!cursor.isAfter(lastDay, "day")) {
+    const activity = getDashboardActivitiesForDate(
+      history,
+      cursor,
+      habits,
+    ).find(({ id }) => id === habitId);
+    if (activity && activity.progress >= 100) completedDays += 1;
+    cursor = cursor.add(1, "day");
+  }
+
+  return completedDays;
+};
+
 export const getDashboardAgendaItems = (
   activities: DashboardActivity[] = [],
   habits: IHabitData[] = [],
