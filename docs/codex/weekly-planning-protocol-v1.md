@@ -6,6 +6,11 @@ Last verified: 2026-08-18.
 
 Produce a realistic plan for the next Monday–Sunday week without inventing facts or adding planning metadata to Firebase. The protocol is a conversation contract: Follow Your Aim provides evidence, Codex asks only the missing questions, performs a qualitative sanity check, and returns a plan for confirmation.
 
+Before planning, read `docs/codex/planning-profile.md`. Treat its confirmed
+recurring preferences as defaults, while allowing current-week evidence and the
+user's latest instructions to override them. Do not repeatedly ask the user to
+reconfirm an unchanged default unless it conflicts with the current week.
+
 ## Evidence supplied by Follow Your Aim
 
 - Detailed tracker facts for the most recent week.
