@@ -87,6 +87,27 @@ const ReviewLayout = styled.main`
     gap: 10px;
   }
 
+  @media only screen and (max-width: 1024px) {
+    .review-header {
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+
+    .weekly-content-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .weekly-summary-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media only screen and (max-width: 1199px) {
+    .review-actions {
+      bottom: calc(76px + env(safe-area-inset-bottom));
+    }
+  }
+
   @media only screen and (max-width: 768px) {
     padding-top: 14px;
 

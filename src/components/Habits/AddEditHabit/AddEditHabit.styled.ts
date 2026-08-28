@@ -97,7 +97,7 @@ const StyledAddEditHabit = styled.div`
     border-top: 1px solid #edf0f5;
   }
 
-  @media only screen and (max-width: 576px) {
+  @media only screen and (max-width: 760px) {
     padding-top: 12px;
 
     .habit-form-card {

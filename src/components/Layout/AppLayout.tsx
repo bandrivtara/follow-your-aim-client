@@ -5,17 +5,16 @@ import {
   BottomNavigationAction,
   IconButton,
 } from "@mui/material";
-import {
-  AssessmentOutlined,
-  CalendarMonthOutlined,
-  DashboardOutlined,
-  EditNoteOutlined,
-  MenuOutlined,
-  TrackChangesRounded,
-} from "@mui/icons-material";
+import AssessmentOutlined from "@mui/icons-material/AssessmentOutlined";
+import CalendarMonthOutlined from "@mui/icons-material/CalendarMonthOutlined";
+import DashboardOutlined from "@mui/icons-material/DashboardOutlined";
+import EditNoteOutlined from "@mui/icons-material/EditNoteOutlined";
+import MenuOutlined from "@mui/icons-material/MenuOutlined";
+import TrackChangesRounded from "@mui/icons-material/TrackChangesRounded";
 import { useLocation, useNavigate } from "react-router-dom";
 import useMenuItems from "./useMenuItems";
 import useIsMobile from "../../share/hooks/useIsMobile";
+import useIsCompactLayout from "share/hooks/useIsCompactLayout";
 import StyledLayout from "./AppLayout.styled";
 import routes from "config/routes";
 import NetworkStatus from "share/components/NetworkStatus/NetworkStatus";
@@ -28,6 +27,7 @@ interface IProps {
 
 const AppLayout = ({ children }: IProps) => {
   const isMobile = useIsMobile();
+  const isCompactLayout = useIsCompactLayout();
   const [collapsed, setCollapsed] = useState(isMobile);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const menuItems = useMenuItems();
@@ -85,7 +85,7 @@ const AppLayout = ({ children }: IProps) => {
     }
 
     navigate(
-      value === routes.calendar.tracker
+      value === routes.calendar.tracker && isMobile
         ? `${routes.calendar.tracker}?view=day`
         : value,
     );
@@ -94,7 +94,7 @@ const AppLayout = ({ children }: IProps) => {
   return (
     <StyledLayout>
       <NetworkStatus />
-      {isMobile ? (
+      {isCompactLayout ? (
         <Layout className="mobile-layout">
           <header className="mobile-app-header">
             <div>
@@ -151,6 +151,7 @@ const AppLayout = ({ children }: IProps) => {
           >
             <Menu
               mode="inline"
+              selectedKeys={selectedMenuKeys}
               items={menuItems}
               onClick={() => setIsMobileMenuOpen(false)}
             />

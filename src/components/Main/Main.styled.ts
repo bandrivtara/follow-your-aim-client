@@ -13,6 +13,13 @@ const StyledMain = styled.main`
     margin-bottom: 16px;
   }
 
+  .dashboard-header > div,
+  .guidance-heading > div,
+  .dashboard-card {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
   .dashboard-actions {
     display: flex;
     flex-wrap: wrap;
@@ -299,6 +306,126 @@ const StyledMain = styled.main`
     margin-top: 14px;
   }
 
+  .insight-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    margin: 14px 0 4px;
+    color: var(--fya-ink);
+    font-size: 0.75rem;
+  }
+
+  .insight-legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .insight-legend i {
+    width: 9px;
+    height: 9px;
+    border-radius: 3px;
+  }
+
+  .insight-dot--target {
+    background: #c4cad6;
+  }
+  .insight-dot--actual {
+    background: #18a874;
+  }
+  .insight-dot--plan-done {
+    background: #5b6cf9;
+  }
+
+  .rhythm-days {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 3px;
+    margin: 8px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .rhythm-days li {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 6px 1px;
+    border-radius: 9px;
+    background: #f5f7fb;
+    font-size: 0.72rem;
+    text-align: center;
+  }
+
+  .rhythm-days small {
+    font-size: 0.6rem;
+  }
+  .rhythm-days .rhythm-day--today {
+    box-shadow: inset 0 0 0 1px #9da6ff;
+    background: #eef0ff;
+  }
+
+  .minutes-summary {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 6px 12px;
+    margin-top: 14px;
+  }
+
+  .minutes-summary strong {
+    font-size: 1.4rem;
+  }
+  .minutes-summary small,
+  .minutes-summary > span {
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  .minutes-chart {
+    max-height: 220px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+    -webkit-overflow-scrolling: touch;
+    margin: 0;
+    padding: 0 6px 0 0;
+    list-style: none;
+  }
+
+  .minutes-chart li {
+    padding: 10px 0;
+  }
+  .minutes-row-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 4px 10px;
+    font-size: 0.78rem;
+  }
+
+  .minutes-row-heading strong {
+    font-size: 0.72rem;
+  }
+  .minutes-bars {
+    display: grid;
+    gap: 3px;
+    margin-top: 6px;
+  }
+  .minutes-bars span {
+    height: 6px;
+    border-radius: 3px;
+  }
+  .minutes-bar--planned {
+    background: #c4cad6;
+  }
+  .minutes-bar--actual {
+    background: #18a874;
+  }
+
   .plan-empty-state {
     display: grid;
     gap: 12px;
@@ -320,14 +447,10 @@ const StyledMain = styled.main`
     box-shadow: 0 14px 28px rgba(64, 81, 214, 0.28);
   }
 
-  @media only screen and (max-width: 980px) {
-    .summary-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .daily-guidance-grid {
-      grid-template-columns: 1fr;
-      gap: 10px;
+  @media only screen and (max-width: 1399px) {
+    .dashboard-header {
+      align-items: flex-start;
+      flex-direction: column;
     }
 
     .content-grid {
@@ -340,7 +463,27 @@ const StyledMain = styled.main`
     }
   }
 
-  @media only screen and (max-width: 600px) {
+  @media only screen and (max-width: 980px) {
+    .summary-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .daily-guidance-grid {
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .content-grid {
+      grid-template-areas:
+        "plan plan"
+        "goals water"
+        "week balance"
+        "wellbeing wellbeing";
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media only screen and (max-width: 700px) {
     padding-top: 12px;
 
     .dashboard-header {

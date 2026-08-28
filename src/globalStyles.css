@@ -19,6 +19,8 @@
 html {
   min-width: 320px;
   background: var(--fya-canvas);
+  scroll-padding-top: 76px;
+  scroll-padding-bottom: calc(92px + env(safe-area-inset-bottom));
 }
 
 body {
@@ -135,6 +137,14 @@ select {
   justify-content: space-between;
   gap: 20px;
   margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.page-header > div,
+.ant-form-item,
+.ant-form-item-control,
+.ant-form-item-control-input-content {
+  min-width: 0;
 }
 
 .page-title {
@@ -158,6 +168,46 @@ select {
   border-radius: 18px;
   background: var(--fya-surface);
   box-shadow: var(--fya-shadow);
+}
+
+/* Touch controls stay usable on iPad even when it requests a desktop site. */
+@media (pointer: coarse) {
+  .ant-btn:not(.ant-btn-sm),
+  .MuiButton-root,
+  .MuiIconButton-root {
+    min-height: 44px;
+  }
+
+  .MuiIconButton-root,
+  .ant-btn-icon-only:not(.ant-btn-sm) {
+    min-width: 44px;
+  }
+
+  .review-score-grid .MuiRating-label {
+    min-width: 44px;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .ant-form .ant-input,
+  .ant-form .ant-input-number-input,
+  .ant-picker-input > input,
+  .MuiInputBase-input {
+    font-size: 16px;
+  }
+
+  .ant-checkbox-wrapper,
+  .ant-radio-wrapper {
+    min-height: 44px;
+    align-items: center;
+  }
+
+  .ant-menu .ant-menu-item,
+  .ant-menu .ant-menu-submenu-title {
+    min-height: 44px;
+    line-height: 44px;
+  }
 }
 
 @media only screen and (max-width: 768px) {

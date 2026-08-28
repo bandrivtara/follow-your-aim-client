@@ -9,6 +9,7 @@ import dayjs, { Dayjs } from "dayjs";
 import FiltersBar from "./FiltersBar/FiltersBar";
 import tableConfigs from "./tableConfigs";
 import useIsMobile from "share/hooks/useIsMobile";
+import useIsCompactLayout from "share/hooks/useIsCompactLayout";
 import { useGetHistoryBetweenDatesQuery } from "store/services/history";
 import { IHistoryDayRow } from "types/history.types";
 import { useGetTaskGroupListQuery } from "store/services/taskGroups";
@@ -22,11 +23,13 @@ import {
 } from "./calendarRange";
 import { buildTrackerExport, downloadTrackerExport } from "./trackerExport";
 import { useSearchParams } from "react-router-dom";
+import { Radio } from "antd";
 
 export type ITrackerCalendarState = "tracking" | "planning";
 
 const TrackerCalendar = () => {
   const isMobile = useIsMobile();
+  const isCompactLayout = useIsCompactLayout();
   const [searchParams] = useSearchParams();
   const habitsData = useGetHabitListQuery();
   const taskGroupsData = useGetTaskGroupListQuery();
@@ -65,6 +68,12 @@ const TrackerCalendar = () => {
   const [calendarMode, setCurrentMode] = useState<ITrackerCalendarState>(
     requestedCalendarMode === "planning" ? "planning" : "tracking",
   );
+
+  const changeCalendarMode = (mode: ITrackerCalendarState) => {
+    setCurrentMode(mode);
+    // Planning must also show activities that are not in the plan yet.
+    if (mode === "planning") setFilteredCategory("all");
+  };
 
   useEffect(() => {
     const newColumnDefs = tableConfigs.getColumnDefs(
@@ -139,16 +148,21 @@ const TrackerCalendar = () => {
             Плануй активності та фіксуй фактичне виконання в одному місці.
           </p>
         </div>
-        <span
-          className={`tracker-mode-pill tracker-mode-pill--${calendarMode}`}
-        >
-          {calendarMode === "tracking" ? "Фіксація результатів" : "Планування"}
-        </span>
+        <div role="radiogroup" aria-label="Режим трекера">
+          <Radio.Group
+            className={`tracker-mode-switch tracker-mode-switch--${calendarMode}`}
+            value={calendarMode}
+            onChange={(event) => changeCalendarMode(event.target.value)}
+            optionType="button"
+            buttonStyle="solid"
+          >
+            <Radio.Button value="tracking">Результати</Radio.Button>
+            <Radio.Button value="planning">Планування</Radio.Button>
+          </Radio.Group>
+        </div>
       </header>
       <FiltersBar
         gridRef={gridRef}
-        calendarMode={calendarMode}
-        setCurrentMode={setCurrentMode}
         currentDate={currentDate}
         setCurrentDate={setCurrentDate}
         filteredCategory={filteredCategory}
@@ -163,7 +177,7 @@ const TrackerCalendar = () => {
       <div className="ag-theme-material fyi-ag-theme" ref={gridContainerRef}>
         <AgGridReact
           key={rangeMode}
-          rowHeight={isMobile ? 52 : 44}
+          rowHeight={isCompactLayout ? 52 : 44}
           headerHeight={48}
           ref={gridRef}
           rowData={rowData}
@@ -175,11 +189,15 @@ const TrackerCalendar = () => {
           open={isEditOpen}
           onClose={toggleCloseEditCell}
           anchor="right"
-          container={isMobile ? undefined : gridContainerRef.current}
+          container={isCompactLayout ? undefined : gridContainerRef.current}
           elevation={2}
           PaperProps={{
             sx: {
-              width: isMobile ? "100%" : "min(480px, 92vw)",
+              width: isMobile
+                ? "100%"
+                : isCompactLayout
+                  ? "min(560px, 92vw)"
+                  : "min(480px, 92vw)",
               borderRadius: isMobile ? 0 : "20px 0 0 20px",
             },
           }}

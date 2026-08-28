@@ -2,6 +2,7 @@ import styled from "@emotion/styled";
 
 const StyledLayout = styled.div`
   min-height: 100vh;
+  min-height: 100dvh;
   background: var(--fya-canvas);
 
   .site-layout {
@@ -15,6 +16,7 @@ const StyledLayout = styled.div`
     z-index: 40;
     top: 0;
     height: 100vh;
+    height: 100dvh;
     overflow: hidden auto;
     background:
       radial-gradient(
@@ -122,6 +124,8 @@ const StyledLayout = styled.div`
 
   .mobile-layout {
     min-height: 100vh;
+    min-height: 100dvh;
+    min-width: 0;
     background: transparent;
   }
 
@@ -153,8 +157,12 @@ const StyledLayout = styled.div`
   }
 
   .mobile-content {
+    width: 100%;
+    min-width: 0;
     margin: 0;
-    padding: 0 14px calc(90px + env(safe-area-inset-bottom));
+    padding: 0 max(14px, env(safe-area-inset-right))
+      calc(90px + env(safe-area-inset-bottom))
+      max(14px, env(safe-area-inset-left));
   }
 
   .mobile-bottom-navigation {
@@ -185,6 +193,27 @@ const StyledLayout = styled.div`
   .mobile-bottom-navigation .MuiBottomNavigationAction-label {
     font-size: 0.68rem;
     font-weight: 550;
+  }
+
+  @media only screen and (min-width: 769px) and (max-width: 1199px) {
+    .mobile-app-header {
+      padding-inline: max(24px, env(safe-area-inset-left))
+        max(24px, env(safe-area-inset-right));
+    }
+
+    .mobile-content {
+      padding: 20px max(24px, env(safe-area-inset-right))
+        calc(92px + env(safe-area-inset-bottom))
+        max(24px, env(safe-area-inset-left));
+    }
+
+    .mobile-bottom-navigation .MuiBottomNavigationAction-root {
+      max-width: 180px;
+    }
+
+    .mobile-bottom-navigation .MuiBottomNavigationAction-label {
+      font-size: 0.8rem;
+    }
   }
 
   @media only screen and (max-width: 1100px) {

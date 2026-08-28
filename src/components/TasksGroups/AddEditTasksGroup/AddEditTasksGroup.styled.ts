@@ -42,11 +42,13 @@ const StyledAddEditTasksGroup = styled.div`
 
   .task-group-form {
     display: grid;
+    min-width: 0;
     gap: 22px;
   }
 
   .form-section {
     max-width: 760px;
+    min-width: 0;
   }
 
   .section-heading,
@@ -114,6 +116,7 @@ const StyledAddEditTasksGroup = styled.div`
 
   .section-card {
     overflow: hidden;
+    min-width: 0;
     border-color: #e3e8f1;
     border-radius: 18px;
     box-shadow: none;

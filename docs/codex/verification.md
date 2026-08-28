@@ -39,6 +39,20 @@ Use the smallest adequate set:
 
 ## Before handoff
 
+For responsive UI changes, check 820×1180 and 1180×820 (iPad A16 CSS viewports),
+600px Split View, 393px phone, and a desktop width above 1200px. Verify no page-level
+horizontal overflow (tracker/roadmap may scroll internally), readable forms/charts,
+editor overlays above bottom navigation, and preservation of unsaved input on rotation.
+`src/components/Layout/AppLayout.test.tsx` covers navigation breakpoints and form identity;
+browser viewport emulation does not replace a real iPad Safari/touch-keyboard check.
+
+Tracker mode must stay visible in the header with compact filters closed. Check
+Results → Planning → Results on phone/tablet without changing the selected dates;
+entering Planning resets the activity filter to all so unplanned habits remain available.
+`TrackerCalendar.test.tsx` covers this without remote writes. `dashboardInsights.test.ts`
+covers planned/bonus percentages, future/no-plan days, month boundaries, minute targets,
+and recorded time without inferring minutes from checkmarks or unsaved timers.
+
 1. Check git status --short --branch.
 2. Review git diff --stat, git diff, and git diff --check.
 3. Confirm no unrelated files, generated artifacts, credentials, or Firebase changes entered the diff.

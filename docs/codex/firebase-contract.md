@@ -56,6 +56,7 @@ Any date fix must keep both read paths consistent and test first/last-day and cr
 - Day fields use padded `DD` keys. Each value contains `date` (`YYYY-MM-DD`), `mood` (1–5), `energy` (1–5), `answers` keyed by stable question IDs, and `updatedAt` as Unix seconds.
 - A current review is complete when its optional `summary` string is non-empty. Legacy reviews remain complete when all five stable question IDs contain non-empty answers; their existing `answers` object is preserved for compatibility.
 - Completing a review uses one batched merge: it saves the selected `dailyReview` day and writes the configured `dailyReview` boolean habit as planned, `done`, and `100%` under the matching `history/{YYYY-MM}.{D}.{habitId}` path. Other days and activities are preserved.
+- The dashboard reads yesterday's final `Фокус:`, `Фокус завтра:`, or `Фокус на завтра:` section from `summary` (case-insensitive, with Markdown label support). Reviews without a matching section fall back to legacy `answers.tomorrow`; this is a read-only extraction, not a migration.
 
 ## Archive fields
 

@@ -20,7 +20,6 @@ import {
   LightbulbOutlined,
   ReplayOutlined,
 } from "@mui/icons-material";
-import { BarChart } from "@mui/x-charts/BarChart";
 import { LineChart } from "@mui/x-charts/LineChart";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -46,12 +45,15 @@ import {
 import useIsMobile from "share/hooks/useIsMobile";
 import uniqid from "uniqid";
 import { isDailyReviewComplete } from "share/functions/dailyReviewCompletion";
+import { getDailyReviewFocus } from "share/functions/getDailyReviewFocus";
 import {
   buildFirebaseBackup,
   downloadFirebaseBackup,
 } from "share/backup/firebaseBackup";
 import DailyCounters from "./DailyCounters/DailyCounters";
 import StyledMain from "./Main.styled";
+import DashboardInsights from "./DashboardInsightCards";
+import { getDailyHabitMinutes, getWeeklyRhythm } from "./dashboardInsightCalculations";
 import TodayPlanDialog from "./TodayPlanDialog";
 import QuickMeasureDialog from "./QuickMeasureDialog";
 import QuickTaskDialog from "./QuickTaskDialog";
@@ -68,11 +70,9 @@ import {
   getDashboardAgendaItems,
   getDashboardActivitiesForDate,
   getCompletedHabitDaysInMonth,
-  getDashboardLifeBalance,
   getDashboardPlanPerformance,
   getDashboardReviewWeekData,
   getRecoveryHabits,
-  getDashboardWeekData,
   getPendingDashboardAgendaItems,
 } from "./dashboardCalculations";
 
@@ -173,8 +173,8 @@ const Main = () => {
       now.subtract(1, "week"),
       habitData,
     );
-    const week = getDashboardWeekData(historyData, now, habitData);
-    const lifeBalance = getDashboardLifeBalance(historyData, now, habitData);
+    const week = getWeeklyRhythm(historyData, now, habitData);
+    const minutes = getDailyHabitMinutes(todayActivities, habitData);
     const todayPerformance = getDashboardPlanPerformance(todayActivities);
     const activeAims = (aims.data || []).filter(
       (aim) =>
@@ -217,7 +217,7 @@ const Main = () => {
       yesterdayActivities,
       previousWeekActivities,
       week,
-      lifeBalance,
+      minutes,
       todayPerformance,
       activeAims,
       aimProgressById,
@@ -281,10 +281,7 @@ const Main = () => {
     ? currentReview.data
     : previousMonthReview.data;
   const yesterdayFocusValue = yesterdayReviewMonth?.[yesterday.format("DD")];
-  const dailyFocus =
-    yesterdayFocusValue && typeof yesterdayFocusValue === "object"
-      ? yesterdayFocusValue.answers?.tomorrow?.trim()
-      : "";
+  const dailyFocus = getDailyReviewFocus(yesterdayFocusValue);
   const isReviewComplete = Boolean(
     savedDailyReview &&
     typeof savedDailyReview === "object" &&
@@ -292,9 +289,6 @@ const Main = () => {
       savedDailyReview.answers || {},
       savedDailyReview.summary,
     ),
-  );
-  const hasWeekActivity = dashboardData.week.some(
-    (day) => day.planned > 0 || day.total > 0,
   );
   const quickMeasureHabit = habits.data?.find(
     (habit) => habit.id === quickMeasureItem?.activityId,
@@ -311,15 +305,6 @@ const Main = () => {
     dashboardData.recoveryHabits.length - visibleRecoveryHabits.length,
   );
 
-  const weekChartMax = Math.max(
-    100,
-    Math.ceil(
-      Math.max(...dashboardData.week.map((day) => day.progress), 100) / 25,
-    ) * 25,
-  );
-  const hasLifeBalance = dashboardData.lifeBalance.some(
-    (area) => area.plannedPoints > 0 || area.actualPoints > 0,
-  );
   const reviewWeek = useMemo(
     () => getDashboardReviewWeekData(weeklyReviews.data || [], now),
     [now, weeklyReviews.data],
@@ -686,118 +671,13 @@ const Main = () => {
 
       <section className="content-grid">
         <div className="dashboard-flow">
-          <Card className="dashboard-card week-card">
-            <CardContent>
-              <Typography variant="h5">Ритм поточного тижня</Typography>
-              <Typography color="text.secondary">
-                Виконання відносно плану дня; робота поза планом може дати понад
-                100%
-              </Typography>
-              {hasWeekActivity ? (
-                <BarChart
-                  xAxis={[
-                    {
-                      scaleType: "band",
-                      data: dashboardData.week.map((day) => day.label),
-                    },
-                  ]}
-                  yAxis={[{ min: 0, max: weekChartMax }]}
-                  series={[
-                    {
-                      data: dashboardData.week.map((day) => day.progress),
-                      label: "Виконання плану, %",
-                      color: "#5b6cf9",
-                      valueFormatter: (value) => `${value ?? 0}%`,
-                    },
-                  ]}
-                  height={235}
-                  margin={{ left: 42, right: 12, top: 28, bottom: 24 }}
-                />
-              ) : (
-                <Box className="chart-empty-state">
-                  <Typography fontWeight={650}>
-                    Цього тижня ще немає даних для графіка
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Сформуй план дня — ритм з’явиться після перших результатів.
-                  </Typography>
-                  <Button
-                    variant="outlined"
-                    onClick={() => setIsPlanDialogOpen(true)}
-                  >
-                    Сформувати план
-                  </Button>
-                </Box>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card className="dashboard-card balance-card">
-            <CardContent>
-              <Typography variant="h5">Баланс життя за тиждень</Typography>
-              <Typography color="text.secondary">
-                Частка запланованого й фактичного навантаження за сферами,
-                зважена на складність звичок
-              </Typography>
-              {hasLifeBalance ? (
-                <>
-                  <BarChart
-                    layout="horizontal"
-                    yAxis={[
-                      {
-                        scaleType: "band",
-                        data: dashboardData.lifeBalance.map(
-                          (area) => area.shortTitle,
-                        ),
-                      },
-                    ]}
-                    xAxis={[
-                      {
-                        min: 0,
-                        max: 100,
-                        valueFormatter: (value) => `${value}%`,
-                      },
-                    ]}
-                    series={[
-                      {
-                        data: dashboardData.lifeBalance.map(
-                          (area) => area.plannedShare,
-                        ),
-                        label: "План, %",
-                        color: "#c4cad6",
-                        valueFormatter: (value) => `${value ?? 0}%`,
-                      },
-                      {
-                        data: dashboardData.lifeBalance.map(
-                          (area) => area.actualShare,
-                        ),
-                        label: "Факт, %",
-                        color: "#18a874",
-                        valueFormatter: (value) => `${value ?? 0}%`,
-                      },
-                    ]}
-                    height={235}
-                    margin={{ left: 88, right: 12, top: 34, bottom: 24 }}
-                  />
-                </>
-              ) : (
-                <Box className="chart-empty-state">
-                  <Typography fontWeight={650}>
-                    Баланс з’явиться разом із тижневим планом
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Категорії та складність звичок уже враховуються автоматично.
-                  </Typography>
-                  <Button
-                    variant="outlined"
-                    onClick={() => setIsPlanDialogOpen(true)}
-                  >
-                    Сформувати план
-                  </Button>
-                </Box>
-              )}
-            </CardContent>
-          </Card>
+          <DashboardInsights
+            week={dashboardData.week}
+            minutes={dashboardData.minutes}
+            isLoading={history.isLoading || habits.isLoading}
+            hasError={history.isError || habits.isError}
+            onPlan={() => setIsPlanDialogOpen(true)}
+          />
 
           <Card className="dashboard-card wellbeing-card">
             <CardContent>

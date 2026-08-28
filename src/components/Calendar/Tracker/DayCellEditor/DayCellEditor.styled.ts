@@ -14,7 +14,7 @@ const StyledDayCellEditor = styled.div`
     align-items: flex-start;
     justify-content: space-between;
     gap: 12px;
-    padding: 20px 20px 16px;
+    padding: max(20px, env(safe-area-inset-top)) 20px 16px;
     border-bottom: 1px solid #e3e8f1;
     background: rgba(255, 255, 255, 0.96);
     backdrop-filter: blur(12px);
@@ -41,7 +41,7 @@ const StyledDayCellEditor = styled.div`
 
   .editor-body {
     flex: 1;
-    padding: 18px 20px 24px;
+    padding: 18px 20px max(24px, env(safe-area-inset-bottom));
     overflow-y: auto;
   }
 
@@ -60,11 +60,11 @@ const StyledDayCellEditor = styled.div`
 
   @media only screen and (max-width: 600px) {
     .editor-header {
-      padding: 16px;
+      padding: max(16px, env(safe-area-inset-top)) 16px 16px;
     }
 
     .editor-body {
-      padding: 14px 14px 22px;
+      padding: 14px 14px max(22px, env(safe-area-inset-bottom));
     }
 
     .form-buttons {

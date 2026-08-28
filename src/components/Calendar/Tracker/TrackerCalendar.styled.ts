@@ -2,29 +2,42 @@ import styled from "@emotion/styled";
 
 const StyledHabitsCalendar = styled.div`
   max-width: 1880px;
+  min-width: 0;
   margin: 0 auto;
 
   .tracker-header {
     margin-bottom: 16px;
   }
 
-  .tracker-mode-pill {
-    display: inline-flex;
-    align-items: center;
-    min-height: 34px;
-    padding: 7px 12px;
-    color: var(--fya-primary-dark);
-    border: 1px solid #dfe3ff;
-    border-radius: 999px;
-    background: #f1f3ff;
-    font-size: 12px;
-    font-weight: 750;
+  .tracker-mode-switch {
+    display: flex;
+    flex-shrink: 0;
+    padding: 4px;
+    gap: 4px;
+    border: 1px solid var(--fya-border);
+    border-radius: 14px;
+    background: #fff;
   }
 
-  .tracker-mode-pill--planning {
-    color: #9a6200;
-    border-color: #f8dda6;
-    background: #fff8e8;
+  .tracker-mode-switch .ant-radio-button-wrapper {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    height: auto;
+    border: 0;
+    border-radius: 10px;
+    font-weight: 650;
+  }
+
+  .tracker-mode-switch .ant-radio-button-wrapper::before {
+    display: none;
+  }
+
+  .tracker-mode-switch--planning .ant-radio-button-wrapper-checked {
+    background: #b56a00;
+    color: #fff;
   }
 
   .fyi-ag-theme {
@@ -94,6 +107,14 @@ const StyledHabitsCalendar = styled.div`
     display: flex;
   }
 
+  @media only screen and (max-width: 1199px) {
+    .fyi-ag-theme {
+      height: calc(100vh - 500px);
+      height: calc(100dvh - 500px);
+      min-height: 360px;
+    }
+  }
+
   @media only screen and (max-width: 768px) {
     .ag-popup-editor {
       top: -1px !important;
@@ -103,11 +124,13 @@ const StyledHabitsCalendar = styled.div`
 
     .fyi-ag-theme {
       height: calc(100vh - 306px);
+      height: calc(100dvh - 306px);
       min-height: 360px;
     }
 
-    .tracker-mode-pill {
-      align-self: flex-start;
+    .tracker-header > [role="radiogroup"],
+    .tracker-mode-switch {
+      width: 100%;
     }
   }
 `;

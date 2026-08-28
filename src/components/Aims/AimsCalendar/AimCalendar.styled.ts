@@ -93,6 +93,7 @@ const StyledAimCalendar = styled.main`
   .roadmap-scroll {
     overflow-x: auto;
     overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
   }
 
   .roadmap-grid {
@@ -463,7 +464,7 @@ const StyledAimCalendar = styled.main`
     line-height: 1.4;
   }
 
-  @media only screen and (max-width: 1080px) {
+  @media only screen and (max-width: 1399px) {
     .calendar-toolbar {
       align-items: stretch;
       flex-wrap: wrap;
@@ -479,6 +480,29 @@ const StyledAimCalendar = styled.main`
 
     .goal-detail-grid {
       grid-template-columns: minmax(0, 1.2fr) minmax(240px, 0.8fr);
+    }
+  }
+
+  @media only screen and (min-width: 769px) and (max-width: 1024px) {
+    .goal-detail-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .goal-milestones {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .goal-info,
+    .roadmap-header > span {
+      position: sticky;
+      left: 0;
+      z-index: 3;
+      background: #fff;
+      border-right: 1px solid #e1e6ef;
+    }
+
+    .is-selected .goal-info {
+      background: #f0f2ff;
     }
   }
 

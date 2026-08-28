@@ -18,7 +18,6 @@ import { AgGridReact } from "ag-grid-react";
 import dayjs, { Dayjs } from "dayjs";
 import StyledFiltersBarRow from "./FiltersBar.styled";
 import useIsMobile from "share/hooks/useIsMobile";
-import { ITrackerCalendarState } from "../TrackerCalendar";
 import { TrackerCategoryFilter } from "../rowFilters";
 import {
   getTrackerDateRange,
@@ -34,8 +33,6 @@ interface IProps {
   filteredCategory: TrackerCategoryFilter;
   setRowSortingType: (rowSortingType: string) => void;
   rowSortingType: string;
-  setCurrentMode: (mode: ITrackerCalendarState) => void;
-  calendarMode: ITrackerCalendarState;
   rangeMode: TrackerRangeMode;
   setRangeMode: (mode: TrackerRangeMode) => void;
   onExport: () => void;
@@ -49,8 +46,6 @@ const FiltersBar = ({
   filteredCategory,
   setRowSortingType,
   rowSortingType,
-  setCurrentMode,
-  calendarMode,
   rangeMode,
   setRangeMode,
   gridRef,
@@ -89,12 +84,6 @@ const FiltersBar = ({
 
   const moveRange = (direction: -1 | 1) => {
     setCurrentDate(shiftTrackerDateRange(currentDate, rangeMode, direction));
-  };
-
-  const handleTrackingMode = () => setCurrentMode("tracking");
-  const handlePlanningMode = () => {
-    setCurrentMode("planning");
-    setFilteredCategory("all");
   };
 
   const rangePresets: TimeRangePickerProps["presets"] = [
@@ -181,15 +170,6 @@ const FiltersBar = ({
             Сортувати за алфавітом
           </Select.Option>
         </Select>
-
-        <Radio.Group value={calendarMode} optionType="button">
-          <Radio.Button value="tracking" onClick={handleTrackingMode}>
-            Трекінг
-          </Radio.Button>
-          <Radio.Button value="planning" onClick={handlePlanningMode}>
-            Планування
-          </Radio.Button>
-        </Radio.Group>
 
         <Button
           icon={<DownloadOutlined />}
