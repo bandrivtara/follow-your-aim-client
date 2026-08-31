@@ -21,11 +21,11 @@ import {
 import { IActivityHistoryData } from "types/history.types";
 import AiReflectionField from "../AiReflectionField";
 import ReviewLayout from "../ReviewLayout.styled";
-import { GOALS_GRATITUDE_AI_PROMPT } from "../reflectionPrompts";
+import { MORNING_COMPASS_AI_PROMPT } from "../reflectionPrompts";
 import {
-  GOALS_GRATITUDE_DESCRIPTION,
-  GOALS_GRATITUDE_TITLE,
-  buildGoalsGratitudeCompletion,
+  MORNING_COMPASS_DESCRIPTION,
+  MORNING_COMPASS_TITLE,
+  buildMorningCompassCompletion,
 } from "./goalsGratitudeCompletion";
 
 const GoalsGratitude = () => {
@@ -59,7 +59,7 @@ const GoalsGratitude = () => {
 
   const saveReflection = async () => {
     if (!reflection.trim()) {
-      message.warning("Встав фінальний текст із 5 цілями та 5 подяками");
+      message.warning("Встав фінальний текст ранкового компаса");
       return;
     }
     if (!habit.data) {
@@ -69,14 +69,14 @@ const GoalsGratitude = () => {
 
     try {
       if (
-        habit.data.title !== GOALS_GRATITUDE_TITLE ||
-        habit.data.description !== GOALS_GRATITUDE_DESCRIPTION
+        habit.data.title !== MORNING_COMPASS_TITLE ||
+        habit.data.description !== MORNING_COMPASS_DESCRIPTION
       ) {
         await updateHabit({
           id: habitId,
           data: {
-            title: GOALS_GRATITUDE_TITLE,
-            description: GOALS_GRATITUDE_DESCRIPTION,
+            title: MORNING_COMPASS_TITLE,
+            description: MORNING_COMPASS_DESCRIPTION,
           },
         }).unwrap();
       }
@@ -84,13 +84,13 @@ const GoalsGratitude = () => {
       await updateHistory({
         id: monthId,
         path: `${dayId}.${habitId}`,
-        data: buildGoalsGratitudeCompletion(
+        data: buildMorningCompassCompletion(
           habit.data,
           reflection,
           savedActivity,
         ),
       }).unwrap();
-      message.success("5 цілей і 5 подяк збережено");
+      message.success("Ранковий компас збережено");
     } catch {
       message.error("Не вдалося зберегти запис. Спробуй ще раз.");
     }
@@ -104,10 +104,10 @@ const GoalsGratitude = () => {
       <header className="review-header">
         <Box>
           <Typography variant="h4" component="h1">
-            5 цілей і 5 подяк
+            Ранковий компас
           </Typography>
           <Typography color="text.secondary">
-            Ранкова практика наміру та вдячності без зайвої форми
+            Один фокус, перший крок і реалістичний план на сьогодні
           </Typography>
         </Box>
         <DatePicker
@@ -132,13 +132,13 @@ const GoalsGratitude = () => {
               </Typography>
               <AiReflectionField
                 title="Проведи практику з ChatGPT"
-                description="Скопіюй промпт, проговори п’ять цілей і п’ять подяк, а фінальний список встав сюди."
-                prompt={GOALS_GRATITUDE_AI_PROMPT}
-                label="5 цілей і 5 подяк"
-                placeholder="Встав фінальний текст ChatGPT із двома списками…"
+                description="Скопіюй промпт, пройди коротке інтерв’ю, а фінальний ранковий орієнтир встав сюди."
+                prompt={MORNING_COMPASS_AI_PROMPT}
+                label="Ранковий компас"
+                placeholder="Встав фінальний текст ChatGPT зі станом, фокусом і першим кроком…"
                 value={reflection}
                 onChange={setReflection}
-                minRows={12}
+                minRows={8}
               />
             </>
           )}
@@ -151,7 +151,7 @@ const GoalsGratitude = () => {
         >
           {reflection.trim()
             ? "Текст готовий — звичка буде виконана після збереження."
-            : "Встав два списки, щоб виконати звичку."}
+            : "Встав ранковий орієнтир, щоб виконати звичку."}
         </Typography>
         <Button
           variant="contained"

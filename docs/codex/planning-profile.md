@@ -37,6 +37,16 @@ instructions from the user or evidence that the week needs a lighter plan.
 8. Run the FYA bridge dry-run, show the exact preview, and apply only after a
    direct confirmation.
 
+## Morning compass
+
+- Use the existing former “5 цілей і 5 подяк” habit as “Ранковий компас”; keep
+  its ID and history compatible.
+- The daily practice records current energy, one focus, the identity or role it
+  supports, the first concrete step, an if–then fallback, and one specific
+  gratitude.
+- Keep broader goals and Big 3 in weekly planning instead of repeating five
+  goals every morning.
+
 ## Change discipline
 
 - Treat recurring preferences as defaults, not permanent obligations.

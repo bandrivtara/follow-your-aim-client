@@ -1,6 +1,8 @@
-import { Dayjs } from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 import { IHabitData } from "types/habits.types";
 import { ITasksGroup } from "types/taskGroups";
+import { IDailyReview, IDailyReviewMonth } from "types/dailyReview.types";
+import { DAILY_REVIEW_QUESTIONS } from "components/Review/reviewQuestions";
 import {
   getDashboardActivitiesForDate,
   getDashboardPlanPerformance,
@@ -12,6 +14,7 @@ interface TrackerExportOptions {
   history: Record<string, any>[];
   habits: IHabitData[];
   taskGroups: ITasksGroup[];
+  dailyReviews?: IDailyReviewMonth[];
   includePrompt?: boolean;
 }
 
@@ -60,15 +63,64 @@ const formatTasks = (source: Record<string, any>) => {
   });
 };
 
+const getDailyReviewForDate = (
+  dailyReviews: IDailyReviewMonth[],
+  date: Dayjs,
+) => {
+  const monthId = date.format("YYYY-MM");
+  const month = dailyReviews.find(
+    (entry) =>
+      entry.id === monthId ||
+      (typeof entry.unix === "number" &&
+        dayjs.unix(entry.unix).format("YYYY-MM") === monthId),
+  );
+  if (!month) return undefined;
+
+  const value = month[date.format("DD")] || month[date.format("D")];
+  return value && typeof value === "object"
+    ? (value as IDailyReview)
+    : undefined;
+};
+
+const formatDailyReview = (review?: IDailyReview) => {
+  if (!review) {
+    return [
+      "",
+      "### Самопочуття та щоденний огляд",
+      "",
+      "Щоденного огляду немає.",
+    ];
+  }
+
+  const lines = [
+    "",
+    "### Самопочуття та щоденний огляд",
+    "",
+    `Настрій: ${review.mood || "—"}/5 · енергія: ${review.energy || "—"}/5`,
+  ];
+  const summary = review.summary?.trim();
+  if (summary) return [...lines, "", summary];
+
+  const answers = review.answers || {};
+  const legacyAnswers = DAILY_REVIEW_QUESTIONS.flatMap((question) => {
+    const answer = answers[question.id]?.trim();
+    return answer ? [`- ${question.title} ${answer}`] : [];
+  });
+  return legacyAnswers.length
+    ? [...lines, "", ...legacyAnswers]
+    : [...lines, "", "Текст огляду не заповнено."];
+};
+
 export const TRACKER_AI_ANALYSIS_PROMPT = `Проаналізуй мій витяг із трекера як уважний консультант із особистої продуктивності. Не оцінюй мене морально й не вигадуй причин, яких немає в даних.
 
 1. Коротко підсумуй, що було заплановано і що фактично виконано.
 2. Визнач повторювані сильні сторони, зриви, перевантажені дні та активності, які систематично відкладаються.
 3. Окремо врахуй виконане поза планом: відрізни корисну гнучкість від ознак хаотичного планування.
 4. Проаналізуй справи всередині списків, числові вимірювання та час виконання, а не лише загальний відсоток.
-5. Запропонуй до п'яти конкретних змін для наступного тижня: що залишити, прибрати, перенести, спростити або вимірювати інакше.
+5. Врахуй щоденні огляди, настрій та енергію. Шукай повторювані зв'язки із виконанням плану, але не називай кореляцію причиною. Якщо оглядів мало, прямо познач це обмеження.
+6. Запропонуй до п'яти конкретних змін для наступного тижня: що залишити, прибрати, перенести, спростити або вимірювати інакше.
 
-Формат відповіді: «Підсумок», «Що працює», «Що заважає», «План наступного тижня», «Питання для рефлексії». Якщо даних недостатньо, прямо скажи про це.`;
+Формат відповіді: «Підсумок», «Самопочуття і навантаження», «Що працює», «Що заважає», «План наступного тижня», «Питання для рефлексії». Для кожного важливого висновку розділяй: Факт → Спостереження → Гіпотеза → Рекомендація. Якщо даних недостатньо, прямо скажи про це.`;
 
 export const buildTrackerExport = ({
   dateFrom,
@@ -76,6 +128,7 @@ export const buildTrackerExport = ({
   history,
   habits,
   taskGroups,
+  dailyReviews = [],
   includePrompt = true,
 }: TrackerExportOptions) => {
   const startDate = dateFrom.startOf("day");
@@ -140,6 +193,7 @@ export const buildTrackerExport = ({
       `## ${date.locale("uk").format("dddd, DD MMMM YYYY")}`,
       "",
       `Виконання плану: ${performance.progress}% · заплановано ${performance.planned} · завершено запланованих ${performance.completedPlanned} · завершено поза планом ${performance.completedOutsidePlan}`,
+      ...formatDailyReview(getDailyReviewForDate(dailyReviews, date)),
     );
 
     if (!activities.length) {

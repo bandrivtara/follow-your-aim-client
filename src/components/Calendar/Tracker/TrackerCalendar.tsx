@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-material.css";
@@ -24,6 +24,7 @@ import {
 import { buildTrackerExport, downloadTrackerExport } from "./trackerExport";
 import { useSearchParams } from "react-router-dom";
 import { Radio } from "antd";
+import { useGetDailyReviewsBetweenDatesQuery } from "store/services/dailyReviews";
 
 export type ITrackerCalendarState = "tracking" | "planning";
 
@@ -54,10 +55,16 @@ const TrackerCalendar = () => {
   const [currentDate, setCurrentDate] = useState<(Dayjs | null)[]>(
     getTrackerDateRange(dayjs(), initialRangeMode),
   );
-  const historyData = useGetHistoryBetweenDatesQuery([
-    dayjs(dayjs(currentDate[0]).format("YYYY-MM")).unix(),
-    dayjs(dayjs(currentDate[1]).format("YYYY-MM")).unix(),
-  ]);
+  const dataMonthRange = useMemo<[number, number]>(
+    () => [
+      dayjs(dayjs(currentDate[0]).format("YYYY-MM")).unix(),
+      dayjs(dayjs(currentDate[1]).format("YYYY-MM")).unix(),
+    ],
+    [currentDate],
+  );
+  const historyData = useGetHistoryBetweenDatesQuery(dataMonthRange);
+  const dailyReviewsData =
+    useGetDailyReviewsBetweenDatesQuery(dataMonthRange);
 
   const [rowData, setRowData] = useState<IHistoryDayRow[]>([]);
   const [columnDefs, setColumnDefs] = useState<ColDef[]>([]);
@@ -130,6 +137,7 @@ const TrackerCalendar = () => {
       history: (historyData.data || []) as Record<string, any>[],
       habits: habitsData.data || [],
       taskGroups: taskGroupsData.data || [],
+      dailyReviews: dailyReviewsData.data || [],
     });
     downloadTrackerExport(
       content,
@@ -137,7 +145,13 @@ const TrackerCalendar = () => {
         "YYYY-MM-DD",
       )}.md`,
     );
-  }, [currentDate, habitsData.data, historyData.data, taskGroupsData.data]);
+  }, [
+    currentDate,
+    dailyReviewsData.data,
+    habitsData.data,
+    historyData.data,
+    taskGroupsData.data,
+  ]);
 
   return (
     <StyledTrackerCalendar>
@@ -172,7 +186,7 @@ const TrackerCalendar = () => {
         rangeMode={rangeMode}
         setRangeMode={setRangeMode}
         onExport={handleExport}
-        exportDisabled={historyData.isFetching}
+        exportDisabled={historyData.isFetching || dailyReviewsData.isFetching}
       />
       <div className="ag-theme-material fyi-ag-theme" ref={gridContainerRef}>
         <AgGridReact

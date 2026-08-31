@@ -125,7 +125,7 @@ const useMenuItems = () => {
         },
         {
           key: 62,
-          label: "5 цілей і 5 подяк",
+          label: "Ранковий компас",
           onClick: () => navigate(routes.review.goalsGratitude),
           icon: <CheckOutlined rev="string" />,
         },

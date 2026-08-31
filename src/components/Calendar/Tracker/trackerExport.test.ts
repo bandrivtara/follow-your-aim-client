@@ -48,7 +48,7 @@ describe("tracker export", () => {
         } as any,
         {
           id: "reflection",
-          title: "5 цілей і 5 подяк",
+          title: "Ранковий компас",
           type: "habit",
           valueType: "boolean",
         } as any,
@@ -61,6 +61,21 @@ describe("tracker export", () => {
           valueType: "todoList",
         } as any,
       ],
+      dailyReviews: [
+        {
+          id: "2026-07",
+          unix: dayjs("2026-07").unix(),
+          "28": {
+            date: "2026-07-28",
+            mood: 4,
+            energy: 3,
+            answers: {},
+            summary:
+              "СТАН: Спокійний.\nПЕРЕМОГИ: Виконав основне.\nФОКУС ЗАВТРА: Почати з англійської.",
+            updatedAt: 1,
+          },
+        },
+      ],
     });
 
     expect(report).toContain("Виконання плану: 100%");
@@ -69,7 +84,37 @@ describe("tracker export", () => {
     expect(report).toContain("Обсяг: факт 1000 мл; план 2000 мл");
     expect(report).toContain("5 ЦІЛЕЙ");
     expect(report).toContain("Завершити важливу задачу");
+    expect(report).toContain("Настрій: 4/5 · енергія: 3/5");
+    expect(report).toContain("ФОКУС ЗАВТРА: Почати з англійської");
     expect(report).toContain("# Промпт для AI-аналізу");
     expect(report).toContain("Що заважає");
+    expect(report).toContain("Факт → Спостереження → Гіпотеза → Рекомендація");
+  });
+
+  it("includes legacy daily-review answers and marks missing reviews", () => {
+    const report = buildTrackerExport({
+      dateFrom: dayjs("2026-07-28"),
+      dateTo: dayjs("2026-07-29"),
+      history: [],
+      habits: [],
+      taskGroups: [],
+      dailyReviews: [
+        {
+          id: "2026-07",
+          "28": {
+            date: "2026-07-28",
+            mood: 2,
+            energy: 1,
+            answers: { blockers: "Погано спав." },
+            updatedAt: 1,
+          },
+        },
+      ],
+      includePrompt: false,
+    });
+
+    expect(report).toContain("Настрій: 2/5 · енергія: 1/5");
+    expect(report).toContain("Погано спав.");
+    expect(report).toContain("Щоденного огляду немає.");
   });
 });

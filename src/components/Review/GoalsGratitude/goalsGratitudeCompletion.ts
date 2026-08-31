@@ -1,11 +1,11 @@
 import { IHabitData } from "types/habits.types";
 import { IActivityHistoryData } from "types/history.types";
 
-export const GOALS_GRATITUDE_TITLE = "5 цілей і 5 подяк";
-export const GOALS_GRATITUDE_DESCRIPTION =
-  "П'ять конкретних цілей і п'ять подяк, сформульовані через коротке AI-інтерв'ю.";
+export const MORNING_COMPASS_TITLE = "Ранковий компас";
+export const MORNING_COMPASS_DESCRIPTION =
+  "Короткий ранковий огляд енергії, фокусу, першого кроку, плану «якщо–то» і однієї конкретної вдячності.";
 
-export const buildGoalsGratitudeCompletion = (
+export const buildMorningCompassCompletion = (
   habit: IHabitData,
   note: string,
   source: Partial<IActivityHistoryData> = {},

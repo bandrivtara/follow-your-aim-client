@@ -17,6 +17,10 @@ jest.mock("store/services/taskGroups", () => {
   const result = { data: [] };
   return { useGetTaskGroupListQuery: () => result };
 });
+jest.mock("store/services/dailyReviews", () => {
+  const result = { data: [], isFetching: false };
+  return { useGetDailyReviewsBetweenDatesQuery: () => result };
+});
 jest.mock("share/hooks/useIsMobile", () => ({
   __esModule: true,
   default: jest.fn(() => true),

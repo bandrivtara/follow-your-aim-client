@@ -195,7 +195,7 @@ const Boolean = ({ colDef, stopEditing, data }: IProps) => {
         <Typography mb={2} color="text.secondary">
           {isDailyReviewHabit
             ? "Ця звичка виконується лише після збереження AI-підсумку щоденного огляду."
-            : "Ця звичка виконується лише після збереження тексту з 5 цілями та 5 подяками."}
+            : "Ця звичка виконується лише після збереження тексту ранкового компаса."}
         </Typography>
         <Button
           variant="contained"
@@ -212,7 +212,7 @@ const Boolean = ({ colDef, stopEditing, data }: IProps) => {
         >
           {isDailyReviewHabit
             ? "Заповнити щоденний огляд"
-            : "Заповнити 5 цілей і 5 подяк"}
+            : "Заповнити ранковий компас"}
         </Button>
       </Box>
     );

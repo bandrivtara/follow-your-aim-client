@@ -1,6 +1,6 @@
-import { buildGoalsGratitudeCompletion } from "./goalsGratitudeCompletion";
+import { buildMorningCompassCompletion } from "./goalsGratitudeCompletion";
 
-describe("goals and gratitude completion", () => {
+describe("morning compass completion", () => {
   const habit = {
     id: "goals-id",
     title: "10 Цілей",
@@ -13,11 +13,15 @@ describe("goals and gratitude completion", () => {
 
   it("preserves planning data and completes only with the stored note", () => {
     expect(
-      buildGoalsGratitudeCompletion(habit, "  5 ЦІЛЕЙ\n1. Результат  ", {
-        isPlanned: true,
-        startTime: [7, 0],
-        endTime: [7, 10],
-      }),
+      buildMorningCompassCompletion(
+        habit,
+        "  ФОКУС ДНЯ: Завершити важливу задачу  ",
+        {
+          isPlanned: true,
+          startTime: [7, 0],
+          endTime: [7, 10],
+        },
+      ),
     ).toMatchObject({
       id: "goals-id",
       isPlanned: true,
@@ -25,7 +29,7 @@ describe("goals and gratitude completion", () => {
       status: "done",
       startTime: [7, 0],
       endTime: [7, 10],
-      note: "5 ЦІЛЕЙ\n1. Результат",
+      note: "ФОКУС ДНЯ: Завершити важливу задачу",
     });
   });
 });
