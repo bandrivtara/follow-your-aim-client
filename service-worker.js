@@ -1,4 +1,4 @@
-const CACHE_NAME = "follow-your-aim-shell-v1";
+const CACHE_NAME = "follow-your-aim-shell-v2";
 const APP_SHELL = ["./", "./index.html", "./manifest.json", "./logo192.png"];
 
 self.addEventListener("install", (event) => {
