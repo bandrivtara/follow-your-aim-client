@@ -1,3 +1,4 @@
+import { MORNING_COMPASS_AI_PROMPT } from "../reflectionPrompts";
 import { buildMorningCompassCompletion } from "./goalsGratitudeCompletion";
 
 describe("morning compass completion", () => {
@@ -31,5 +32,18 @@ describe("morning compass completion", () => {
       endTime: [7, 10],
       note: "ФОКУС ДНЯ: Завершити важливу задачу",
     });
+  });
+
+  it("asks all morning questions at once and returns an analysis plus pasteable text", () => {
+    expect(MORNING_COMPASS_AI_PROMPT).toContain(
+      "покажи всі шість запитань одразу",
+    );
+    expect(MORNING_COMPASS_AI_PROMPT).toContain("КОРОТКИЙ АНАЛІЗ");
+    expect(MORNING_COMPASS_AI_PROMPT).toContain(
+      "ТЕКСТ ДЛЯ FOLLOW YOUR AIM",
+    );
+    expect(MORNING_COMPASS_AI_PROMPT).not.toContain(
+      "Став лише одне питання за раз",
+    );
   });
 });

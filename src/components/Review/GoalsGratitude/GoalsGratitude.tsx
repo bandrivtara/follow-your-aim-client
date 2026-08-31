@@ -132,10 +132,10 @@ const GoalsGratitude = () => {
               </Typography>
               <AiReflectionField
                 title="Проведи практику з ChatGPT"
-                description="Скопіюй промпт, пройди коротке інтерв’ю, а фінальний ранковий орієнтир встав сюди."
+                description="Скопіюй промпт: ChatGPT покаже всі питання одразу. Відповідай одним текстом або голосом і встав сюди блок «Текст для Follow Your Aim»."
                 prompt={MORNING_COMPASS_AI_PROMPT}
                 label="Ранковий компас"
-                placeholder="Встав фінальний текст ChatGPT зі станом, фокусом і першим кроком…"
+                placeholder="Встав блок «Текст для Follow Your Aim» зі станом, фокусом, перешкодою і першим кроком…"
                 value={reflection}
                 onChange={setReflection}
                 minRows={8}

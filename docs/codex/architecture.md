@@ -46,7 +46,7 @@ Ant Design supplies navigation/forms, MUI supplies widgets/drawers/charts, AG Gr
 
 On screens up to 1199px, `useIsCompactLayout` selects a header, fixed bottom navigation (Today, Tracker, Daily Review, Weekly Review, More), and a drawer for the complete menu. This includes both iPad A16 orientations (820×1180 / 1180×820 CSS pixels), without remounting forms on rotation. The separate `useIsMobile` threshold stays at 768px: phones open the daily tracker and use a full-width editor, while tablets keep week/month navigation and a viewport-mounted editor up to 560px wide. Desktop keeps its sidebar. Dashboard cards use two columns on intermediate widths, a full-width agenda in tablet portrait, and a single column at 700px or less. Safe-area insets and dynamic viewport heights accommodate tablet/browser chrome; touch-specific control sizing does not depend on user-agent detection.
 
-The production build registers a small app-shell service worker and ships an installable Ukrainian PWA manifest. This caches the application shell, not Firestore data; the global network/save indicator warns users not to close the app while offline.
+The production build registers a small app-shell service worker and ships an installable Ukrainian PWA manifest. This caches the application shell, not Firestore data; registration checks for updates on load, and a newly activated worker reloads the open client once so deployed UI text does not remain stale. The global network/save indicator warns users not to close the app while offline.
 
 ## Local Codex bridge
 
