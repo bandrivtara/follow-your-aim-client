@@ -112,7 +112,7 @@ const TrackerCalendar = () => {
     if (!isDateInTrackerRange(dayjs(), currentDate)) return;
 
     const animationFrame = requestAnimationFrame(() => {
-      gridRef.current?.api.ensureColumnVisible(dayjs().format("D"), "middle");
+      gridRef.current?.api.ensureColumnVisible(dayjs().format("DD"), "middle");
     });
     return () => cancelAnimationFrame(animationFrame);
   }, [columnDefs, currentDate, rowData]);

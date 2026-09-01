@@ -17,7 +17,7 @@ export interface IDayCellEditor {
   };
   store: any[];
   calendarMode: any;
-  [day: number]: any;
+  [day: string]: any;
 }
 
 interface IProps {

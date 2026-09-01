@@ -8,7 +8,7 @@ export const getDaysBetweenDates = (startDate: Dayjs, endDate: Dayjs) => {
     const formattedDay = {
       month: currentDay.month() + 1,
       year: currentDay.year(),
-      day: currentDay.format("D"),
+      day: currentDay.format("DD"),
       weekday: currentDay.format("ddd"),
       date: dayjs(currentDay).format("YYYY-MM-DD"),
     };

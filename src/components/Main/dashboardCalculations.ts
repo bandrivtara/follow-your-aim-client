@@ -165,12 +165,20 @@ export const getDashboardActivitiesForDate = (
     Object.entries(dayData).forEach(([id, value]) => {
       if (!value || typeof value !== "object") return;
       const source = value as Record<string, unknown>;
-      activities.set(id, {
+      const candidate = {
         id,
         progress: getDashboardActivityProgress(source),
         source,
         isPlanned: isDashboardActivityPlanned(source),
-      });
+      };
+      const existing = activities.get(id);
+
+      // Some legacy first-of-month writes used `1` while the plan used `01`.
+      // Keep the more complete value so a pending canonical plan cannot hide a
+      // completion that was already recorded under the legacy key.
+      if (!existing || candidate.progress >= existing.progress) {
+        activities.set(id, candidate);
+      }
     });
   });
 

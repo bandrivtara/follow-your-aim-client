@@ -144,6 +144,26 @@ describe("dashboard calculations", () => {
     expect(activities.find(({ id }) => id === "habitA")?.progress).toBe(100);
   });
 
+  it("does not let a pending padded plan hide a legacy completion", () => {
+    const history = [
+      {
+        unix: dayjs("2026-09").unix(),
+        "1": { meditation: { progress: 120, status: "done" } },
+        "01": {
+          meditation: { progress: 0, status: "pending", isPlanned: true },
+        },
+      },
+    ];
+
+    const activities = getDashboardActivitiesForDate(
+      history,
+      dayjs("2026-09-01"),
+    );
+
+    expect(activities).toHaveLength(1);
+    expect(activities[0].progress).toBe(100);
+  });
+
   it("counts completed office days in the current month through today", () => {
     const history = [
       {

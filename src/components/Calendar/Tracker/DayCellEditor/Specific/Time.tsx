@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import { IStopEditing } from "../../cellConfigs";
 import { useUpdateHistoryMutation } from "store/services/history";
 import StyledDayCellForm from "../DayCellForm.styled";
+import { normalizeHistoryDayKey } from "share/functions/historyDayKey";
 
 interface IProps {
   data: IDayCellEditor;
@@ -24,7 +25,7 @@ interface IFormValues {
 const Time = ({ data, colDef, stopEditing }: IProps) => {
   const [form] = Form.useForm();
   const [updateHistory] = useUpdateHistoryMutation();
-  const cellData = colDef.field && data[+colDef.field];
+  const cellData = colDef.field && data[colDef.field];
 
   const [initValues, setInitValues] = useState<null | IFormValues>(null);
 
@@ -44,7 +45,7 @@ const Time = ({ data, colDef, stopEditing }: IProps) => {
       const historyToUpdate = {
         id: data.id,
         data: { ...cellData, ...formValues },
-        path: `${colDef.field}.${data.id}`,
+        path: `${normalizeHistoryDayKey(colDef.field)}.${data.id}`,
       };
 
       await updateHistory(historyToUpdate).unwrap();
@@ -59,7 +60,7 @@ const Time = ({ data, colDef, stopEditing }: IProps) => {
       const historyToUpdate = {
         id: data.id,
         data: null,
-        path: `${colDef.field}.${data.id}`,
+        path: `${normalizeHistoryDayKey(colDef.field)}.${data.id}`,
       };
 
       await updateHistory(historyToUpdate).unwrap();

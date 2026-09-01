@@ -315,7 +315,7 @@ const Main = () => {
 
   const getTodayHistoryUpdate = (activityId: string, data: unknown) => ({
     id: now.format("YYYY-MM"),
-    path: `${now.format("D")}.${activityId}`,
+    path: `${now.format("DD")}.${activityId}`,
     data,
   });
 

@@ -58,7 +58,7 @@ const FiltersBar = ({
   const onPickerSelect = useCallback(
     (selectedDate: Dayjs) => {
       gridRef.current?.api.ensureColumnVisible(
-        selectedDate.format("D"),
+        selectedDate.format("DD"),
         "middle",
       );
     },

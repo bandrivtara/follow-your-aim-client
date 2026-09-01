@@ -36,7 +36,7 @@ List services usually attach Firestore document IDs as id. English differs: IDs 
 
 - Month document IDs use YYYY-MM, for example 2026-07.
 - Each month document stores unix for range queries.
-- Day keys are strings such as DD; activity IDs below them map to habit or task-group history.
+- Canonical day keys are zero-padded `DD` strings (`01`...`31`); activity IDs below them map to habit or task-group history. Readers remain compatible with legacy unpadded `D` keys, while every active writer normalizes new updates to `DD`.
 - updateHistory accepts id, path, and data and updates the dynamic field path without replacing the month.
 - Activity history can contain type, valueType, isPlanned, status, progress, times, measures, tasks, or an optional text `note`. The note is currently used by the “Ранковий компас” flow, which preserves the former “5 цілей і 5 подяк” habit ID and history and does not introduce a collection or nested activity ID.
 - Task objects inside task-group definitions and history keep their existing title/status/time shape and may additionally contain an optional `category` using one of the client life-area IDs. Missing categories and empty times remain valid for legacy and all-day tasks.

@@ -35,6 +35,7 @@ import dayjs from "dayjs";
 import { ITasksHistoryData } from "types/history.types";
 import { ITask } from "types/taskGroups";
 import { LIFE_AREAS } from "config/lifeAreas";
+import { normalizeHistoryDayKey } from "share/functions/historyDayKey";
 
 interface IProps {
   colDef: ColDef<ITasksHistoryData>;
@@ -73,7 +74,7 @@ const TodoList = ({ data, colDef, stopEditing }: IProps) => {
   const taskGroupDetails = useGetTaskGroupQuery(data.id);
 
   const { dayData, calendarMode } = colDef.cellRendererParams;
-  const cellData = colDef.field && data[+colDef.field];
+  const cellData = colDef.field && data[colDef.field];
 
   useEffect(() => {
     setValue("id", data.id);
@@ -110,7 +111,7 @@ const TodoList = ({ data, colDef, stopEditing }: IProps) => {
       const historyToUpdate = {
         id: `${dayData.year}-${dayData.month.toString().padStart(2, "0")}`,
         data: { ...dataToUpdate, tasks: validatedTasks, progress },
-        path: `${dayData.day}.${data.id}`,
+        path: `${normalizeHistoryDayKey(dayData.day)}.${data.id}`,
       };
 
       await updateHistory(historyToUpdate).unwrap();
@@ -124,7 +125,7 @@ const TodoList = ({ data, colDef, stopEditing }: IProps) => {
       const habitToUpdate = {
         id: `${dayData.year}-${dayData.month.toString().padStart(2, "0")}`,
         data: {},
-        path: `${dayData.day}.${data.id}`,
+        path: `${normalizeHistoryDayKey(dayData.day)}.${data.id}`,
       };
       await updateHistory(habitToUpdate).unwrap();
       stopEditing();

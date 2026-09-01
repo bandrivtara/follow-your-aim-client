@@ -16,7 +16,7 @@ export interface IHabitDayData {
   id: string;
   details: IHabitData;
   currentDate: string;
-  [day: number]: any;
+  [day: string]: any;
 }
 
 export interface IMeasureCellEditor {

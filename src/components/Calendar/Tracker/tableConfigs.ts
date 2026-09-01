@@ -11,6 +11,7 @@ import compareTime from "share/functions/compareTime";
 import { ITasksGroup } from "types/taskGroups";
 import { filterTrackerRows, TrackerCategoryFilter } from "./rowFilters";
 import { isTrackerActivityArchived } from "./archiveVisibility";
+import { normalizeHistoryDayKey } from "share/functions/historyDayKey";
 
 export interface IHabitRow {
   habitDetails: IHabitData;
@@ -89,7 +90,7 @@ const getRows = (
       for (let day in historyData) {
         const dayHistory = historyData[day];
         if (!/^\d{1,2}$/.test(day) || typeof dayHistory !== "object") continue;
-        const normalizedDay = String(Number(day));
+        const normalizedDay = normalizeHistoryDayKey(day);
 
         for (let id in dayHistory) {
           if (
@@ -107,7 +108,14 @@ const getRows = (
               rows.push(existingObject);
             }
 
-            existingObject[normalizedDay] = { ...dayHistory[id] };
+            const existingActivity = existingObject[normalizedDay];
+            const incomingActivity = dayHistory[id];
+            const existingProgress = Number(existingActivity?.progress || 0);
+            const incomingProgress = Number(incomingActivity?.progress || 0);
+
+            if (!existingActivity || incomingProgress >= existingProgress) {
+              existingObject[normalizedDay] = { ...incomingActivity };
+            }
           }
         }
       }

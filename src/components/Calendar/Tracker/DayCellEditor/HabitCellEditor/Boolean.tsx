@@ -32,6 +32,7 @@ import _ from "lodash";
 import { useNavigate } from "react-router-dom";
 import routes from "config/routes";
 import habitsConfig from "config/habitsIds.json";
+import { normalizeHistoryDayKey } from "share/functions/historyDayKey";
 
 interface IProps {
   colDef: ColDef<IHabitDayData>;
@@ -48,7 +49,7 @@ const Boolean = ({ colDef, stopEditing, data }: IProps) => {
   const [initValues, setInitValues] = useState<IActivityHistoryData | null>(
     null,
   );
-  const cellData = colDef.field && data[+colDef.field];
+  const cellData = colDef.field && data[colDef.field];
   const { calendarMode, dayData } = colDef.cellRendererParams;
   const isDailyReviewHabit =
     data.id === habitsConfig.habits.dailyReview.details;
@@ -103,7 +104,7 @@ const Boolean = ({ colDef, stopEditing, data }: IProps) => {
             ...mergedValues,
             progress: calendarMode === "tracking" ? 100 : initValues?.progress,
           },
-          path: `${dayData.day}.${data.id}`,
+          path: `${normalizeHistoryDayKey(dayData.day)}.${data.id}`,
         };
         await updateHistory(valueToUpdate).unwrap();
         stopEditing();
@@ -128,7 +129,7 @@ const Boolean = ({ colDef, stopEditing, data }: IProps) => {
       const dayToUpdate = {
         id: `${dayData.year}-${dayData.month.toString().padStart(2, "0")}`,
         data: {},
-        path: `${dayData.day}.${data.id}`,
+        path: `${normalizeHistoryDayKey(dayData.day)}.${data.id}`,
       };
       await updateHistory(dayToUpdate).unwrap();
       stopEditing();

@@ -28,6 +28,7 @@ import {
   IMeasures,
 } from "types/history.types";
 import removeUndefinedDeep from "share/functions/sds";
+import { normalizeHistoryDayKey } from "share/functions/historyDayKey";
 
 const Measures = ({ colDef, stopEditing, data }: IMeasureCellEditor) => {
   const { control, handleSubmit, setValue } = useForm<IActivityData>();
@@ -36,7 +37,7 @@ const Measures = ({ colDef, stopEditing, data }: IMeasureCellEditor) => {
   const [initValues, setInitValues] = useState<IActivityHistoryData | null>(
     null
   );
-  const cellData = colDef.field && data[+colDef.field];
+  const cellData = colDef.field && data[colDef.field];
   const { calendarMode, dayData } = colDef.cellRendererParams;
 
   const measureValue = useWatch({
@@ -112,7 +113,7 @@ const Measures = ({ colDef, stopEditing, data }: IMeasureCellEditor) => {
       const measureToUpdate = {
         id: `${dayData.year}-${dayData.month.toString().padStart(2, "0")}`,
         data: { ...cellData, ...mergedValues },
-        path: `${dayData.day}.${data.id}`,
+        path: `${normalizeHistoryDayKey(dayData.day)}.${data.id}`,
       };
 
       await updateHistory(measureToUpdate).unwrap();
@@ -125,7 +126,7 @@ const Measures = ({ colDef, stopEditing, data }: IMeasureCellEditor) => {
       const dayToUpdate = {
         id: `${dayData.year}-${dayData.month.toString().padStart(2, "0")}`,
         data: {},
-        path: `${dayData.day}.${data.id}`,
+        path: `${normalizeHistoryDayKey(dayData.day)}.${data.id}`,
       };
       await updateHistory(dayToUpdate).unwrap();
     }
