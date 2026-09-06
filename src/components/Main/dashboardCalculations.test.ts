@@ -263,6 +263,33 @@ describe("dashboard calculations", () => {
     ]);
   });
 
+  it("removes failed items from the remaining daily agenda", () => {
+    expect(
+      getPendingDashboardAgendaItems([
+        {
+          id: "failed",
+          activityId: "failed",
+          kind: "habit",
+          title: "Пропущено",
+          progress: 0,
+          status: "failed",
+          isAllDay: true,
+          source: {},
+        },
+        {
+          id: "pending",
+          activityId: "pending",
+          kind: "habit",
+          title: "Наступне",
+          progress: 0,
+          status: "pending",
+          isAllDay: true,
+          source: {},
+        },
+      ]),
+    ).toHaveLength(1);
+  });
+
   it("treats a task without a selected time as an all-day item", () => {
     const [item] = getDashboardAgendaItems(
       [

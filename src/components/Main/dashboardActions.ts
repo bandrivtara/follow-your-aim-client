@@ -1,8 +1,16 @@
 import { IHabitData } from "types/habits.types";
 import { ITasksGroup } from "types/taskGroups";
 
+const withoutFailureReason = (source: Record<string, any> = {}) => {
+  const { failureReason: _failureReason, ...rest } = source;
+  return rest;
+};
+
+const withFailureReason = (reason: string) =>
+  reason.trim() ? { failureReason: reason.trim() } : {};
+
 export const resetActivityForPlanning = (source: Record<string, any>) => ({
-  ...source,
+  ...withoutFailureReason(source),
   isPlanned: true,
   progress: 0,
   status: "pending",
@@ -16,7 +24,7 @@ export const resetActivityForPlanning = (source: Record<string, any>) => ({
     : source.measures,
   tasks: Array.isArray(source.tasks)
     ? source.tasks.map((task: Record<string, any>) => ({
-        ...task,
+        ...withoutFailureReason(task),
         status: "pending",
       }))
     : source.tasks,
@@ -26,7 +34,7 @@ export const completeBooleanHabit = (
   habit: IHabitData,
   source: Record<string, any> = {},
 ) => ({
-  ...source,
+  ...withoutFailureReason(source),
   id: habit.id,
   type: "habit",
   valueType: "boolean",
@@ -74,7 +82,7 @@ export const completeMeasuredHabit = (
     : 0;
 
   return {
-    ...source,
+    ...withoutFailureReason(source),
     id: habit.id,
     type: "habit",
     valueType: "measures",
@@ -94,7 +102,9 @@ export const completeTaskAtIndex = (
 ) => {
   const tasks = Array.isArray(source.tasks)
     ? source.tasks.map((task: Record<string, any>, index: number) =>
-        index === taskIndex ? { ...task, status: "done" } : task,
+        index === taskIndex
+          ? { ...withoutFailureReason(task), status: "done" }
+          : task,
       )
     : [];
   const completed = tasks.filter(
@@ -105,11 +115,65 @@ export const completeTaskAtIndex = (
     : 0;
 
   return {
-    ...source,
+    ...withoutFailureReason(source),
     isPlanned: source.isPlanned ?? true,
     tasks,
     progress,
     status: progress >= 100 ? "done" : "pending",
+  };
+};
+
+export const failHabit = (
+  habit: IHabitData,
+  source: Record<string, any> = {},
+  reason = "",
+) => ({
+  ...withoutFailureReason(source),
+  id: habit.id,
+  type: "habit" as const,
+  valueType: habit.valueType,
+  isPlanned: source.isPlanned ?? true,
+  isAllDay: source.isAllDay ?? habit.isAllDay,
+  startTime: source.startTime || habit.startTime || [0, 0],
+  endTime: source.endTime || habit.endTime || [0, 0],
+  measures: source.measures || {},
+  progress: 0,
+  status: "failed" as const,
+  ...withFailureReason(reason),
+});
+
+export const failTaskAtIndex = (
+  source: Record<string, any>,
+  taskIndex: number,
+  reason = "",
+) => {
+  const tasks = Array.isArray(source.tasks)
+    ? source.tasks.map((task: Record<string, any>, index: number) =>
+        index === taskIndex
+          ? {
+              ...withoutFailureReason(task),
+              status: "failed" as const,
+              ...withFailureReason(reason),
+            }
+          : task,
+      )
+    : [];
+  const completed = tasks.filter(
+    (task: Record<string, any>) => task.status === "done",
+  ).length;
+  const progress = tasks.length
+    ? Math.round((completed / tasks.length) * 100)
+    : 0;
+  const hasPending = tasks.some(
+    (task: Record<string, any>) => task.status === "pending",
+  );
+
+  return {
+    ...withoutFailureReason(source),
+    isPlanned: source.isPlanned ?? true,
+    tasks,
+    progress,
+    status: progress >= 100 ? "done" : hasPending ? "pending" : "failed",
   };
 };
 
@@ -136,10 +200,12 @@ export const appendQuickTask = (
   const completed = tasks.filter(
     (task: Record<string, any>) => task.status === "done",
   ).length;
-  const progress = tasks.length ? Math.round((completed / tasks.length) * 100) : 0;
+  const progress = tasks.length
+    ? Math.round((completed / tasks.length) * 100)
+    : 0;
 
   return {
-    ...source,
+    ...withoutFailureReason(source),
     id: taskGroup.id,
     type: "tasksGroup" as const,
     valueType: "todoList" as const,

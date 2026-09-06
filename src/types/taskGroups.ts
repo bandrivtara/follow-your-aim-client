@@ -29,5 +29,6 @@ export interface ITask {
   status: ITaskStatus;
   time: Array<number | string>;
   category?: string;
+  failureReason?: string;
   isEditOn?: boolean;
 }

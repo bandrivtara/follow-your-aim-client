@@ -16,6 +16,7 @@ const DayCellRenderer = ({ value, data }: ICellRendererParams) => {
 
   const getProgressColor = () => {
     if (!currentCellRendererData) return "transparent";
+    if (currentCellRendererData.isFailed) return "#fee4e2";
     const { progress } = currentCellRendererData;
     if (progress >= 100) {
       return "#d9f7ec";
@@ -32,6 +33,12 @@ const DayCellRenderer = ({ value, data }: ICellRendererParams) => {
       <StyledDayCellRenderer
         progressColor={getProgressColor()}
         isInPlan={currentCellRendererData?.isPlanned}
+        isFailed={currentCellRendererData?.isFailed}
+        title={
+          currentCellRendererData?.isFailed
+            ? currentCellRendererData.failureReason || "Не виконано"
+            : undefined
+        }
       >
         {currentCellRendererData?.component}
       </StyledDayCellRenderer>

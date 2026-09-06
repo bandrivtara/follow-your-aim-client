@@ -15,6 +15,7 @@ import {
   AddTaskOutlined,
   CheckCircleOutline,
   CloudDownloadOutlined,
+  CloseRounded,
   DoneRounded,
   EditNoteOutlined,
   LightbulbOutlined,
@@ -53,15 +54,21 @@ import {
 import DailyCounters from "./DailyCounters/DailyCounters";
 import StyledMain from "./Main.styled";
 import DashboardInsights from "./DashboardInsightCards";
-import { getDailyHabitMinutes, getWeeklyRhythm } from "./dashboardInsightCalculations";
+import {
+  getDailyHabitMinutes,
+  getWeeklyRhythm,
+} from "./dashboardInsightCalculations";
 import TodayPlanDialog from "./TodayPlanDialog";
 import QuickMeasureDialog from "./QuickMeasureDialog";
 import QuickTaskDialog from "./QuickTaskDialog";
+import FailureReasonDialog from "share/components/FailureReasonDialog/FailureReasonDialog";
 import {
   appendQuickTask,
   completeBooleanHabit,
   completeMeasuredHabit,
   completeTaskAtIndex,
+  failHabit,
+  failTaskAtIndex,
   resetActivityForPlanning,
 } from "./dashboardActions";
 import {
@@ -106,6 +113,7 @@ const Main = () => {
   const [isQuickTaskOpen, setIsQuickTaskOpen] = useState(false);
   const [quickMeasureItem, setQuickMeasureItem] =
     useState<DashboardAgendaItem>();
+  const [failureItem, setFailureItem] = useState<DashboardAgendaItem>();
   const [quickSavingId, setQuickSavingId] = useState<string>();
   const [isCopyingPlan, setIsCopyingPlan] = useState(false);
   const [isSavingQuickTask, setIsSavingQuickTask] = useState(false);
@@ -113,35 +121,27 @@ const Main = () => {
   const habits = useGetHabitListQuery();
   const taskGroups = useGetTaskGroupListQuery();
   const aims = useGetAimsListQuery();
-  const historyRange = useMemo(
-    () => {
-      const analyticsStart = now.subtract(90, "day").startOf("month");
-      const earliestActiveAimStart = (aims.data || [])
-        .filter(
-          (aim) =>
-            !aim.isArchived &&
-            !now.isBefore(dayjs(aim.dateFrom), "day") &&
-            !now.isAfter(dayjs(aim.dateTo), "day"),
-        )
-        .map((aim) => dayjs(aim.dateFrom).startOf("month"))
-        .filter((date) => date.isValid())
-        .reduce(
-          (earliest, date) => (date.isBefore(earliest) ? date : earliest),
-          analyticsStart,
-        );
+  const historyRange = useMemo(() => {
+    const analyticsStart = now.subtract(90, "day").startOf("month");
+    const earliestActiveAimStart = (aims.data || [])
+      .filter(
+        (aim) =>
+          !aim.isArchived &&
+          !now.isBefore(dayjs(aim.dateFrom), "day") &&
+          !now.isAfter(dayjs(aim.dateTo), "day"),
+      )
+      .map((aim) => dayjs(aim.dateFrom).startOf("month"))
+      .filter((date) => date.isValid())
+      .reduce(
+        (earliest, date) => (date.isBefore(earliest) ? date : earliest),
+        analyticsStart,
+      );
 
-      return [
-        earliestActiveAimStart.unix(),
-        now.startOf("month").unix(),
-      ];
-    },
-    [aims.data, now],
-  );
+    return [earliestActiveAimStart.unix(), now.startOf("month").unix()];
+  }, [aims.data, now]);
   const history = useGetHistoryBetweenDatesQuery(historyRange);
   const reviewWeekRange = useMemo(() => {
-    const weekStart = now
-      .startOf("day")
-      .subtract((now.day() + 6) % 7, "day");
+    const weekStart = now.startOf("day").subtract((now.day() + 6) % 7, "day");
     return [
       weekStart.startOf("month").unix(),
       weekStart.add(6, "day").startOf("month").unix(),
@@ -239,14 +239,16 @@ const Main = () => {
 
   const currentMinutes = now.hour() * 60 + now.minute();
   const currentAgendaItem = dashboardData.agendaItems.find((item) => {
-    if (item.progress >= 100 || item.isAllDay) return false;
+    if (item.progress >= 100 || item.status === "failed" || item.isAllDay)
+      return false;
     const start = getTimeInMinutes(item.startTime);
     if (start === null || start > currentMinutes) return false;
     const end = getTimeInMinutes(item.endTime) ?? start + 30;
     return currentMinutes < end;
   });
   const nextAgendaItem = dashboardData.agendaItems.find((item) => {
-    if (item.progress >= 100 || item.isAllDay) return false;
+    if (item.progress >= 100 || item.status === "failed" || item.isAllDay)
+      return false;
     const start = getTimeInMinutes(item.startTime);
     return start !== null && start > currentMinutes;
   });
@@ -255,8 +257,8 @@ const Main = () => {
     history.isLoading || habits.isLoading || taskGroups.isLoading;
   const agendaHasError =
     history.isError || habits.isError || taskGroups.isError;
-  const pendingAgendaItems = dashboardData.agendaItems.filter(
-    (item) => item.progress < 100,
+  const pendingAgendaItems = getPendingDashboardAgendaItems(
+    dashboardData.agendaItems,
   );
   const visibleAgendaItems = getPendingDashboardAgendaItems(
     dashboardData.agendaItems,
@@ -329,8 +331,10 @@ const Main = () => {
         getTodayHistoryUpdate(item.activityId, data),
       ).unwrap();
       message.success(`«${item.title}» оновлено`);
+      return true;
     } catch {
       message.error("Не вдалося зберегти результат. Спробуй ще раз.");
+      return false;
     } finally {
       setQuickSavingId(undefined);
     }
@@ -372,6 +376,39 @@ const Main = () => {
 
     navigate(`${routes.calendar.tracker}?view=day`);
   };
+
+  const handleQuickFail = async (reason: string) => {
+    if (!failureItem) return;
+
+    if (failureItem.kind === "habit") {
+      const habit = habits.data?.find(
+        (candidate) => candidate.id === failureItem.activityId,
+      );
+      if (!habit) return;
+      const saved = await saveQuickActivity(
+        failureItem,
+        failHabit(habit, failureItem.source, reason),
+      );
+      if (saved) setFailureItem(undefined);
+      return;
+    }
+
+    if (typeof failureItem.taskIndex === "number") {
+      const saved = await saveQuickActivity(
+        failureItem,
+        failTaskAtIndex(failureItem.source, failureItem.taskIndex, reason),
+      );
+      if (saved) setFailureItem(undefined);
+      return;
+    }
+
+    navigate(`${routes.calendar.tracker}?view=day`);
+  };
+
+  const failureReason =
+    failureItem?.kind === "task" && typeof failureItem.taskIndex === "number"
+      ? failureItem.source.tasks?.[failureItem.taskIndex]?.failureReason
+      : failureItem?.source.failureReason;
 
   const handleSaveMeasuredHabit = async (values: Record<string, number>) => {
     if (!quickMeasureItem || !quickMeasureHabit) return;
@@ -622,13 +659,18 @@ const Main = () => {
                     />
                   ))}
                   {remainingRecoveryHabits > 0 && (
-                    <Chip size="small" label={`Ще ${remainingRecoveryHabits}`} />
+                    <Chip
+                      size="small"
+                      label={`Ще ${remainingRecoveryHabits}`}
+                    />
                   )}
                 </div>
                 <Button
                   size="small"
                   onClick={() =>
-                    navigate(`${routes.calendar.tracker}?view=day&mode=planning`)
+                    navigate(
+                      `${routes.calendar.tracker}?view=day&mode=planning`,
+                    )
                   }
                 >
                   Відкрити план дня
@@ -869,81 +911,96 @@ const Main = () => {
                   aria-label="Незавершений план дня"
                 >
                   {visibleAgendaItems.map((item) => {
-                  const isCurrent = currentAgendaItem?.id === item.id;
-                  const isNext =
-                    !currentAgendaItem && nextAgendaItem?.id === item.id;
-                  return (
-                    <div
-                      className={`agenda-row${isCurrent ? " agenda-row--current" : ""}`}
-                      key={item.id}
-                      role="listitem"
-                    >
-                      <div className="agenda-time">
-                        {formatAgendaTime(
-                          item.startTime,
-                          item.endTime,
-                          item.isAllDay,
-                        )}
+                    const isCurrent = currentAgendaItem?.id === item.id;
+                    const isNext =
+                      !currentAgendaItem && nextAgendaItem?.id === item.id;
+                    return (
+                      <div
+                        className={`agenda-row${isCurrent ? " agenda-row--current" : ""}`}
+                        key={item.id}
+                        role="listitem"
+                      >
+                        <div className="agenda-time">
+                          {formatAgendaTime(
+                            item.startTime,
+                            item.endTime,
+                            item.isAllDay,
+                          )}
+                        </div>
+                        <Box minWidth={0}>
+                          <Typography fontWeight={600}>{item.title}</Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            {[
+                              item.parentTitle ||
+                                (item.kind === "habit"
+                                  ? "Звичка"
+                                  : "Список справ"),
+                              getLifeArea(item.category)?.shortTitle,
+                            ]
+                              .filter(Boolean)
+                              .join(" · ")}
+                          </Typography>
+                        </Box>
+                        <div className="agenda-action">
+                          <Chip
+                            size="small"
+                            color={
+                              item.progress >= 100
+                                ? "success"
+                                : item.status === "failed"
+                                  ? "error"
+                                  : isCurrent
+                                    ? "primary"
+                                    : "default"
+                            }
+                            variant={isNext ? "outlined" : "filled"}
+                            label={
+                              item.progress >= 100
+                                ? "Виконано"
+                                : item.status === "failed"
+                                  ? "Не виконано"
+                                  : isCurrent
+                                    ? "Зараз"
+                                    : isNext
+                                      ? "Наступне"
+                                      : item.progress > 0
+                                        ? `${Math.round(item.progress)}%`
+                                        : "Заплановано"
+                            }
+                          />
+                          {item.progress < 100 && (
+                            <>
+                              <Tooltip title="Позначити невиконаним">
+                                <span>
+                                  <IconButton
+                                    size="small"
+                                    color="error"
+                                    aria-label={`Не виконано: ${item.title}`}
+                                    disabled={quickSavingId === item.id}
+                                    onClick={() => setFailureItem(item)}
+                                  >
+                                    <CloseRounded fontSize="small" />
+                                  </IconButton>
+                                </span>
+                              </Tooltip>
+                              <Tooltip title="Швидко зафіксувати результат">
+                                <span>
+                                  <IconButton
+                                    size="small"
+                                    color="primary"
+                                    aria-label={`Виконати ${item.title}`}
+                                    disabled={quickSavingId === item.id}
+                                    onClick={() => handleQuickComplete(item)}
+                                  >
+                                    <DoneRounded fontSize="small" />
+                                  </IconButton>
+                                </span>
+                              </Tooltip>
+                            </>
+                          )}
+                        </div>
                       </div>
-                      <Box minWidth={0}>
-                        <Typography fontWeight={600}>{item.title}</Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {[
-                            item.parentTitle ||
-                              (item.kind === "habit"
-                                ? "Звичка"
-                                : "Список справ"),
-                            getLifeArea(item.category)?.shortTitle,
-                          ]
-                            .filter(Boolean)
-                            .join(" · ")}
-                        </Typography>
-                      </Box>
-                      <div className="agenda-action">
-                        <Chip
-                          size="small"
-                          color={
-                            item.progress >= 100
-                              ? "success"
-                              : item.status === "failed"
-                                ? "error"
-                                : isCurrent
-                                  ? "primary"
-                                  : "default"
-                          }
-                          variant={isNext ? "outlined" : "filled"}
-                          label={
-                            item.progress >= 100
-                              ? "Виконано"
-                              : item.status === "failed"
-                                ? "Не виконано"
-                                : isCurrent
-                                  ? "Зараз"
-                                  : isNext
-                                    ? "Наступне"
-                                    : item.progress > 0
-                                      ? `${Math.round(item.progress)}%`
-                                      : "Заплановано"
-                          }
-                        />
-                        {item.progress < 100 && (
-                          <Tooltip title="Швидко зафіксувати результат">
-                            <span>
-                              <IconButton
-                                size="small"
-                                color="primary"
-                                aria-label={`Виконати ${item.title}`}
-                                disabled={quickSavingId === item.id}
-                                onClick={() => handleQuickComplete(item)}
-                              >
-                                <DoneRounded fontSize="small" />
-                              </IconButton>
-                            </span>
-                          </Tooltip>
-                        )}
-                      </div>
-                    </div>
-                  );
+                    );
                   })}
                 </div>
               )}
@@ -1008,6 +1065,14 @@ const Main = () => {
         isSaving={isSavingQuickTask}
         onClose={() => setIsQuickTaskOpen(false)}
         onSave={handleAddQuickTask}
+      />
+      <FailureReasonDialog
+        open={Boolean(failureItem)}
+        activityTitle={failureItem?.title}
+        initialValue={failureReason || ""}
+        isSaving={Boolean(failureItem && quickSavingId === failureItem.id)}
+        onClose={() => setFailureItem(undefined)}
+        onConfirm={handleQuickFail}
       />
       {isMobile && (
         <Fab

@@ -321,7 +321,10 @@ export const getDashboardAgendaItems = (
 export const getPendingDashboardAgendaItems = (
   items: DashboardAgendaItem[] = [],
   limit = Number.POSITIVE_INFINITY,
-) => items.filter((item) => item.progress < 100).slice(0, limit);
+) =>
+  items
+    .filter((item) => item.progress < 100 && item.status !== "failed")
+    .slice(0, limit);
 
 const getMonday = (date: Dayjs) =>
   date.startOf("day").subtract((date.day() + 6) % 7, "day");

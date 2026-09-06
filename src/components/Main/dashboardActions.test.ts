@@ -2,6 +2,8 @@ import {
   completeBooleanHabit,
   completeMeasuredHabit,
   completeTaskAtIndex,
+  failHabit,
+  failTaskAtIndex,
   appendQuickTask,
   resetActivityForPlanning,
 } from "./dashboardActions";
@@ -52,6 +54,21 @@ describe("dashboard actions", () => {
     });
   });
 
+  it("marks a habit failed with an optional short reason", () => {
+    expect(
+      failHabit(
+        { ...habit, valueType: "boolean" },
+        { progress: 100, status: "done" },
+        "  Не виспався  ",
+      ),
+    ).toMatchObject({
+      id: "habit-1",
+      progress: 0,
+      status: "failed",
+      failureReason: "Не виспався",
+    });
+  });
+
   it("calculates measured completion against the planned target", () => {
     expect(completeMeasuredHabit(habit, {}, { ml: 1000 })).toMatchObject({
       progress: 50,
@@ -72,6 +89,23 @@ describe("dashboard actions", () => {
     });
   });
 
+  it("marks only the selected task failed and stores its reason", () => {
+    expect(
+      failTaskAtIndex(
+        { tasks: [{ status: "pending" }, { status: "done" }] },
+        0,
+        "Не вистачило часу",
+      ),
+    ).toMatchObject({
+      progress: 50,
+      status: "failed",
+      tasks: [
+        { status: "failed", failureReason: "Не вистачило часу" },
+        { status: "done" },
+      ],
+    });
+  });
+
   it("appends a quick task using the existing task-list history shape", () => {
     expect(
       appendQuickTask(
@@ -83,7 +117,9 @@ describe("dashboard actions", () => {
           description: "",
         },
         {
-          tasks: [{ id: "done", title: "Готове", status: "done", time: [0, 0] }],
+          tasks: [
+            { id: "done", title: "Готове", status: "done", time: [0, 0] },
+          ],
           progress: 100,
         },
         "  Подзвонити лікарю  ",

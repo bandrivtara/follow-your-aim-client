@@ -33,6 +33,7 @@ import { useNavigate } from "react-router-dom";
 import routes from "config/routes";
 import habitsConfig from "config/habitsIds.json";
 import { normalizeHistoryDayKey } from "share/functions/historyDayKey";
+import FailureReasonDialog from "share/components/FailureReasonDialog/FailureReasonDialog";
 
 interface IProps {
   colDef: ColDef<IHabitDayData>;
@@ -43,12 +44,13 @@ interface IProps {
 interface IFormValues {}
 
 const Boolean = ({ colDef, stopEditing, data }: IProps) => {
-  const { control, handleSubmit, setValue } = useForm();
+  const { control, getValues, handleSubmit, setValue } = useForm();
   const [updateHistory] = useUpdateHistoryMutation();
   const navigate = useNavigate();
   const [initValues, setInitValues] = useState<IActivityHistoryData | null>(
     null,
   );
+  const [isFailureDialogOpen, setIsFailureDialogOpen] = useState(false);
   const cellData = colDef.field && data[colDef.field];
   const { calendarMode, dayData } = colDef.cellRendererParams;
   const isDailyReviewHabit =
@@ -63,8 +65,9 @@ const Boolean = ({ colDef, stopEditing, data }: IProps) => {
       valueType: cellData?.details?.valueType || data.details.valueType,
       isAllDay: data.details.isAllDay,
       isPlanned: cellData?.isPlanned || calendarMode !== "tracking",
-      progress: 0,
-      status: cellData?.isPlanned ? "done" : "pending",
+      progress: cellData?.progress || 0,
+      status: cellData?.status || "pending",
+      failureReason: cellData?.failureReason,
       startTime: [0, 0],
       endTime: [0, 0],
       measures: {},
@@ -97,12 +100,26 @@ const Boolean = ({ colDef, stopEditing, data }: IProps) => {
           removeUndefinedDeep(formValues);
         const mergedValues = _.merge(initValues, removeUndefinedDormValues);
 
+        if (mergedValues.status === "failed") {
+          mergedValues.progress = 0;
+          const reason = mergedValues.failureReason?.trim();
+          if (reason) mergedValues.failureReason = reason;
+          else delete mergedValues.failureReason;
+        } else {
+          delete mergedValues.failureReason;
+        }
+
         const valueToUpdate = {
           id: `${dayData.year}-${dayData.month.toString().padStart(2, "0")}`,
           data: {
             ...cellData,
             ...mergedValues,
-            progress: calendarMode === "tracking" ? 100 : initValues?.progress,
+            progress:
+              calendarMode === "tracking"
+                ? mergedValues.status === "failed"
+                  ? 0
+                  : 100
+                : initValues?.progress,
           },
           path: `${normalizeHistoryDayKey(dayData.day)}.${data.id}`,
         };
@@ -140,6 +157,15 @@ const Boolean = ({ colDef, stopEditing, data }: IProps) => {
     stopEditing();
   };
 
+  const handleFailureConfirm = async (reason: string) => {
+    await handleConfirm({
+      ...getValues(),
+      status: "failed",
+      failureReason: reason,
+    });
+    setIsFailureDialogOpen(false);
+  };
+
   const formatTime = (date: Date | null | undefined) => {
     if (!date) return [0, 0];
     const hours = date.getHours();
@@ -161,8 +187,10 @@ const Boolean = ({ colDef, stopEditing, data }: IProps) => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (
         event.key === "Enter" &&
-        !(calendarMode === "tracking" &&
-          (isDailyReviewHabit || isGoalsGratitudeHabit))
+        !(
+          calendarMode === "tracking" &&
+          (isDailyReviewHabit || isGoalsGratitudeHabit)
+        )
       ) {
         event.preventDefault();
         handleSubmit(handleConfirm)();
@@ -221,135 +249,155 @@ const Boolean = ({ colDef, stopEditing, data }: IProps) => {
 
   return (
     initValues && (
-      <Box
-        component="form"
-        onSubmit={handleSubmit(handleConfirm)}
-        sx={{ maxWidth: 300, margin: 2 }}
-      >
-        <Grid container spacing={2}>
-          <Grid item xs={12}>
-            <Controller
-              name="isAllDay"
-              control={control}
-              render={({ field }) => (
-                <FormControlLabel
-                  control={<Switch {...field} checked={field.value} />}
-                  label="Цілий день"
-                />
-              )}
-            />
-          </Grid>
-          {!isAllDay && (
-            <>
-              <Grid item xs={6}>
-                <Controller
-                  name="startTime"
-                  control={control}
-                  defaultValue={initValues.startTime}
-                  render={({ field }) => (
-                    <TimePicker
-                      {...field}
-                      ampm={false}
-                      value={parseTime(field.value)}
-                      onChange={(date) => {
-                        const formattedTime = formatTime(date);
-                        field.onChange(formattedTime);
-                      }}
-                      label="Початок о:"
-                      renderInput={(params) => <TextField {...params} />}
-                    />
-                  )}
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <Controller
-                  name="endTime"
-                  control={control}
-                  defaultValue={initValues.endTime}
-                  render={({ field }) => (
-                    <TimePicker
-                      {...field}
-                      ampm={false}
-                      value={parseTime(field.value)}
-                      onChange={(date) => {
-                        const formattedTime = formatTime(date);
-                        field.onChange(formattedTime);
-                      }}
-                      label="Закінчення о:"
-                      renderInput={(params) => <TextField {...params} />}
-                    />
-                  )}
-                />
-              </Grid>
-            </>
-          )}
-          <Grid item xs={12}>
-            <Controller
-              name="isPlanned"
-              control={control}
-              render={({ field }) => (
-                <FormControlLabel
-                  control={<Switch {...field} checked={field.value} />}
-                  label="Запланувати"
-                />
-              )}
-            />
-          </Grid>
-
-          <Grid item xs={12}>
-            <Controller
-              name="progress"
-              control={control}
-              render={({ field }) => (
-                <>
-                  <Typography color="textSecondary">
-                    {`${Math.round(100)}%`}
-                  </Typography>
-                  <LinearProgress
-                    {...field}
-                    value={100}
-                    variant="determinate"
-                  />
-                </>
-              )}
-            />
-          </Grid>
-          {calendarMode === "tracking" && (
+      <>
+        <Box
+          component="form"
+          onSubmit={handleSubmit(handleConfirm)}
+          sx={{ maxWidth: 300, margin: 2 }}
+        >
+          <Grid container spacing={2}>
             <Grid item xs={12}>
               <Controller
-                name="status"
+                name="isAllDay"
                 control={control}
-                defaultValue={initValues.status}
                 render={({ field }) => (
-                  <RadioGroup {...field} row>
-                    <FormControlLabel
-                      value="failed"
-                      control={<Radio icon={<CloseIcon />} />}
-                      label="Failed"
-                    />
-                    <FormControlLabel
-                      value="pending"
-                      control={<Radio icon={<PendingIcon />} />}
-                      label="Pending"
-                    />
-                    <FormControlLabel
-                      value="done"
-                      control={<Radio icon={<CheckIcon />} />}
-                      label="Done"
-                    />
-                  </RadioGroup>
+                  <FormControlLabel
+                    control={<Switch {...field} checked={field.value} />}
+                    label="Цілий день"
+                  />
                 )}
               />
             </Grid>
-          )}
-          <Grid item xs={12}>
-            <FormButtons
-              handleDecline={handleDecline}
-              handleDelete={handleDelete}
-            />
+            {!isAllDay && (
+              <>
+                <Grid item xs={6}>
+                  <Controller
+                    name="startTime"
+                    control={control}
+                    defaultValue={initValues.startTime}
+                    render={({ field }) => (
+                      <TimePicker
+                        {...field}
+                        ampm={false}
+                        value={parseTime(field.value)}
+                        onChange={(date) => {
+                          const formattedTime = formatTime(date);
+                          field.onChange(formattedTime);
+                        }}
+                        label="Початок о:"
+                        renderInput={(params) => <TextField {...params} />}
+                      />
+                    )}
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <Controller
+                    name="endTime"
+                    control={control}
+                    defaultValue={initValues.endTime}
+                    render={({ field }) => (
+                      <TimePicker
+                        {...field}
+                        ampm={false}
+                        value={parseTime(field.value)}
+                        onChange={(date) => {
+                          const formattedTime = formatTime(date);
+                          field.onChange(formattedTime);
+                        }}
+                        label="Закінчення о:"
+                        renderInput={(params) => <TextField {...params} />}
+                      />
+                    )}
+                  />
+                </Grid>
+              </>
+            )}
+            <Grid item xs={12}>
+              <Controller
+                name="isPlanned"
+                control={control}
+                render={({ field }) => (
+                  <FormControlLabel
+                    control={<Switch {...field} checked={field.value} />}
+                    label="Запланувати"
+                  />
+                )}
+              />
+            </Grid>
+
+            <Grid item xs={12}>
+              <Controller
+                name="progress"
+                control={control}
+                render={({ field }) => (
+                  <>
+                    <Typography color="textSecondary">
+                      {`${Math.round(100)}%`}
+                    </Typography>
+                    <LinearProgress
+                      {...field}
+                      value={100}
+                      variant="determinate"
+                    />
+                  </>
+                )}
+              />
+            </Grid>
+            {calendarMode === "tracking" && (
+              <Grid item xs={12}>
+                <Controller
+                  name="status"
+                  control={control}
+                  defaultValue={initValues.status}
+                  render={({ field }) => (
+                    <RadioGroup
+                      {...field}
+                      row
+                      onChange={(event) => {
+                        if (event.target.value === "failed") {
+                          setIsFailureDialogOpen(true);
+                          return;
+                        }
+                        field.onChange(event);
+                        setValue("failureReason", "");
+                      }}
+                    >
+                      <FormControlLabel
+                        value="failed"
+                        control={<Radio icon={<CloseIcon />} />}
+                        label="Не виконано"
+                      />
+                      <FormControlLabel
+                        value="pending"
+                        control={<Radio icon={<PendingIcon />} />}
+                        label="Очікує"
+                      />
+                      <FormControlLabel
+                        value="done"
+                        control={<Radio icon={<CheckIcon />} />}
+                        label="Виконано"
+                      />
+                    </RadioGroup>
+                  )}
+                />
+              </Grid>
+            )}
+            <Grid item xs={12}>
+              <FormButtons
+                handleDecline={handleDecline}
+                handleDelete={handleDelete}
+              />
+            </Grid>
           </Grid>
-        </Grid>
-      </Box>
+        </Box>
+        <FailureReasonDialog
+          open={isFailureDialogOpen}
+          activityTitle={data.details.title}
+          initialValue={cellData?.failureReason || ""}
+          onClose={() => setIsFailureDialogOpen(false)}
+          onConfirm={handleFailureConfirm}
+        />
+      </>
     )
   );
 };

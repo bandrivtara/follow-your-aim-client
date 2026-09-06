@@ -38,8 +38,8 @@ List services usually attach Firestore document IDs as id. English differs: IDs 
 - Each month document stores unix for range queries.
 - Canonical day keys are zero-padded `DD` strings (`01`...`31`); activity IDs below them map to habit or task-group history. Readers remain compatible with legacy unpadded `D` keys, while every active writer normalizes new updates to `DD`.
 - updateHistory accepts id, path, and data and updates the dynamic field path without replacing the month.
-- Activity history can contain type, valueType, isPlanned, status, progress, times, measures, tasks, or an optional text `note`. The note is currently used by the “Ранковий компас” flow, which preserves the former “5 цілей і 5 подяк” habit ID and history and does not introduce a collection or nested activity ID.
-- Task objects inside task-group definitions and history keep their existing title/status/time shape and may additionally contain an optional `category` using one of the client life-area IDs. Missing categories and empty times remain valid for legacy and all-day tasks.
+- Activity history can contain type, valueType, isPlanned, status, progress, times, measures, tasks, an optional text `note`, or an optional `failureReason`. The failure reason is written only for a `failed` result and omitted when the user leaves the short explanation empty. The note is currently used by the “Ранковий компас” flow, which preserves the former “5 цілей і 5 подяк” habit ID and history and does not introduce a collection or nested activity ID.
+- Task objects inside task-group definitions and history keep their existing title/status/time shape and may additionally contain an optional `category` using one of the client life-area IDs and an optional `failureReason` for failed daily instances. Missing categories, reasons, and empty times remain valid for legacy and all-day tasks.
 - New task-list history entries persist the already-supported isPlanned flag so work added during tracking can be distinguished from the daily plan. Legacy task lists without the flag remain treated as planned for compatibility.
 - Dashboard quick completion merges a boolean habit, measured habit, or updated task list back into the same existing day/activity path. Quick task capture appends a pending task to an existing flat task-group activity at that path and marks the activity as planned. Copying yesterday's or the previous same weekday's plan creates current-day activity entries with progress/value/status reset while preserving targets, tasks, times, and IDs.
 - Measure values are nested under activity and measure IDs. Do not flatten or rename them.
@@ -102,7 +102,6 @@ Observed live-data compatibility notes from the read-only audit on 2026-07-28:
 - `apply-habit-metadata` is also dry-run unless `--apply` is supplied. It can update only `lifeArea` and `complexity` for existing non-archived habits, including hidden compatibility habits, whose IDs and titles both match the reviewed document.
 - Applied changes only merge planning data below `history/{YYYY-MM}/{DD}/{activityId}` and keep the existing month `unix` convention. No delete operation is implemented.
 - Because repository-only review cannot verify deployed rules, the bridge must remain a local personal tool and must not be exposed as a public API.
-
 
 ## Personal backup export
 

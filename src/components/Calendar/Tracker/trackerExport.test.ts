@@ -18,7 +18,12 @@ describe("tracker export", () => {
               isPlanned: true,
               tasks: [
                 { title: "Купити продукти", status: "done", time: [18, 0] },
-                { title: "Забрати посилку", status: "pending", time: [19, 0] },
+                {
+                  title: "Забрати посилку",
+                  status: "failed",
+                  time: [19, 0],
+                  failureReason: "Поштомат був недоступний",
+                },
               ],
               progress: 50,
             },
@@ -28,6 +33,12 @@ describe("tracker export", () => {
               status: "done",
               progress: 100,
               note: "5 ЦІЛЕЙ\n1. Завершити важливу задачу",
+            },
+            workout: {
+              isPlanned: true,
+              status: "failed",
+              progress: 0,
+              failureReason: "Погано спав",
             },
           },
         },
@@ -43,6 +54,12 @@ describe("tracker export", () => {
         {
           id: "bonus",
           title: "Додаткова прогулянка",
+          type: "habit",
+          valueType: "boolean",
+        } as any,
+        {
+          id: "workout",
+          title: "Тренування",
           type: "habit",
           valueType: "boolean",
         } as any,
@@ -78,9 +95,11 @@ describe("tracker export", () => {
       ],
     });
 
-    expect(report).toContain("Виконання плану: 100%");
+    expect(report).toContain("Виконання плану: 75%");
     expect(report).toContain("Купити продукти");
     expect(report).toContain("Забрати посилку");
+    expect(report).toContain("причина невиконання: Поштомат був недоступний");
+    expect(report).toContain("Причина невиконання: Погано спав");
     expect(report).toContain("Обсяг: факт 1000 мл; план 2000 мл");
     expect(report).toContain("5 ЦІЛЕЙ");
     expect(report).toContain("Завершити важливу задачу");

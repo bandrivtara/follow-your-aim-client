@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   useForm,
   Controller,
@@ -36,6 +36,7 @@ import { ITasksHistoryData } from "types/history.types";
 import { ITask } from "types/taskGroups";
 import { LIFE_AREAS } from "config/lifeAreas";
 import { normalizeHistoryDayKey } from "share/functions/historyDayKey";
+import FailureReasonDialog from "share/components/FailureReasonDialog/FailureReasonDialog";
 
 interface IProps {
   colDef: ColDef<ITasksHistoryData>;
@@ -49,6 +50,7 @@ const initTask: ITask = {
   status: "pending",
   time: ["", ""],
   category: "",
+  failureReason: "",
   isEditOn: false,
 };
 
@@ -71,6 +73,7 @@ const TodoList = ({ data, colDef, stopEditing }: IProps) => {
   });
 
   const [updateHistory] = useUpdateHistoryMutation();
+  const [failureTaskIndex, setFailureTaskIndex] = useState<number | null>(null);
   const taskGroupDetails = useGetTaskGroupQuery(data.id);
 
   const { dayData, calendarMode } = colDef.cellRendererParams;
@@ -94,9 +97,18 @@ const TodoList = ({ data, colDef, stopEditing }: IProps) => {
     formValues: ITasksHistoryData,
   ) => {
     if (!formValues?.tasks) return;
-    const validatedTasks = formValues.tasks.filter((task) =>
-      task.title?.trim(),
-    );
+    const validatedTasks = formValues.tasks
+      .filter((task) => task.title?.trim())
+      .map((task) => {
+        const nextTask = { ...task };
+        const reason = nextTask.failureReason?.trim();
+        if (nextTask.status === "failed" && reason) {
+          nextTask.failureReason = reason;
+        } else {
+          delete nextTask.failureReason;
+        }
+        return nextTask;
+      });
     const completedTasks = validatedTasks.filter(
       (task) => task.status === "done",
     );
@@ -134,6 +146,19 @@ const TodoList = ({ data, colDef, stopEditing }: IProps) => {
 
   const handleDecline = () => {
     stopEditing();
+  };
+
+  const handleFailureConfirm = async (reason: string) => {
+    if (failureTaskIndex === null) return;
+    const formValues = getValues();
+    const tasks = [...(formValues.tasks || [])];
+    const task = { ...tasks[failureTaskIndex], status: "failed" as const };
+    if (reason) task.failureReason = reason;
+    else delete task.failureReason;
+    tasks[failureTaskIndex] = task;
+
+    await handleConfirm({ ...formValues, tasks });
+    setFailureTaskIndex(null);
   };
 
   const parseTime = (timeArray?: Array<number | string>) => {
@@ -268,12 +293,21 @@ const TodoList = ({ data, colDef, stopEditing }: IProps) => {
                               {...field}
                               size="large"
                               value={field.value}
-                              onChange={(_event, newValue) =>
-                                newValue && field.onChange(newValue)
-                              }
+                              onChange={(_event, newValue) => {
+                                if (newValue === "failed") {
+                                  setFailureTaskIndex(index);
+                                  return;
+                                }
+                                if (newValue) {
+                                  field.onChange(newValue);
+                                  setValue(`tasks.${index}.failureReason`, "", {
+                                    shouldDirty: true,
+                                  });
+                                }
+                              }}
                               color="primary"
                               exclusive
-                              aria-label="text alignment"
+                              aria-label={`Статус справи ${task.title}`}
                             >
                               <ToggleButton value="failed">
                                 <CloseIcon />
@@ -356,6 +390,21 @@ const TodoList = ({ data, colDef, stopEditing }: IProps) => {
             </Grid>
           </Box>
         </form>
+        <FailureReasonDialog
+          open={failureTaskIndex !== null}
+          activityTitle={
+            failureTaskIndex === null
+              ? undefined
+              : watchedTasks[failureTaskIndex]?.title
+          }
+          initialValue={
+            failureTaskIndex === null
+              ? ""
+              : watchedTasks[failureTaskIndex]?.failureReason || ""
+          }
+          onClose={() => setFailureTaskIndex(null)}
+          onConfirm={handleFailureConfirm}
+        />
       </StyledTodoList>
     )
   );

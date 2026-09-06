@@ -9,7 +9,7 @@ import TodoList from "./DayCellEditor/TasksGroupCellEditor/TodoList";
 import { IHabitData } from "types/habits.types";
 
 export type IStopEditing = (
-  suppressNavigateAfterEdit?: boolean | undefined
+  suppressNavigateAfterEdit?: boolean | undefined,
 ) => void;
 
 export interface IHabitDayData {
@@ -38,9 +38,13 @@ export const cellConfigs = {
       ),
       cellRenderer: (cell) => {
         return {
-          component: <>{cell.progress === 100 && "+"}</>,
+          component: (
+            <>{cell.status === "failed" ? "×" : cell.progress === 100 && "+"}</>
+          ),
           progress: cell.progress,
           isPlanned: !!cell.isPlanned,
+          isFailed: cell.status === "failed",
+          failureReason: cell.failureReason,
         };
       },
     },
@@ -52,11 +56,15 @@ export const cellConfigs = {
         return {
           component: (
             <>
-              {cell.measures?.[data?.details.fields[0].id]?.value ||
-                cell.measures?.[data?.details.fields[0].id]?.plannedValue}
+              {cell.status === "failed"
+                ? "×"
+                : cell.measures?.[data?.details.fields[0].id]?.value ||
+                  cell.measures?.[data?.details.fields[0].id]?.plannedValue}
             </>
           ),
           progress: cell.progress,
+          isFailed: cell.status === "failed",
+          failureReason: cell.failureReason,
           isPlanned:
             !!cell.measures?.[data?.details.fields[0].id]?.plannedValue,
         };
@@ -72,17 +80,22 @@ export const cellConfigs = {
       cellRenderer: (cell) => {
         const allTasks = cell.tasks || [];
         const doneTasks = allTasks.filter(
-          (task: ITask) => task.status === "done"
+          (task: ITask) => task.status === "done",
+        );
+        const failedTasks = allTasks.filter(
+          (task: ITask) => task.status === "failed",
         );
 
         return {
           component: (
             <>
               {doneTasks.length}/{allTasks.length}
+              {failedTasks.length ? ` · ×${failedTasks.length}` : ""}
             </>
           ),
           progress: cell.progress,
           isPlanned: !!allTasks[0],
+          isFailed: cell.status === "failed",
         };
       },
     },

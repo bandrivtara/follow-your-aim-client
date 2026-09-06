@@ -24,6 +24,7 @@ export interface IActivityData {
   isAllDay: boolean;
   status: "failed" | "pending" | "done";
   progress: number;
+  failureReason?: string;
 }
 
 export interface ITasksHistoryData {
@@ -34,6 +35,7 @@ export interface ITasksHistoryData {
   progress: number;
   isPlanned?: boolean;
   tasksStore?: ITask[];
+  failureReason?: string;
 }
 
 export interface IActivityHistoryData extends IActivityData {
