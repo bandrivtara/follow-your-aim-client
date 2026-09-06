@@ -143,10 +143,10 @@ const DailyReview = () => {
 
               <AiReflectionField
                 title="Проведи огляд із ChatGPT"
-                description="Скопіюй промпт, відповідай на п’ять питань по черзі, а фінальний текст встав сюди."
+                description="Скопіюй промпт: ChatGPT покаже три питання одразу. Відповідай одним текстом або голосом і встав сюди блок «Текст для Follow Your Aim»."
                 prompt={DAILY_REVIEW_AI_PROMPT}
                 label="Фінальний підсумок дня"
-                placeholder="Встав сюди фінальний текст ChatGPT: стан, перемоги, перешкоди, урок і фокус на завтра…"
+                placeholder="Встав сюди блок «Текст для Follow Your Aim»: що вдалося, що не вдалося, урок і фокус на завтра…"
                 value={summary}
                 onChange={setSummary}
               />

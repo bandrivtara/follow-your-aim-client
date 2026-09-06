@@ -35,9 +35,17 @@ describe("morning compass completion", () => {
   });
 
   it("asks all morning questions at once and returns an analysis plus pasteable text", () => {
+    const questionsBlock = MORNING_COMPASS_AI_PROMPT.split(
+      "Три запитання:",
+    )[1]?.split("Після моєї відповіді")[0];
+
     expect(MORNING_COMPASS_AI_PROMPT).toContain(
-      "покажи всі шість запитань одразу",
+      "покажи всі три запитання одразу",
     );
+    expect(MORNING_COMPASS_AI_PROMPT).toContain("КЛЮЧОВІ ДІЇ:");
+    expect(MORNING_COMPASS_AI_PROMPT).toContain("ЗАХИСТ ПЛАНУ:");
+    expect(MORNING_COMPASS_AI_PROMPT).not.toContain("рівень енергії");
+    expect(questionsBlock?.match(/^\d+\. /gm)).toHaveLength(3);
     expect(MORNING_COMPASS_AI_PROMPT).toContain("КОРОТКИЙ АНАЛІЗ");
     expect(MORNING_COMPASS_AI_PROMPT).toContain(
       "ТЕКСТ ДЛЯ FOLLOW YOUR AIM",

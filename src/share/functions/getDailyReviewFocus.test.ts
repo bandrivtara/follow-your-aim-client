@@ -3,7 +3,17 @@ import { getDailyReviewFocus } from "./getDailyReviewFocus";
 
 describe("daily review focus", () => {
   it("reads the final section produced by the current review prompt", () => {
+    const questionsBlock = DAILY_REVIEW_AI_PROMPT.split(
+      "Три запитання:",
+    )[1]?.split("Після моєї відповіді")[0];
+
+    expect(DAILY_REVIEW_AI_PROMPT).toContain(
+      "покажи всі три запитання одразу",
+    );
+    expect(DAILY_REVIEW_AI_PROMPT).toContain("ЩО ВДАЛОСЯ:");
+    expect(DAILY_REVIEW_AI_PROMPT).toContain("ЩО НЕ ВДАЛОСЯ:");
     expect(DAILY_REVIEW_AI_PROMPT).toContain("ФОКУС ЗАВТРА:");
+    expect(questionsBlock?.match(/^\d+\. /gm)).toHaveLength(3);
     expect(
       getDailyReviewFocus({
         summary:

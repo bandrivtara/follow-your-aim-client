@@ -3,7 +3,7 @@ import { IActivityHistoryData } from "types/history.types";
 
 export const MORNING_COMPASS_TITLE = "Ранковий компас";
 export const MORNING_COMPASS_DESCRIPTION =
-  "Короткий ранковий огляд енергії, фокусу, першого кроку, плану «якщо–то» і однієї конкретної вдячності.";
+  "Короткий ранковий вибір головного фокусу, двох-трьох ключових дій і захисту плану від головної перешкоди.";
 
 export const buildMorningCompassCompletion = (
   habit: IHabitData,
