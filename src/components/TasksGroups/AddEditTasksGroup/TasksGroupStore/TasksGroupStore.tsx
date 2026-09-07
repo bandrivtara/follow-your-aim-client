@@ -24,6 +24,7 @@ import { ITask } from "types/taskGroups";
 import { FormInstance, useWatch } from "antd/es/form/Form";
 import { getTimeOptions } from "share/functions/getTimeOptions";
 import { LIFE_AREAS } from "config/lifeAreas";
+import uniqid from "uniqid";
 import StyledTasksGroupStore from "./TasksGroupStore.styled";
 
 interface IProps {
@@ -38,6 +39,7 @@ const initValues = {
   status: "pending",
   time: ["", ""],
   category: "",
+  priority: "",
   isEditOn: false,
 };
 
@@ -145,7 +147,7 @@ const TasksGroupStore = ({ dayForm, form }: IProps) => {
                       </Col>
                     </Row>
                     <Row gutter={[8, 8]} className="task-details">
-                      <Col md={8} xs={24}>
+                      <Col md={7} xs={24}>
                         <Form.Item
                           label="Категорія"
                           name={[index, "category"]}
@@ -162,7 +164,25 @@ const TasksGroupStore = ({ dayForm, form }: IProps) => {
                           />
                         </Form.Item>
                       </Col>
-                      <Col md={6} xs={24}>
+                      <Col md={5} xs={24}>
+                        <Form.Item
+                          label="Пріоритет"
+                          name={[index, "priority"]}
+                          hidden={!isTaskFieldVisible(index, "priority")}
+                          initialValue={initValues.priority}
+                        >
+                          <Select
+                            allowClear
+                            placeholder="Не задано"
+                            options={[
+                              { value: "high", label: "Високий" },
+                              { value: "medium", label: "Середній" },
+                              { value: "low", label: "Низький" },
+                            ]}
+                          />
+                        </Form.Item>
+                      </Col>
+                      <Col md={5} xs={24}>
                         <Form.Item
                           label="Час"
                           name={[index, "time"]}
@@ -177,7 +197,7 @@ const TasksGroupStore = ({ dayForm, form }: IProps) => {
                           />
                         </Form.Item>
                       </Col>
-                      <Col md={10} xs={24}>
+                      <Col md={7} xs={24}>
                         <Form.Item
                           required={false}
                           label="Посилання"
@@ -213,7 +233,7 @@ const TasksGroupStore = ({ dayForm, form }: IProps) => {
                     block
                     onClick={() => {
                       const nextIndex = form.getFieldValue("tasksStore")?.length || 0;
-                      add({ ...initValues });
+                      add({ ...initValues, id: uniqid() });
                       setEditFiledIndex(nextIndex);
                     }}
                   >

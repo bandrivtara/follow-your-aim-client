@@ -23,7 +23,7 @@ Last verified: 2026-08-18.
 | Tracker filters         | src/components/Calendar/Tracker/rowFilters.ts                     | rowFilters.test.ts, FiltersBar/, tableConfigs.ts                                         |
 | Aims                    | src/components/Aims/                                              | aims services, history helper, task groups                                               |
 | Habits                  | src/components/Habits/                                            | habit and category services                                                              |
-| Task groups             | src/components/TasksGroups/                                       | task-group service and tracker editors                                                   |
+| Task groups             | src/components/TasksGroups/                                       | TasksOverview combines stored/staged tasks with history; task-group and history services; tracker editors |
 | Legacy spheres          | src/components/Spheres/                                           | unmounted compatibility code; no active route or UI                                      |
 | English                 | src/components/English/                                           | src/store/services/english.ts                                                            |
 | External English progress | scripts/sync-english-progress.cjs                                | src/config/englishProgress.generated.json, numeric English-vocabulary aim                 |

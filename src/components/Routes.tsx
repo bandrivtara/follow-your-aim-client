@@ -14,6 +14,7 @@ import AddEditAimsCategory from "./Aims/AimsCategories/AddEditAimsCategory/AddEd
 import AimsCategoriesList from "./Aims/AimsCategories/AimsCategoriesList/AimsCategoriesList";
 import TasksGroupsList from "./TasksGroups/TasksGroupsList/TasksGroupsList";
 import AddEditTasksGroup from "./TasksGroups/AddEditTasksGroup/AddEditTasksGroup";
+import TasksOverview from "./TasksGroups/TasksOverview/TasksOverview";
 import AddEditGroup from "./English/Vocabulary/Groups/AddEditGroup/AddEditGroup";
 import GroupsList from "./English/Vocabulary/Groups/GroupsList/GroupsList";
 import AddEditWord from "./English/Vocabulary/Words/AddEditWord/AddEditWord";
@@ -66,6 +67,7 @@ const AppRoutes = () => {
             element={<AddEditHabitsCategory />}
           />
 
+          <Route path={routes.taskGroups.tasks} element={<TasksOverview />} />
           <Route path={routes.taskGroups.list} element={<TasksGroupsList />} />
           <Route path={routes.taskGroups.add} element={<AddEditTasksGroup />} />
           <Route

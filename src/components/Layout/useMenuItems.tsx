@@ -55,6 +55,12 @@ const useMenuItems = () => {
       icon: <OrderedListOutlined rev="string" />,
       children: [
         {
+          key: 30,
+          label: "Усі завдання",
+          onClick: () => navigate(routes.taskGroups.tasks),
+          icon: <OrderedListOutlined rev="string" />,
+        },
+        {
           key: 31,
           label: "Усі групи завдань",
           onClick: () => navigate(routes.taskGroups.list),

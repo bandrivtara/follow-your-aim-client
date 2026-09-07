@@ -6,6 +6,7 @@ import {
   getDocs,
   getDoc,
   setDoc,
+  writeBatch,
   query,
   where,
 } from "firebase/firestore";
@@ -23,6 +24,7 @@ export const historyFirestoreApi = api.injectEndpoints({
           let historyList: IHistoryData[] = [];
           querySnapshot?.forEach((doc) => {
             historyList.push({
+              id: doc.id,
               ...doc.data(),
             } as IHistoryData);
           });
@@ -106,6 +108,47 @@ export const historyFirestoreApi = api.injectEndpoints({
       },
       invalidatesTags: ["History"],
     }),
+    updateHistoryEntries: builder.mutation({
+      async queryFn(entries) {
+        try {
+          const groupedEntries = entries.reduce((result, entry) => {
+            result[entry.id] = result[entry.id] || [];
+            result[entry.id].push(entry);
+            return result;
+          }, {});
+          const batch = writeBatch(db);
+
+          for (const [historyId, historyEntries] of Object.entries(
+            groupedEntries,
+          )) {
+            const historyRef = doc(db, "history", historyId);
+            const historySnapshot = await getDoc(historyRef);
+            if (historySnapshot.exists()) {
+              const update = { unix: dayjs(historyId).unix() };
+              historyEntries.forEach((entry) => {
+                update[entry.path] = entry.data;
+              });
+              batch.update(historyRef, update);
+            } else {
+              const documentData = { unix: dayjs(historyId).unix() };
+              historyEntries.forEach((entry) => {
+                const [dayId, activityId] = entry.path.split(".");
+                documentData[dayId] = documentData[dayId] || {};
+                documentData[dayId][activityId] = entry.data;
+              });
+              batch.set(historyRef, documentData);
+            }
+          }
+
+          await batch.commit();
+          return { data: null };
+        } catch (error: any) {
+          console.error(error.message);
+          return { error: error.message };
+        }
+      },
+      invalidatesTags: ["History"],
+    }),
   }),
 });
 
@@ -113,5 +156,6 @@ export const {
   useGetHistoryQuery,
   useGetHistoryListQuery,
   useUpdateHistoryMutation,
+  useUpdateHistoryEntriesMutation,
   useGetHistoryBetweenDatesQuery,
 } = historyFirestoreApi;

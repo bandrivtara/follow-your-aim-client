@@ -20,6 +20,7 @@ export interface ITaskStage {
 }
 
 export type ITaskStatus = "pending" | "failed" | "done";
+export type ITaskPriority = "low" | "medium" | "high";
 
 export interface ITask {
   id?: string;
@@ -27,6 +28,7 @@ export interface ITask {
   description?: string;
   link?: string;
   status: ITaskStatus;
+  priority?: ITaskPriority;
   time: Array<number | string>;
   category?: string;
   failureReason?: string;

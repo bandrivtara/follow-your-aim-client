@@ -18,6 +18,7 @@ const routes = {
   career: "/career",
   taskGroups: {
     path: "/task-groups",
+    tasks: "/task-groups/tasks",
     list: "/task-groups/list",
     add: "/task-groups/add",
     edit: "/task-groups/edit",
