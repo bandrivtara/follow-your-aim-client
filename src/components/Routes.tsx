@@ -25,6 +25,7 @@ import GoalsGratitude from "./Review/GoalsGratitude/GoalsGratitude";
 import WeeklyReview from "./Review/WeeklyReview/WeeklyReview";
 import CodexGuide from "./Review/CodexGuide/CodexGuide";
 import CareerDashboard from "./Career/CareerDashboard";
+import NutritionDashboard from "./Nutrition/NutritionDashboard";
 
 const AppRoutes = () => {
   return (
@@ -47,6 +48,7 @@ const AppRoutes = () => {
           <Route path={routes.review.weekly} element={<WeeklyReview />} />
           <Route path={routes.review.codex} element={<CodexGuide />} />
           <Route path={routes.career} element={<CareerDashboard />} />
+          <Route path={routes.nutrition} element={<NutritionDashboard />} />
 
           <Route path={routes.habit.list} element={<Habit />} />
           <Route path={routes.habit.add} element={<AddEditHabit />} />

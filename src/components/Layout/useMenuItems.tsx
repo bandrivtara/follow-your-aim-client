@@ -14,6 +14,7 @@ import {
   BarChartOutlined,
   CodeOutlined,
   RocketOutlined,
+  HeartOutlined,
 } from "@ant-design/icons";
 import type { MenuProps } from "antd";
 import routes from "../../config/routes";
@@ -117,6 +118,12 @@ const useMenuItems = () => {
       label: "Кар'єра",
       onClick: () => navigate(routes.career),
       icon: <RocketOutlined rev="string" />,
+    },
+    {
+      key: 9,
+      label: "Харчування",
+      onClick: () => navigate(routes.nutrition),
+      icon: <HeartOutlined rev="string" />,
     },
     {
       key: 6,

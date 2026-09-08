@@ -16,6 +16,7 @@ const routes = {
     codex: "/review/codex",
   },
   career: "/career",
+  nutrition: "/nutrition",
   taskGroups: {
     path: "/task-groups",
     tasks: "/task-groups/tasks",
