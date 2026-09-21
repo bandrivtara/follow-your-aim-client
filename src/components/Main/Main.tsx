@@ -38,7 +38,10 @@ import {
   useGetHistoryBetweenDatesQuery,
   useUpdateHistoryMutation,
 } from "store/services/history";
-import { useGetTaskGroupListQuery } from "store/services/taskGroups";
+import {
+  useGetTaskGroupListQuery,
+  useUpdateTaskGroupMutation,
+} from "store/services/taskGroups";
 import {
   useGetDailyReviewMonthQuery,
   useGetDailyReviewsBetweenDatesQuery,
@@ -82,6 +85,8 @@ import {
   getRecoveryHabits,
   getPendingDashboardAgendaItems,
 } from "./dashboardCalculations";
+import { reconcileTaskPool } from "components/TasksGroups/taskPool";
+import { ITask } from "types/taskGroups";
 
 const formatTime = (time?: Array<number | string>) =>
   Array.isArray(time) && time.length >= 2
@@ -154,6 +159,7 @@ const Main = () => {
     { skip: yesterday.isSame(now, "month") },
   );
   const [updateHistory] = useUpdateHistoryMutation();
+  const [updateTaskGroup] = useUpdateTaskGroupMutation();
 
   const dashboardData = useMemo(() => {
     const historyData = (history.data || []) as Record<string, any>[];
@@ -321,6 +327,36 @@ const Main = () => {
     data,
   });
 
+  const syncTaskPool = async (
+    taskGroupId: string,
+    tasks: unknown[] = [],
+  ) => {
+    const taskGroup = taskGroups.data?.find(({ id }) => id === taskGroupId);
+    const validTasks = tasks.filter(
+      (task): task is ITask =>
+        Boolean(
+          task &&
+            typeof task === "object" &&
+            "title" in task &&
+            typeof task.title === "string" &&
+            "status" in task &&
+            Array.isArray((task as ITask).time),
+        ),
+    );
+    if (!taskGroup || !validTasks.length) return;
+
+    try {
+      await updateTaskGroup({
+        id: taskGroup.id,
+        data: reconcileTaskPool(taskGroup, validTasks),
+      }).unwrap();
+    } catch {
+      message.warning(
+        "Результат збережено в трекері, але пул завдань не оновився.",
+      );
+    }
+  };
+
   const saveQuickActivity = async (
     item: DashboardAgendaItem,
     data: Record<string, any>,
@@ -367,10 +403,9 @@ const Main = () => {
     }
 
     if (typeof item.taskIndex === "number") {
-      await saveQuickActivity(
-        item,
-        completeTaskAtIndex(item.source, item.taskIndex),
-      );
+      const nextActivity = completeTaskAtIndex(item.source, item.taskIndex);
+      const saved = await saveQuickActivity(item, nextActivity);
+      if (saved) await syncTaskPool(item.activityId, nextActivity.tasks);
       return;
     }
 
@@ -394,11 +429,19 @@ const Main = () => {
     }
 
     if (typeof failureItem.taskIndex === "number") {
+      const nextActivity = failTaskAtIndex(
+        failureItem.source,
+        failureItem.taskIndex,
+        reason,
+      );
       const saved = await saveQuickActivity(
         failureItem,
-        failTaskAtIndex(failureItem.source, failureItem.taskIndex, reason),
+        nextActivity,
       );
-      if (saved) setFailureItem(undefined);
+      if (saved) {
+        await syncTaskPool(failureItem.activityId, nextActivity.tasks);
+        setFailureItem(undefined);
+      }
       return;
     }
 
@@ -463,19 +506,18 @@ const Main = () => {
 
     setIsSavingQuickTask(true);
     try {
+      const nextActivity = appendQuickTask(
+        taskGroup,
+        currentSource,
+        title,
+        uniqid(),
+        time,
+        category,
+      );
       await updateHistory(
-        getTodayHistoryUpdate(
-          taskGroup.id,
-          appendQuickTask(
-            taskGroup,
-            currentSource,
-            title,
-            uniqid(),
-            time,
-            category,
-          ),
-        ),
+        getTodayHistoryUpdate(taskGroup.id, nextActivity),
       ).unwrap();
+      await syncTaskPool(taskGroup.id, nextActivity.tasks);
       message.success(`Справу додано до «${taskGroup.title}»`);
       setIsQuickTaskOpen(false);
     } catch {

@@ -154,6 +154,7 @@ export const historyFirestoreApi = api.injectEndpoints({
 
 export const {
   useGetHistoryQuery,
+  useLazyGetHistoryQuery,
   useGetHistoryListQuery,
   useUpdateHistoryMutation,
   useUpdateHistoryEntriesMutation,

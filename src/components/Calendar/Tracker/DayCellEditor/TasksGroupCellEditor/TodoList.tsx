@@ -29,7 +29,10 @@ import { ColDef } from "ag-grid-community";
 import { IHabitDayData, IStopEditing } from "../../cellConfigs";
 import StyledTodoList from "./TodoList.styled";
 import { useUpdateHistoryMutation } from "store/services/history";
-import { useGetTaskGroupQuery } from "store/services/taskGroups";
+import {
+  useGetTaskGroupQuery,
+  useUpdateTaskGroupMutation,
+} from "store/services/taskGroups";
 import { TimePicker } from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import { ITasksHistoryData } from "types/history.types";
@@ -37,6 +40,7 @@ import { ITask } from "types/taskGroups";
 import { LIFE_AREAS } from "config/lifeAreas";
 import { normalizeHistoryDayKey } from "share/functions/historyDayKey";
 import FailureReasonDialog from "share/components/FailureReasonDialog/FailureReasonDialog";
+import { reconcileTaskPool } from "components/TasksGroups/taskPool";
 
 interface IProps {
   colDef: ColDef<ITasksHistoryData>;
@@ -73,6 +77,7 @@ const TodoList = ({ data, colDef, stopEditing }: IProps) => {
   });
 
   const [updateHistory] = useUpdateHistoryMutation();
+  const [updateTaskGroup] = useUpdateTaskGroupMutation();
   const [failureTaskIndex, setFailureTaskIndex] = useState<number | null>(null);
   const taskGroupDetails = useGetTaskGroupQuery(data.id);
 
@@ -127,6 +132,13 @@ const TodoList = ({ data, colDef, stopEditing }: IProps) => {
       };
 
       await updateHistory(historyToUpdate).unwrap();
+
+      if (taskGroupDetails.data) {
+        await updateTaskGroup({
+          id: taskGroupDetails.data.id,
+          data: reconcileTaskPool(taskGroupDetails.data, validatedTasks),
+        }).unwrap();
+      }
 
       stopEditing();
     }

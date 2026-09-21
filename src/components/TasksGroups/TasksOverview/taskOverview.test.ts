@@ -105,4 +105,24 @@ describe("task overview", () => {
       ]),
     ).toMatchObject({ progress: 50, status: "pending", isPlanned: true });
   });
+
+  it("does not duplicate a completed history item from the task pool", () => {
+    const rows = buildTaskOverviewRows(groups, [
+      {
+        id: "2026-09",
+        "07": {
+          work: {
+            tasks: [
+              { id: "plan", title: "AI-план", status: "done", time: [9, 0] },
+            ],
+          },
+        },
+      },
+    ]);
+
+    expect(rows.filter(({ task }) => task.id === "plan")).toHaveLength(1);
+    expect(rows.find(({ task }) => task.id === "plan")?.source).toBe(
+      "scheduled",
+    );
+  });
 });

@@ -31,6 +31,7 @@ import "dayjs/locale/uk";
 import { useMemo, useState } from "react";
 import { LIFE_AREAS, getLifeAreaTitle } from "config/lifeAreas";
 import {
+  useLazyGetHistoryQuery,
   useGetHistoryListQuery,
   useUpdateHistoryEntriesMutation,
 } from "store/services/history";
@@ -47,6 +48,7 @@ import {
 } from "types/taskGroups";
 import uniqid from "uniqid";
 import StyledTasksOverview from "./TasksOverview.styled";
+import { reconcileTaskPool } from "../taskPool";
 import {
   buildTaskOverviewRows,
   buildTasksActivity,
@@ -90,15 +92,23 @@ const statusDetails: Record<
 };
 
 const viewOptions: Array<{ value: ViewFilter; label: string }> = [
-  { value: "active", label: "Активні" },
+  { value: "active", label: "Пул активних" },
   { value: "today", label: "Сьогодні" },
   { value: "overdue", label: "Прострочені" },
   { value: "upcoming", label: "Майбутні" },
   { value: "unscheduled", label: "Без дати" },
   { value: "failed", label: "Не виконані" },
-  { value: "done", label: "Завершені" },
-  { value: "all", label: "Усі" },
+  { value: "done", label: "Архів виконаних" },
+  { value: "all", label: "Уся історія" },
 ];
+
+const historyViews = new Set<ViewFilter>([
+  "today",
+  "overdue",
+  "upcoming",
+  "done",
+  "all",
+]);
 
 const emptyDraft = (groupId = ""): TaskDraft => ({
   title: "",
@@ -154,7 +164,7 @@ const historyEntry = (date: string, groupId: string, data: unknown) => {
 
 const TasksOverview = () => {
   const taskGroupsQuery = useGetTaskGroupListQuery();
-  const historyQuery = useGetHistoryListQuery();
+  const [getHistoryMonth] = useLazyGetHistoryQuery();
   const [updateTaskGroup, taskGroupUpdate] = useUpdateTaskGroupMutation();
   const [updateHistoryEntries, historyUpdate] =
     useUpdateHistoryEntriesMutation();
@@ -168,6 +178,10 @@ const TasksOverview = () => {
   const [draft, setDraft] = useState<TaskDraft>(emptyDraft());
   const [failureRow, setFailureRow] = useState<TaskOverviewRow | null>(null);
   const today = useMemo(() => dayjs().startOf("day"), []);
+  const shouldLoadHistory = historyViews.has(viewFilter);
+  const historyQuery = useGetHistoryListQuery(undefined, {
+    skip: !shouldLoadHistory,
+  });
 
   const taskGroups = useMemo(
     () =>
@@ -176,13 +190,20 @@ const TasksOverview = () => {
       ),
     [taskGroupsQuery.data],
   );
+  const poolRows = useMemo(
+    () => sortTaskOverviewRows(buildTaskOverviewRows(taskGroups), today),
+    [taskGroups, today],
+  );
   const rows = useMemo(
     () =>
       sortTaskOverviewRows(
-        buildTaskOverviewRows(taskGroups, (historyQuery.data || []) as any[]),
+        buildTaskOverviewRows(
+          taskGroups,
+          shouldLoadHistory ? ((historyQuery.data || []) as any[]) : [],
+        ),
         today,
       ),
-    [historyQuery.data, taskGroups, today],
+    [historyQuery.data, shouldLoadHistory, taskGroups, today],
   );
 
   const filteredRows = useMemo(() => {
@@ -230,25 +251,40 @@ const TasksOverview = () => {
     return Array.from(groups.entries());
   }, [filteredRows]);
 
-  const todayRows = rows.filter(
-    (row) => row.date && dayjs(row.date).isSame(today, "day"),
-  );
-  const completedToday = todayRows.filter(
-    (row) => row.task.status === "done",
+  const activePoolRows = poolRows.filter((row) => row.task.status !== "done");
+  const highPriorityCount = activePoolRows.filter(
+    (row) => row.task.priority === "high",
   ).length;
-  const overdueCount = rows.filter(
-    (row) => getTaskOverviewBucket(row, today) === "overdue",
+  const failedCount = activePoolRows.filter(
+    (row) => row.task.status === "failed",
   ).length;
-  const unscheduledCount = rows.filter(
-    (row) => getTaskOverviewBucket(row, today) === "unscheduled",
-  ).length;
-  const upcomingCount = rows.filter(
-    (row) => getTaskOverviewBucket(row, today) === "upcoming",
-  ).length;
+  const activeGroupsCount = new Set(activePoolRows.map((row) => row.groupId))
+    .size;
   const isSaving = taskGroupUpdate.isLoading || historyUpdate.isLoading;
 
   const getGroup = (groupId: string) =>
     taskGroups.find((group) => group.id === groupId);
+
+  const getHistoryForDate = async (date: string) => {
+    const monthId = dayjs(date).format("YYYY-MM");
+    const loadedMonth = (historyQuery.data || []).find(
+      (month: any) => month.id === monthId,
+    );
+    if (loadedMonth) return [loadedMonth] as any[];
+
+    const month = await getHistoryMonth(monthId).unwrap();
+    return [{ id: monthId, ...(month || {}) }] as any[];
+  };
+
+  const syncScheduledTaskToPool = async (
+    group: ITasksGroup,
+    task: ITask,
+  ) => {
+    await updateTaskGroup({
+      id: group.id,
+      data: reconcileTaskPool(group, [task]),
+    }).unwrap();
+  };
 
   const saveRepositoryTask = async (row: TaskOverviewRow, nextTask: ITask) => {
     const group = getGroup(row.groupId);
@@ -275,8 +311,9 @@ const TasksOverview = () => {
     group: ITasksGroup,
     task: ITask,
   ) => {
+    const history = await getHistoryForDate(date);
     const activity = findTaskActivity(
-      (historyQuery.data || []) as any[],
+      history,
       date,
       group.id,
     );
@@ -309,12 +346,14 @@ const TasksOverview = () => {
           buildTasksActivity(group, row.activity, sourceTasks),
         ),
       ]).unwrap();
+      await syncScheduledTaskToPool(group, nextTask);
       return;
     }
 
     sourceTasks.splice(row.taskIndex, 1);
+    const targetHistory = await getHistoryForDate(nextDate);
     const targetActivity = findTaskActivity(
-      (historyQuery.data || []) as any[],
+      targetHistory,
       nextDate,
       row.groupId,
     );
@@ -331,6 +370,7 @@ const TasksOverview = () => {
         buildTasksActivity(group, targetActivity, targetTasks),
       ),
     ]).unwrap();
+    await syncScheduledTaskToPool(group, nextTask);
   };
 
   const persistRow = async (
@@ -380,13 +420,12 @@ const TasksOverview = () => {
         const group = getGroup(draft.groupId);
         if (!group) throw new Error("Task group not found");
         const task = draftToTask(draft);
+        await updateTaskGroup({
+          id: group.id,
+          data: { tasksStore: [...(group.tasksStore || []), task] },
+        }).unwrap();
         if (draft.date) {
           await appendScheduledTask(draft.date, group, task);
-        } else {
-          await updateTaskGroup({
-            id: group.id,
-            data: { tasksStore: [...(group.tasksStore || []), task] },
-          }).unwrap();
         }
       }
       message.success(editorRow ? "Завдання оновлено" : "Завдання додано");
@@ -428,7 +467,10 @@ const TasksOverview = () => {
     }
   };
 
-  if (taskGroupsQuery.isLoading || historyQuery.isLoading) {
+  if (
+    taskGroupsQuery.isLoading ||
+    (shouldLoadHistory && historyQuery.isLoading)
+  ) {
     return (
       <StyledTasksOverview>
         <div className="loading-state">
@@ -444,8 +486,9 @@ const TasksOverview = () => {
         <div>
           <h1 className="page-title">Усі завдання</h1>
           <p className="page-subtitle">
-            Єдиний огляд справ зі сховища, етапів і календаря. Плануй день,
-            змінюй пріоритети та перенось прострочене без пошуку в трекері.
+            Швидкий пул незавершених справ зі сховища та етапів. Історія
+            календаря завантажується лише коли ти відкриваєш відповідний
+            фільтр або архів.
           </p>
         </div>
         <Button
@@ -458,7 +501,8 @@ const TasksOverview = () => {
         </Button>
       </header>
 
-      {(taskGroupsQuery.isError || historyQuery.isError) && (
+      {(taskGroupsQuery.isError ||
+        (shouldLoadHistory && historyQuery.isError)) && (
         <Alert severity="error">
           Не вдалося завантажити всі дані. Онови сторінку та спробуй ще раз.
         </Alert>
@@ -466,24 +510,26 @@ const TasksOverview = () => {
 
       <section className="summary-grid" aria-label="Огляд завдань">
         <div className="summary-card">
-          <span className="summary-label">Сьогодні виконано</span>
-          <strong className="summary-value">
-            {completedToday}/{todayRows.length}
-          </strong>
+          <span className="summary-label">У пулі</span>
+          <strong className="summary-value">{activePoolRows.length}</strong>
         </div>
         <div className="summary-card">
-          <span className="summary-label">Прострочені</span>
-          <strong className="summary-value">{overdueCount}</strong>
+          <span className="summary-label">Високий пріоритет</span>
+          <strong className="summary-value">{highPriorityCount}</strong>
         </div>
         <div className="summary-card">
-          <span className="summary-label">Без дати</span>
-          <strong className="summary-value">{unscheduledCount}</strong>
+          <span className="summary-label">Не виконані</span>
+          <strong className="summary-value">{failedCount}</strong>
         </div>
         <div className="summary-card">
-          <span className="summary-label">Заплановано далі</span>
-          <strong className="summary-value">{upcomingCount}</strong>
+          <span className="summary-label">Активні групи</span>
+          <strong className="summary-value">{activeGroupsCount}</strong>
         </div>
       </section>
+
+      {shouldLoadHistory && historyQuery.isFetching && (
+        <Alert severity="info">Завантажую історію завдань…</Alert>
+      )}
 
       <section className="filters-card" aria-label="Фільтри завдань">
         <div className="view-filter">

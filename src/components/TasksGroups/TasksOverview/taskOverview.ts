@@ -57,7 +57,7 @@ export const buildTaskOverviewRows = (
   );
   const groupsById = new Map(visibleGroups.map((group) => [group.id, group]));
   const scheduledRowsByKey = new Map<string, TaskOverviewRow>();
-  const activeScheduledKeys = new Set<string>();
+  const scheduledKeys = new Set<string>();
 
   history.forEach((historyMonth) => {
     const monthId = getHistoryMonthId(historyMonth);
@@ -105,9 +105,7 @@ export const buildTaskOverviewRows = (
 
   const scheduledRows = Array.from(scheduledRowsByKey.values());
   scheduledRows.forEach((row) => {
-    if (row.task.status !== "done") {
-      activeScheduledKeys.add(getTaskMatchKey(row.groupId, row.task));
-    }
+    scheduledKeys.add(getTaskMatchKey(row.groupId, row.task));
   });
 
   const repositoryRows: TaskOverviewRow[] = [];
@@ -115,7 +113,7 @@ export const buildTaskOverviewRows = (
     (group.tasksStore || []).forEach((task, taskIndex) => {
       if (
         !task?.title?.trim() ||
-        activeScheduledKeys.has(getTaskMatchKey(group.id, task))
+        scheduledKeys.has(getTaskMatchKey(group.id, task))
       ) {
         return;
       }
@@ -133,7 +131,7 @@ export const buildTaskOverviewRows = (
       (stage.subTasks || []).forEach((task, taskIndex) => {
         if (
           !task?.title?.trim() ||
-          activeScheduledKeys.has(getTaskMatchKey(group.id, task))
+          scheduledKeys.has(getTaskMatchKey(group.id, task))
         ) {
           return;
         }
