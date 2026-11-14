@@ -39,9 +39,14 @@ Optional:
 - recipes with ingredients, steps, prep, storage, time, and equipment;
 - shoppingTrips with stable trip/item IDs, quantities, categories, stores,
   planned dates, and estimated prices.
+- prepSessions with scheduled preparation tasks, equipment, use dates, and
+  shopping dependencies;
+- freezerBatches with portions, reserve quantities, packaging, and defrost
+  dates.
 
-The v2 package adds shoppingTrips and richer recipe metadata. Existing v1
-Health files remain importable.
+The v2 package adds shoppingTrips, richer recipe metadata, preparation
+sessions, and freezer batches. The UI groups the last two structures in the
+fourth section, "Заготовки". Existing v1 Health files remain importable.
 
 ## User-maintained state
 
@@ -50,6 +55,7 @@ Follow Your Aim adds:
 - meal status: pending, eaten, or skipped;
 - optional skip reason;
 - shopping-item checked state.
+- preparation-task checked state.
 
 These values belong to Follow Your Aim and survive a repeat import of the same
 week when stable IDs remain unchanged.

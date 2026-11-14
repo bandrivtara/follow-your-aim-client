@@ -64,9 +64,9 @@ Any date fix must keep both read paths consistent and test first/last-day and cr
 
 - Added with explicit user approval on 2026-11-14.
 - Collection: `nutritionWeek`; document ID: Monday `weekStart` in `YYYY-MM-DD`.
-- Each document contains the validated schema version, week boundaries, targets, seven ordered days and meals, recipes, and shopping trips.
-- Meal execution is stored as `pending`, `eaten`, or `skipped`; shopping items store a boolean `checked`.
-- Reimporting the same week preserves execution and shopping progress by stable meal, trip, and item IDs.
+- Each document contains the validated schema version, week boundaries, targets, seven ordered days and meals, recipes, shopping trips, preparation sessions, and freezer batches.
+- Meal execution is stored as `pending`, `eaten`, or `skipped`; shopping items and preparation tasks store a boolean `checked`.
+- Reimporting the same week preserves execution, shopping progress, and preparation progress by stable meal, trip, session, task, and item IDs.
 - Medical analyses, diagnoses, medications, and the full Health profile are excluded.
 - Follow Your Aim does not calculate nutritional values and does not call an external nutrition API. The separate Health project owns planning and calculations.
 

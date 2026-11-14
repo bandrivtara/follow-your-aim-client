@@ -25,10 +25,12 @@ import {
 } from "@mui/material";
 import {
   CalendarMonthRounded,
+  AcUnitRounded,
   ChevronLeftRounded,
   ChevronRightRounded,
   CloudDoneRounded,
   LocalGroceryStoreRounded,
+  KitchenRounded,
   MenuBookRounded,
   RestaurantMenuRounded,
   UploadFileRounded,
@@ -102,6 +104,18 @@ const NutritionDashboard = () => {
     () => calculateShoppingProgress(selectedWeek?.shoppingTrips || []),
     [selectedWeek],
   );
+  const prepSessions = useMemo(
+    () => selectedWeek?.prepSessions || [],
+    [selectedWeek?.prepSessions],
+  );
+  const freezerBatches = selectedWeek?.freezerBatches || [];
+  const prepProgress = useMemo(() => {
+    const tasks = prepSessions.flatMap((session) => session.tasks);
+    return {
+      checked: tasks.filter((task) => task.checked).length,
+      total: tasks.length,
+    };
+  }, [prepSessions]);
   const weekTotals = useMemo(
     () =>
       selectedWeek?.days.reduce(
@@ -188,6 +202,23 @@ const NutritionDashboard = () => {
     });
   };
 
+  const togglePrepTask = (sessionId: string, taskId: string) => {
+    if (!selectedWeek) return;
+    void persistWeek({
+      ...selectedWeek,
+      prepSessions: (selectedWeek.prepSessions || []).map((session) =>
+        session.id === sessionId
+          ? {
+              ...session,
+              tasks: session.tasks.map((task) =>
+                task.id === taskId ? { ...task, checked: !task.checked } : task,
+              ),
+            }
+          : session,
+      ),
+    });
+  };
+
   const openMeal = (meal: NutritionMeal) => {
     const recipe = selectedWeek?.recipes.find(
       (candidate) => candidate.id === meal.recipeId,
@@ -215,7 +246,7 @@ const NutritionDashboard = () => {
             Харчування
           </Typography>
           <Typography className="page-subtitle">
-            Готовий тижневий план, рецепти та закупи з проєкту Health.
+            План, закупи, рецепти та заготовки з проєкту Health.
           </Typography>
         </div>
         <div className="nutrition-header-actions">
@@ -284,7 +315,8 @@ const NutritionDashboard = () => {
               </Typography>
               <Typography variant="caption" color="text.secondary">
                 {weekTotals.meals} прийомів · {selectedWeek.recipes.length}{" "}
-                рецептів · {shoppingProgress.total} позицій закупів
+                рецептів · {shoppingProgress.total} позицій закупів ·{" "}
+                {prepProgress.total} задач підготовки
               </Typography>
             </div>
             <IconButton
@@ -301,6 +333,9 @@ const NutritionDashboard = () => {
             value={tab}
             onChange={(_event, value) => setTab(value)}
             aria-label="Розділи харчування"
+            variant="scrollable"
+            scrollButtons="auto"
+            allowScrollButtonsMobile
           >
             <Tab
               icon={<CalendarMonthRounded />}
@@ -316,6 +351,11 @@ const NutritionDashboard = () => {
               icon={<MenuBookRounded />}
               iconPosition="start"
               label="Рецепти"
+            />
+            <Tab
+              icon={<KitchenRounded />}
+              iconPosition="start"
+              label="Заготовки"
             />
           </Tabs>
 
@@ -593,6 +633,229 @@ const NutritionDashboard = () => {
                   </Card>
                 ))}
               </div>
+            </section>
+          )}
+
+          {tab === 3 && (
+            <section className="nutrition-panel prep-section" role="tabpanel">
+              <div className="nutrition-section-heading">
+                <div>
+                  <Typography variant="h5">Заготовки на тиждень</Typography>
+                  <Typography color="text.secondary">
+                    {prepProgress.checked} із {prepProgress.total} задач
+                    виконано
+                    {freezerBatches.length
+                      ? ` · ${freezerBatches.length} партії у морозилку`
+                      : ""}
+                  </Typography>
+                </div>
+              </div>
+
+              {prepSessions.length ? (
+                <div className="prep-grid">
+                  {prepSessions.map((session) => {
+                    const checked = session.tasks.filter(
+                      (task) => task.checked,
+                    ).length;
+                    return (
+                      <Card
+                        className="dashboard-card prep-session-card"
+                        key={session.id}
+                      >
+                        <CardContent>
+                          <div className="card-heading">
+                            <div>
+                              <Typography variant="h6">
+                                {session.title}
+                              </Typography>
+                              <Typography
+                                variant="caption"
+                                color="text.secondary"
+                              >
+                                {[
+                                  session.plannedDate
+                                    ? dayjs(session.plannedDate)
+                                        .locale("uk")
+                                        .format("dd, D MMM")
+                                    : "",
+                                  session.plannedTime,
+                                  session.estimatedActiveMinutes
+                                    ? `${session.estimatedActiveMinutes} хв`
+                                    : "",
+                                ]
+                                  .filter(Boolean)
+                                  .join(" · ")}
+                              </Typography>
+                            </div>
+                            <Chip
+                              color={
+                                session.tasks.length > 0 &&
+                                checked === session.tasks.length
+                                  ? "success"
+                                  : "default"
+                              }
+                              label={`${checked}/${session.tasks.length}`}
+                            />
+                          </div>
+                          <LinearProgress
+                            variant="determinate"
+                            value={
+                              session.tasks.length
+                                ? (checked / session.tasks.length) * 100
+                                : 0
+                            }
+                          />
+                          {session.equipment.length ? (
+                            <div className="equipment-list">
+                              {session.equipment.map((item) => (
+                                <Chip size="small" label={item} key={item} />
+                              ))}
+                            </div>
+                          ) : null}
+                          <Divider />
+                          <div className="prep-task-list">
+                            {session.tasks.map((task) => (
+                              <FormControlLabel
+                                key={task.id}
+                                className={
+                                  task.checked
+                                    ? "prep-task is-checked"
+                                    : "prep-task"
+                                }
+                                control={
+                                  <Checkbox
+                                    checked={task.checked}
+                                    onChange={() =>
+                                      togglePrepTask(session.id, task.id)
+                                    }
+                                  />
+                                }
+                                label={
+                                  <span>
+                                    <strong>{task.title}</strong>
+                                    <small>
+                                      {[
+                                        task.quantity !== undefined
+                                          ? `${task.quantity} ${task.unit || ""}`.trim()
+                                          : "",
+                                        task.destination
+                                          ? `→ ${task.destination}`
+                                          : "",
+                                      ]
+                                        .filter(Boolean)
+                                        .join(" · ")}
+                                    </small>
+                                    {task.useDates.length ? (
+                                      <em>
+                                        Використати:{" "}
+                                        {task.useDates
+                                          .map((date) =>
+                                            dayjs(date).format("DD.MM"),
+                                          )
+                                          .join(", ")}
+                                      </em>
+                                    ) : null}
+                                  </span>
+                                }
+                              />
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              ) : (
+                <Alert severity="info">
+                  У цьому пакеті ще немає календаря підготовки.
+                </Alert>
+              )}
+
+              {freezerBatches.length ? (
+                <div className="freezer-section">
+                  <div className="subsection-heading">
+                    <AcUnitRounded />
+                    <div>
+                      <Typography variant="h6">Морозильні партії</Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Що заморозити, скільки лишити в резерві та коли
+                        перекласти в холодильник.
+                      </Typography>
+                    </div>
+                  </div>
+                  <div className="freezer-grid">
+                    {freezerBatches.map((batch) => (
+                      <Card
+                        className="dashboard-card freezer-card"
+                        key={batch.id}
+                      >
+                        <CardContent>
+                          <div className="card-heading">
+                            <div>
+                              <Typography variant="h6">
+                                {batch.title}
+                              </Typography>
+                              {batch.plannedPrepDate ? (
+                                <Typography
+                                  variant="caption"
+                                  color="text.secondary"
+                                >
+                                  Підготувати{" "}
+                                  {dayjs(batch.plannedPrepDate).format("DD.MM")}
+                                </Typography>
+                              ) : null}
+                            </div>
+                            <Chip
+                              color="primary"
+                              label={`${batch.totalPortions} порцій`}
+                            />
+                          </div>
+                          <div className="portion-summary">
+                            <span>
+                              <b>{batch.currentWeekPortions}</b>
+                              на цей тиждень
+                            </span>
+                            <span>
+                              <b>{batch.reservePortions}</b>у резерв
+                            </span>
+                            {batch.packSizePortions ? (
+                              <span>
+                                <b>{batch.packSizePortions}</b>в одному пакеті
+                              </span>
+                            ) : null}
+                          </div>
+                          {batch.defrostPlan.length ? (
+                            <div className="defrost-plan">
+                              {batch.defrostPlan.map((step) => (
+                                <div
+                                  key={`${step.moveToFridgeDate}-${step.useDate}`}
+                                >
+                                  <AcUnitRounded fontSize="small" />
+                                  <span>
+                                    <b>
+                                      {dayjs(step.moveToFridgeDate).format(
+                                        "DD.MM",
+                                      )}
+                                    </b>
+                                    {" → в холодильник · "}
+                                    {step.portions} порц. · з’їсти{" "}
+                                    {dayjs(step.useDate).format("DD.MM")}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          ) : null}
+                          {batch.finishAfterDefrost ? (
+                            <Typography className="finish-note" variant="body2">
+                              {batch.finishAfterDefrost}
+                            </Typography>
+                          ) : null}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
             </section>
           )}
         </>

@@ -62,6 +62,47 @@ export interface NutritionShoppingTrip {
   items: NutritionShoppingItem[];
 }
 
+export interface NutritionPrepTask {
+  id: string;
+  title: string;
+  quantity?: number;
+  unit?: string;
+  destination?: string;
+  useDates: string[];
+  dependsOnShoppingTripId?: string;
+  checked: boolean;
+}
+
+export interface NutritionPrepSession {
+  id: string;
+  plannedDate?: string;
+  plannedTime?: string;
+  title: string;
+  estimatedActiveMinutes?: number;
+  equipment: string[];
+  tasks: NutritionPrepTask[];
+}
+
+export interface NutritionDefrostStep {
+  moveToFridgeDate: string;
+  useDate: string;
+  portions: number;
+}
+
+export interface NutritionFreezerBatch {
+  id: string;
+  recipeId?: string;
+  title: string;
+  plannedPrepDate?: string;
+  totalPortions: number;
+  currentWeekPortions: number;
+  reservePortions: number;
+  packSizePortions?: number;
+  defrostPlan: NutritionDefrostStep[];
+  finishAfterDefrost?: string;
+  inventoryStatus?: string;
+}
+
 export interface NutritionWeek {
   schemaVersion: "fya-nutrition-v1" | "fya-nutrition-v2";
   weekStart: string;
@@ -75,6 +116,8 @@ export interface NutritionWeek {
   days: NutritionDay[];
   recipes: NutritionRecipe[];
   shoppingTrips: NutritionShoppingTrip[];
+  prepSessions: NutritionPrepSession[];
+  freezerBatches: NutritionFreezerBatch[];
 }
 
 export interface StoredNutritionWeek extends NutritionWeek {

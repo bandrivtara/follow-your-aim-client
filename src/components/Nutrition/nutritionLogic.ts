@@ -1,7 +1,9 @@
 import dayjs from "dayjs";
 import {
   NutritionDay,
+  NutritionFreezerBatch,
   NutritionMeal,
+  NutritionPrepSession,
   NutritionRecipe,
   NutritionShoppingTrip,
   NutritionTargets,
@@ -151,6 +153,99 @@ const parseShoppingTrips = (value: unknown): NutritionShoppingTrip[] =>
       })
     : [];
 
+const parsePrepSessions = (value: unknown): NutritionPrepSession[] =>
+  Array.isArray(value)
+    ? value.map((rawSession, sessionIndex) => {
+        if (!isObject(rawSession)) {
+          throw new Error(`Некоректна сесія заготовок №${sessionIndex + 1}.`);
+        }
+        const id = asString(rawSession.id) || `prep-${sessionIndex + 1}`;
+        const rawTasks = Array.isArray(rawSession.tasks)
+          ? rawSession.tasks
+          : [];
+        return {
+          id,
+          plannedDate: asString(rawSession.plannedDate) || undefined,
+          plannedTime: asString(rawSession.plannedTime) || undefined,
+          title: asString(rawSession.title, `Заготовки №${sessionIndex + 1}`),
+          estimatedActiveMinutes:
+            rawSession.estimatedActiveMinutes === undefined
+              ? undefined
+              : asNumber(rawSession.estimatedActiveMinutes),
+          equipment: asStringList(rawSession.equipment),
+          tasks: rawTasks.map((rawTask, taskIndex) => {
+            if (!isObject(rawTask)) {
+              throw new Error(`Некоректна задача заготовок у «${id}».`);
+            }
+            const title = asString(rawTask.title);
+            if (!title) {
+              throw new Error(`Задача заготовок у «${id}» не має title.`);
+            }
+            return {
+              id: asString(rawTask.id) || `${id}-task-${taskIndex + 1}`,
+              title,
+              quantity:
+                rawTask.quantity === undefined
+                  ? undefined
+                  : asNumber(rawTask.quantity),
+              unit: asString(rawTask.unit) || undefined,
+              destination: asString(rawTask.destination) || undefined,
+              useDates: asStringList(rawTask.useDates),
+              dependsOnShoppingTripId:
+                asString(rawTask.dependsOnShoppingTripId) || undefined,
+              checked: rawTask.checked === true,
+            };
+          }),
+        };
+      })
+    : [];
+
+const parseFreezerBatches = (value: unknown): NutritionFreezerBatch[] =>
+  Array.isArray(value)
+    ? value.map((rawBatch, batchIndex) => {
+        if (!isObject(rawBatch)) {
+          throw new Error(`Некоректна морозильна партія №${batchIndex + 1}.`);
+        }
+        const id = asString(rawBatch.id) || `freezer-${batchIndex + 1}`;
+        const title = asString(rawBatch.title);
+        if (!title) {
+          throw new Error(`Морозильна партія «${id}» не має title.`);
+        }
+        const rawDefrostPlan = Array.isArray(rawBatch.defrostPlan)
+          ? rawBatch.defrostPlan
+          : [];
+        return {
+          id,
+          recipeId: asString(rawBatch.recipeId) || undefined,
+          title,
+          plannedPrepDate: asString(rawBatch.plannedPrepDate) || undefined,
+          totalPortions: asNumber(rawBatch.totalPortions),
+          currentWeekPortions: asNumber(rawBatch.currentWeekPortions),
+          reservePortions: asNumber(rawBatch.reservePortions),
+          packSizePortions:
+            rawBatch.packSizePortions === undefined
+              ? undefined
+              : asNumber(rawBatch.packSizePortions),
+          defrostPlan: rawDefrostPlan.flatMap((rawStep) => {
+            if (!isObject(rawStep)) return [];
+            const moveToFridgeDate = asString(rawStep.moveToFridgeDate);
+            const useDate = asString(rawStep.useDate);
+            if (!moveToFridgeDate || !useDate) return [];
+            return [
+              {
+                moveToFridgeDate,
+                useDate,
+                portions: asNumber(rawStep.portions),
+              },
+            ];
+          }),
+          finishAfterDefrost:
+            asString(rawBatch.finishAfterDefrost) || undefined,
+          inventoryStatus: asString(rawBatch.inventoryStatus) || undefined,
+        };
+      })
+    : [];
+
 export const parseNutritionPackage = (value: string): NutritionWeek => {
   let parsed: unknown;
   try {
@@ -234,6 +329,8 @@ export const parseNutritionPackage = (value: string): NutritionWeek => {
     days,
     recipes,
     shoppingTrips: parseShoppingTrips(shoppingSource),
+    prepSessions: parsePrepSessions(parsed.prepSessions),
+    freezerBatches: parseFreezerBatches(parsed.freezerBatches),
   };
 };
 
@@ -248,9 +345,16 @@ export const mergeNutritionProgress = (
     ),
   );
   const shoppingProgress = new Map(
-    current.shoppingTrips.flatMap((trip) =>
+    (current.shoppingTrips || []).flatMap((trip) =>
       trip.items.map(
         (item) => [`${trip.id}:${item.id}`, item.checked] as const,
+      ),
+    ),
+  );
+  const prepProgress = new Map(
+    (current.prepSessions || []).flatMap((session) =>
+      session.tasks.map(
+        (task) => [`${session.id}:${task.id}`, task.checked] as const,
       ),
     ),
   );
@@ -274,6 +378,13 @@ export const mergeNutritionProgress = (
       items: trip.items.map((item) => ({
         ...item,
         checked: shoppingProgress.get(`${trip.id}:${item.id}`) ?? item.checked,
+      })),
+    })),
+    prepSessions: incoming.prepSessions.map((session) => ({
+      ...session,
+      tasks: session.tasks.map((task) => ({
+        ...task,
+        checked: prepProgress.get(`${session.id}:${task.id}`) ?? task.checked,
       })),
     })),
   };

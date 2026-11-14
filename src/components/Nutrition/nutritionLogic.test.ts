@@ -61,6 +61,44 @@ const makePackage = () =>
         ],
       },
     ],
+    prepSessions: [
+      {
+        id: "main-prep",
+        plannedDate: "2026-11-15",
+        plannedTime: "12:00",
+        title: "Основна підготовка",
+        estimatedActiveMinutes: 60,
+        equipment: ["аерогриль"],
+        tasks: [
+          {
+            id: "shape-cutlets",
+            title: "Сформувати котлети",
+            quantity: 10,
+            unit: "шт",
+            destination: "freezer",
+            useDates: ["2026-11-17"],
+          },
+        ],
+      },
+    ],
+    freezerBatches: [
+      {
+        id: "cutlets-batch",
+        title: "Котлети",
+        plannedPrepDate: "2026-11-15",
+        totalPortions: 10,
+        currentWeekPortions: 4,
+        reservePortions: 6,
+        packSizePortions: 2,
+        defrostPlan: [
+          {
+            moveToFridgeDate: "2026-11-16",
+            useDate: "2026-11-17",
+            portions: 2,
+          },
+        ],
+      },
+    ],
   });
 
 describe("nutritionLogic", () => {
@@ -75,6 +113,14 @@ describe("nutritionLogic", () => {
     });
     expect(week.recipes).toHaveLength(1);
     expect(week.shoppingTrips).toHaveLength(1);
+    expect(week.prepSessions[0].tasks[0]).toMatchObject({
+      id: "shape-cutlets",
+      checked: false,
+    });
+    expect(week.freezerBatches[0]).toMatchObject({
+      id: "cutlets-batch",
+      reservePortions: 6,
+    });
   });
 
   it("rejects a package that is not exactly seven ordered days", () => {
@@ -106,10 +152,15 @@ describe("nutritionLogic", () => {
         ...trip,
         items: trip.items.map((item) => ({ ...item, checked: true })),
       })),
+      prepSessions: incoming.prepSessions.map((session) => ({
+        ...session,
+        tasks: session.tasks.map((task) => ({ ...task, checked: true })),
+      })),
     };
     const merged = mergeNutritionProgress(incoming, current);
     expect(merged.days[0].meals[0].status).toBe("eaten");
     expect(merged.shoppingTrips[0].items[0].checked).toBe(true);
+    expect(merged.prepSessions[0].tasks[0].checked).toBe(true);
   });
 
   it("sums meal macros and shopping state", () => {

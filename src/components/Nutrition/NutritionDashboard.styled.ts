@@ -62,6 +62,10 @@ const NutritionLayout = styled.main`
     gap: 4px;
   }
 
+  .nutrition-tabs .MuiTabs-scroller {
+    overflow: auto !important;
+  }
+
   .nutrition-tabs .MuiTab-root {
     min-height: 40px;
     padding: 8px 16px;
@@ -585,7 +589,8 @@ const NutritionLayout = styled.main`
   }
 
   .shopping-section,
-  .recipes-section {
+  .recipes-section,
+  .prep-section {
     display: grid;
     gap: 14px;
   }
@@ -676,6 +681,149 @@ const NutritionLayout = styled.main`
     margin: 0;
   }
 
+  .prep-grid,
+  .freezer-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    align-items: start;
+  }
+
+  .prep-session-card .MuiCardContent-root,
+  .freezer-card .MuiCardContent-root {
+    display: grid;
+    gap: 14px;
+    padding: 18px;
+  }
+
+  .prep-session-card .MuiLinearProgress-root {
+    height: 7px;
+    overflow: hidden;
+    border-radius: 99px;
+    background: #edf0f5;
+  }
+
+  .equipment-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .equipment-list .MuiChip-root {
+    color: #4c5670;
+    background: #f1f3f8;
+  }
+
+  .prep-task-list {
+    display: grid;
+  }
+
+  .prep-task {
+    align-items: flex-start;
+    padding: 7px 0;
+    margin: 0;
+    border-bottom: 1px solid #edf0f5;
+  }
+
+  .prep-task:last-child {
+    border-bottom: 0;
+  }
+
+  .prep-task .MuiCheckbox-root {
+    padding-top: 4px;
+  }
+
+  .prep-task .MuiFormControlLabel-label {
+    width: 100%;
+  }
+
+  .prep-task .MuiFormControlLabel-label > span {
+    display: grid;
+    gap: 3px;
+  }
+
+  .prep-task small,
+  .prep-task em {
+    color: var(--fya-muted);
+    font-size: 0.76rem;
+  }
+
+  .prep-task em {
+    color: var(--fya-primary-dark);
+    font-style: normal;
+  }
+
+  .prep-task.is-checked strong {
+    color: var(--fya-muted);
+    text-decoration: line-through;
+  }
+
+  .freezer-section {
+    display: grid;
+    gap: 12px;
+    padding-top: 10px;
+  }
+
+  .subsection-heading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .subsection-heading > svg {
+    padding: 8px;
+    border-radius: 12px;
+    color: #2474a7;
+    background: #e9f5ff;
+    font-size: 40px;
+  }
+
+  .portion-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .portion-summary span {
+    display: grid;
+    gap: 2px;
+    padding: 10px;
+    border: 1px solid #e8ebf2;
+    border-radius: 10px;
+    color: var(--fya-muted);
+    background: #fafbfc;
+    font-size: 0.72rem;
+  }
+
+  .portion-summary b {
+    color: var(--fya-ink);
+    font-size: 1.05rem;
+  }
+
+  .defrost-plan {
+    display: grid;
+    gap: 7px;
+  }
+
+  .defrost-plan > div {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 10px;
+    border-radius: 10px;
+    color: #315d7c;
+    background: #edf7ff;
+    font-size: 0.8rem;
+    line-height: 1.35;
+  }
+
+  .finish-note {
+    padding: 10px 12px;
+    border-left: 3px solid #5b6cf9;
+    border-radius: 8px;
+    background: #f4f5ff;
+  }
+
   @media only screen and (max-width: 1100px) {
     .macro-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -721,8 +869,7 @@ const NutritionLayout = styled.main`
     }
 
     .nutrition-tabs .MuiTab-root {
-      min-width: 0;
-      flex: 1 1 0;
+      min-width: 126px;
       padding-right: 8px;
       padding-left: 8px;
     }
@@ -748,7 +895,9 @@ const NutritionLayout = styled.main`
     .targets-grid,
     .lists-grid,
     .shopping-grid,
-    .recipes-grid {
+    .recipes-grid,
+    .prep-grid,
+    .freezer-grid {
       grid-template-columns: 1fr;
     }
 
@@ -774,6 +923,10 @@ const NutritionLayout = styled.main`
 
     .planned-meal {
       grid-template-columns: 1fr;
+    }
+
+    .portion-summary {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
 `;
