@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title description">
+  <title id="title">Follow Your Aim</title>
+  <desc id="description">Стріла, що влучає в центр мішені</desc>
+  <defs>
+    <linearGradient id="background" x1="72" y1="48" x2="438" y2="474" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#5267F7" />
+      <stop offset="0.52" stop-color="#6657E8" />
+      <stop offset="1" stop-color="#7C3AED" />
+    </linearGradient>
+    <radialGradient id="highlight" cx="0" cy="0" r="1" gradientTransform="translate(152 108) rotate(48) scale(392)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF" stop-opacity="0.24" />
+      <stop offset="0.72" stop-color="#FFFFFF" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+
+  <rect x="16" y="16" width="480" height="480" rx="116" fill="url(#background)" />
+  <rect x="16" y="16" width="480" height="480" rx="116" fill="url(#highlight)" />
+
+  <circle cx="272" cy="246" r="138" fill="none" stroke="#FFFFFF" stroke-width="28" stroke-opacity="0.42" />
+  <circle cx="272" cy="246" r="76" fill="none" stroke="#FFFFFF" stroke-width="26" stroke-opacity="0.8" />
+
+  <path d="M104 414L350 168" fill="none" stroke="#FFFFFF" stroke-width="34" stroke-linecap="round" />
+  <path d="M274 168H350V244" fill="none" stroke="#FFFFFF" stroke-width="34" stroke-linecap="round" stroke-linejoin="round" />
+  <circle cx="272" cy="246" r="24" fill="#FDBA74" stroke="#FFFFFF" stroke-width="10" />
+</svg>
