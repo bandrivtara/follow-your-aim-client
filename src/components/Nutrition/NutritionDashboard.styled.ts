@@ -287,15 +287,14 @@ const NutritionLayout = styled.main`
 
   .week-grid {
     display: grid;
-    grid-template-columns: repeat(7, minmax(170px, 1fr));
-    gap: 10px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    align-items: stretch;
     padding: 2px 2px 8px;
-    overflow-x: auto;
-    scrollbar-gutter: stable;
   }
 
   .day-card {
-    min-width: 170px;
+    min-width: 0;
     box-shadow: 0 8px 22px rgba(16, 24, 40, 0.055);
   }
 
@@ -305,23 +304,29 @@ const NutritionLayout = styled.main`
     box-shadow: 0 10px 26px rgba(91, 108, 249, 0.12);
   }
 
+  .day-card--complete {
+    border-color: rgba(24, 168, 116, 0.45);
+    background: linear-gradient(180deg, #f5fcf9 0%, #ffffff 54%);
+  }
+
   .day-card .MuiCardContent-root {
     display: grid;
-    gap: 9px;
-    padding: 15px;
+    height: 100%;
+    gap: 12px;
+    padding: 18px;
   }
 
   .day-heading {
     display: flex;
-    min-height: 42px;
-    align-items: flex-start;
+    min-height: 46px;
+    align-items: center;
     justify-content: space-between;
     gap: 8px;
   }
 
   .day-name {
     color: var(--fya-ink);
-    font-size: 0.92rem;
+    font-size: 1.02rem;
     font-weight: 750;
     text-transform: capitalize;
   }
@@ -330,7 +335,49 @@ const NutritionLayout = styled.main`
     display: block;
     margin-top: 2px;
     color: var(--fya-muted);
+    font-size: 0.76rem;
+  }
+
+  .day-heading > b {
+    padding: 7px 10px;
+    border-radius: 10px;
+    color: var(--fya-primary-dark);
+    background: #eef0ff;
+    font-size: 0.88rem;
+    white-space: nowrap;
+  }
+
+  .day-macro-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .day-macro-row span {
+    padding: 4px 8px;
+    border: 1px solid #e8ebf2;
+    border-radius: 99px;
+    color: var(--fya-muted);
+    background: #f8f9fc;
     font-size: 0.72rem;
+    font-weight: 650;
+  }
+
+  .day-progress {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .day-progress .MuiLinearProgress-root {
+    margin: 0;
+  }
+
+  .day-progress > span {
+    color: var(--fya-muted);
+    font-size: 0.72rem;
+    white-space: nowrap;
   }
 
   .compact-meal-list {
@@ -433,12 +480,13 @@ const NutritionLayout = styled.main`
   }
 
   .day-card {
-    align-self: start;
+    align-self: stretch;
   }
 
   .day-note {
-    padding: 8px;
-    border-radius: 9px;
+    padding: 10px 12px;
+    border-left: 3px solid #f2c94c;
+    border-radius: 8px;
     color: #70520b;
     background: #fff8df;
     line-height: 1.35;
@@ -446,26 +494,32 @@ const NutritionLayout = styled.main`
 
   .day-meals {
     display: grid;
-    max-height: 390px;
-    gap: 8px;
-    overflow-y: auto;
+    align-content: start;
+    gap: 10px;
   }
 
   .planned-meal {
     display: grid;
-    gap: 6px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid #edf0f5;
+    grid-template-columns: minmax(0, 1fr) 118px;
+    align-items: center;
+    gap: 12px;
+    padding: 11px;
+    border: 1px solid #e8ebf2;
+    border-radius: 12px;
+    background: #fafbfc;
   }
 
   .planned-meal:last-child {
-    padding-bottom: 0;
-    border-bottom: 0;
+    border-bottom: 1px solid #e8ebf2;
   }
 
   .planned-meal button {
     display: grid;
-    gap: 2px;
+    grid-template-columns: 52px minmax(0, 1fr);
+    column-gap: 10px;
+    row-gap: 3px;
+    align-items: center;
+    min-width: 0;
     padding: 0;
     border: 0;
     color: inherit;
@@ -482,16 +536,52 @@ const NutritionLayout = styled.main`
   .planned-meal button > span,
   .planned-meal button > small {
     color: var(--fya-muted);
-    font-size: 0.72rem;
+    font-size: 0.74rem;
+  }
+
+  .planned-meal button > span {
+    display: grid;
+    grid-row: 1 / 3;
+    width: 52px;
+    min-height: 38px;
+    place-items: center;
+    border-radius: 9px;
+    color: var(--fya-primary-dark);
+    background: #eef0ff;
+    font-weight: 750;
+  }
+
+  .planned-meal button > strong,
+  .planned-meal button > small {
+    grid-column: 2;
+    min-width: 0;
+  }
+
+  .planned-meal button > strong {
+    line-height: 1.3;
   }
 
   .planned-meal select {
-    min-height: 32px;
-    padding: 4px 8px;
+    width: 100%;
+    min-height: 38px;
+    padding: 6px 9px;
     border: 1px solid var(--fya-border);
-    border-radius: 8px;
+    border-radius: 9px;
     color: var(--fya-ink);
     background: #fff;
+    font-weight: 650;
+  }
+
+  .planned-meal .meal-status--eaten {
+    border-color: rgba(24, 168, 116, 0.4);
+    color: #087a52;
+    background: #effaf6;
+  }
+
+  .planned-meal .meal-status--skipped {
+    border-color: rgba(229, 72, 77, 0.35);
+    color: #b4232b;
+    background: #fff3f3;
   }
 
   .shopping-section,
@@ -603,6 +693,10 @@ const NutritionLayout = styled.main`
     .recipes-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
+
+    .week-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
   }
 
   @media only screen and (max-width: 700px) {
@@ -659,8 +753,8 @@ const NutritionLayout = styled.main`
     }
 
     .week-grid {
-      margin-right: -12px;
-      padding-right: 12px;
+      grid-template-columns: 1fr;
+      padding-right: 2px;
     }
   }
 
@@ -676,6 +770,10 @@ const NutritionLayout = styled.main`
     .nutrition-section-heading {
       align-items: flex-start;
       flex-direction: column;
+    }
+
+    .planned-meal {
+      grid-template-columns: 1fr;
     }
   }
 `;

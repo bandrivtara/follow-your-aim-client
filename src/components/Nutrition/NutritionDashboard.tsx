@@ -356,6 +356,9 @@ const NutritionDashboard = () => {
                         "day-card" +
                         (day.date === dayjs().format("YYYY-MM-DD")
                           ? " day-card--today"
+                          : "") +
+                        (day.meals.length > 0 && eaten === day.meals.length
+                          ? " day-card--complete"
                           : "")
                       }
                       key={day.date}
@@ -372,19 +375,28 @@ const NutritionDashboard = () => {
                           </div>
                           <b>{Math.round(totals.calories)} ккал</b>
                         </div>
-                        <small>
-                          Б {Math.round(totals.protein)} · Ж{" "}
-                          {totals.fat ? Math.round(totals.fat) : "—"} · В{" "}
-                          {totals.carbs ? Math.round(totals.carbs) : "—"}
-                        </small>
-                        <LinearProgress
-                          variant="determinate"
-                          value={
-                            day.meals.length
-                              ? (eaten / day.meals.length) * 100
-                              : 0
-                          }
-                        />
+                        <div className="day-macro-row">
+                          <span>Б {Math.round(totals.protein)} г</span>
+                          <span>
+                            Ж {totals.fat ? Math.round(totals.fat) : "—"} г
+                          </span>
+                          <span>
+                            В {totals.carbs ? Math.round(totals.carbs) : "—"} г
+                          </span>
+                        </div>
+                        <div className="day-progress">
+                          <LinearProgress
+                            variant="determinate"
+                            value={
+                              day.meals.length
+                                ? (eaten / day.meals.length) * 100
+                                : 0
+                            }
+                          />
+                          <span>
+                            {eaten}/{day.meals.length} виконано
+                          </span>
+                        </div>
                         {day.note && (
                           <Typography className="day-note" variant="caption">
                             {day.note}
@@ -405,6 +417,9 @@ const NutritionDashboard = () => {
                                 </small>
                               </button>
                               <select
+                                className={
+                                  "meal-status meal-status--" + meal.status
+                                }
                                 aria-label={"Статус: " + meal.title}
                                 value={meal.status}
                                 onChange={(event) =>
