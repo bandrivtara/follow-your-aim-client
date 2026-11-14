@@ -2,6 +2,7 @@ import {
   calculateShoppingProgress,
   mergeNutritionProgress,
   parseNutritionPackage,
+  stripUndefinedValues,
   sumNutritionMeals,
 } from "./nutritionLogic";
 import { StoredNutritionWeek } from "./nutritionTypes";
@@ -122,5 +123,15 @@ describe("nutritionLogic", () => {
       total: 1,
       estimatedPrice: 8,
     });
+  });
+
+  it("removes undefined values before a Firestore write", () => {
+    expect(
+      stripUndefinedValues({
+        title: "План",
+        optional: undefined,
+        meals: [{ title: "Сніданок", fat: undefined }],
+      }),
+    ).toEqual({ title: "План", meals: [{ title: "Сніданок" }] });
   });
 });

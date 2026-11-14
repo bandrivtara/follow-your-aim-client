@@ -3,6 +3,7 @@ import {
   NutritionWeek,
   StoredNutritionWeek,
 } from "components/Nutrition/nutritionTypes";
+import { stripUndefinedValues } from "components/Nutrition/nutritionLogic";
 import { api, db } from "../api";
 
 export const nutritionWeeksFirestoreApi = api.injectEndpoints({
@@ -36,11 +37,13 @@ export const nutritionWeeksFirestoreApi = api.injectEndpoints({
     saveNutritionWeek: builder.mutation<null, NutritionWeek>({
       async queryFn(week) {
         try {
-          const documentData = Object.fromEntries(
-            Object.entries(week).filter(
-              ([key]) => key !== "id" && key !== "updatedAt",
+          const documentData = stripUndefinedValues(
+            Object.fromEntries(
+              Object.entries(week).filter(
+                ([key]) => key !== "id" && key !== "updatedAt",
+              ),
             ),
-          );
+          ) as Record<string, unknown>;
           await setDoc(doc(db, "nutritionWeek", week.weekStart), {
             ...documentData,
             updatedAt: Math.floor(Date.now() / 1000),

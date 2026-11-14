@@ -56,6 +56,18 @@ const statusLabels: Record<NutritionMeal["status"], string> = {
   skipped: "Пропустив",
 };
 
+const getErrorMessage = (error: unknown, fallback: string) => {
+  if (typeof error === "string") return error;
+  if (error instanceof Error) return error.message;
+  if (error && typeof error === "object") {
+    const details = error as Record<string, unknown>;
+    if (typeof details.message === "string") return details.message;
+    if (typeof details.error === "string") return details.error;
+    if (typeof details.data === "string") return details.data;
+  }
+  return fallback;
+};
+
 const NutritionDashboard = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [tab, setTab] = useState(0);
@@ -115,9 +127,7 @@ const NutritionDashboard = () => {
       setLocalError("");
     } catch (error) {
       setLocalError(
-        typeof error === "string"
-          ? error
-          : "Не вдалося зберегти зміни у Firebase.",
+        getErrorMessage(error, "Не вдалося зберегти зміни у Firebase."),
       );
     }
   };
@@ -136,9 +146,7 @@ const NutritionDashboard = () => {
       setLocalError("");
       setNotice("Тижневий пакет із Health імпортовано у Firebase.");
     } catch (error) {
-      setLocalError(
-        error instanceof Error ? error.message : "Не вдалося імпортувати файл.",
-      );
+      setLocalError(getErrorMessage(error, "Не вдалося імпортувати файл."));
     }
   };
 

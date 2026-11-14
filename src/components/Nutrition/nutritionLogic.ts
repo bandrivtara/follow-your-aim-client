@@ -11,6 +11,22 @@ import {
 
 type JsonObject = Record<string, unknown>;
 
+export const stripUndefinedValues = (value: unknown): unknown => {
+  if (Array.isArray(value)) {
+    return value
+      .filter((item) => item !== undefined)
+      .map((item) => stripUndefinedValues(item));
+  }
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value)
+        .filter(([, item]) => item !== undefined)
+        .map(([key, item]) => [key, stripUndefinedValues(item)]),
+    );
+  }
+  return value;
+};
+
 const isObject = (value: unknown): value is JsonObject =>
   Boolean(value) && typeof value === "object" && !Array.isArray(value);
 
