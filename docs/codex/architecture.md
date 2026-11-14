@@ -1,6 +1,6 @@
 # Architecture
 
-Last verified: 2026-07-28 on FYA-17-create-chart-analytics at commit 8e8a061.
+Last verified: 2026-08-18 on FYA-17-create-chart-analytics.
 
 ## Runtime outline
 
@@ -29,18 +29,28 @@ Typical flow: screen/component -> generated query or mutation hook -> service qu
 
 ## Feature domains
 
-- Main: current-day plan-performance dashboard, weekly chart that can exceed 100% for completed work outside the plan, activity streak, active aims, planned timed habits, quick navigation, and water counter.
+- Main: current-day plan-performance dashboard, a mobile daily agenda combining planned habits with concrete task-list items, focus carried from yesterday's review, a "never miss twice" recovery cue, quick voice/text task capture into an existing flat task group, copy-yesterday/copy-same-weekday/manual plan setup, inline completion for boolean/measured habits and task items, review status, context-aware empty states, a weekly chart that can exceed 100% for completed work outside the plan, complexity-weighted weekly life balance by habit area, activity streak, active aims, full JSON backup download, and water counter.
 - Calendar tracker: current day/week/month navigation plus planning and completion history for habits and task groups. The selected period can be downloaded as a Markdown report with nested todo items and an AI-analysis prompt.
-- Scheduler: read-only day/week/month projection of timed habit history entries, with fallback to the current habit schedule for legacy history. Persistent editing remains in the tracker.
+- The former standalone scheduler is no longer active. Its old route redirects to the dashboard; time fields remain part of habits/history and feed the daily agenda and tracker ordering.
 - Aims: CRUD, categories, calendar spans, and progress from direct values, measured habits, or task-group stages.
-- Habits: CRUD, categories, measures, schedules, and relationships.
+- Habits: CRUD, routine/time categories, independent life-area metadata, complexity, measures, schedules, and relationships.
 - Task groups: reusable task store, optional stages/subtasks, and per-day todo instances in tracker history.
+- Reviews: five-question daily reflection with mood/energy and optional browser dictation; saving requires all five answers and atomically completes the configured daily-review habit in tracker history. The weekly summary combines tracker facts and reflections. A separate next-week planning export adds four-week context, active aims, unfinished work, future planned activities, and the Weekly Planning Protocol v1 prompt. The Codex helper page explains the safe read-only → dry-run → confirmed apply workflow and provides copyable prompts without reading or writing Firebase itself.
 - Life spheres are no longer exposed in navigation, routes, forms, lists, or calendars. Legacy sphere documents, optional sphereId fields, and inert compatibility code remain untouched so existing Firebase data is not migrated or deleted.
 - English: vocabulary groups, words, and word tests.
+- Nutrition: imports a versioned plan JSON from the local Health project, tracks each planned/manual meal with time, calories, completion or skip reason, finalizes the previous day into a compact tracker calorie summary, shows strength-training context, exports analysis JSON, and opens print-ready weekly-plan and recipe reports for saving as PDF.
 
 ## UI composition
 
-Ant Design supplies navigation/forms, MUI supplies widgets/drawers/charts, AG Grid powers tracker and aim calendars, DevExpress powers the scheduler, and styled-components plus global CSS provide styling. Avoid adding another UI system.
+Ant Design supplies navigation/forms, MUI supplies widgets/drawers/charts, AG Grid powers tracker and aim calendars, and styled-components plus global CSS provide styling. The shared palette and component tokens live in `src/config/uiTheme.ts`; global layout, focus, scrollbar, and AG Grid defaults live in `src/globalStyles.css`. Avoid adding another UI system.
+
+On screens up to 768px, the main workflow uses a fixed bottom navigation: Today, Tracker, Daily Review, Weekly Review, and More. The More action opens the complete application menu. The Today screen prioritizes daily focus, recovery, quick task capture, and the current plan before desktop-oriented charts. The tracker opens its day view from mobile navigation and uses a full-width editor drawer.
+
+The production build registers a small app-shell service worker and ships an installable Ukrainian PWA manifest. This caches the application shell, not Firestore data; the global network/save indicator warns users not to close the app while offline.
+
+## Local Codex bridge
+
+The repository includes a local command API in `scripts/fya-codex-bridge.cjs`; it is not an HTTP server or a second application backend. It can export raw context read-only and validate a narrow `fya-plan-v1` document. Planning updates are dry-run by default and can only merge allowed plan fields into existing activity IDs under `history/{YYYY-MM}` after an explicit `--apply`. Big 3 stays in the conversation and is not persisted.
 
 ## Boundaries
 

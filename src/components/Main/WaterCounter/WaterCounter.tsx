@@ -19,7 +19,12 @@ import {
   useUpdateHistoryMutation,
 } from "store/services/history";
 
-const WaterCounter = () => {
+interface WaterCounterProps {
+  className?: string;
+  compact?: boolean;
+}
+
+const WaterCounter = ({ className, compact = false }: WaterCounterProps) => {
   const currentMonth = dayjs().format("YYYY-MM");
   const currentDay = dayjs().format("DD");
   const waterHabitId = habitsConfig.habits.water;
@@ -58,7 +63,7 @@ const WaterCounter = () => {
   };
 
   return (
-    <Card sx={{ width: "100%", borderRadius: 4 }}>
+    <Card className={className} sx={{ width: "100%", borderRadius: 4 }}>
       <Box sx={{ textAlign: "center", padding: 2 }}>
         <Typography variant="h5">Вода сьогодні</Typography>
         <Box
@@ -111,7 +116,7 @@ const WaterCounter = () => {
           innerRadius="80%"
           outerRadius="100%"
           sx={{ marginTop: 2 }}
-          height={200}
+          height={compact ? 150 : 200}
           text={`${waterCount}/${minToComplete} ml`}
         />
       </Box>

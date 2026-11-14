@@ -12,6 +12,8 @@ description: Safely audit, diagnose, test, refactor, and extend the Follow Your 
 - Read ../../../docs/codex/firebase-contract.md before touching services, history, tracker persistence, aim calculations, English data, or relationships.
 - Read ../../../docs/codex/known-issues.md for audits, refactors, prioritization, or when selecting the next task.
 - Read ../../../docs/codex/verification.md before implementing or handing off changes.
+- Read ../../../docs/codex/weekly-planning-protocol-v1.md for weekly planning or Big 3 work.
+- Read ../../../docs/codex/bridge-api.md before Codex reads tracker context or proposes/applies plan changes through the local bridge.
 
 Do not load every file automatically. Select references based on the task to keep context lean.
 
@@ -25,6 +27,8 @@ Do not load every file automatically. Select references based on the task to kee
 6. Make the smallest coherent client-side change. Preserve unrelated work and avoid dependency additions.
 7. Add focused pure tests when changing logic. Never use live Firebase as a test fixture.
 8. Run proportional checks from verification.md, inspect the diff, and report residual risks.
+
+For bridge planning writes, always run dry-run first, show the preview, and require a direct user instruction before using `--apply`. Never translate general planning discussion into an automatic Firebase write.
 
 ## Audit priorities
 

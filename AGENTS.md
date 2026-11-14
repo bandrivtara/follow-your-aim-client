@@ -3,6 +3,7 @@
 ## Product and scope
 
 - This is a personal React application for habits, plans, goals, task groups, schedules, and English vocabulary practice.
+- Nutrition owns weekly-plan import, daily meal execution, compact calorie sync to tracker history, and analysis/print exports. Keep detailed medical records in the separate local Health project rather than Firestore.
 - The client is a Create React App + TypeScript application backed directly by Firebase Firestore.
 - Preserve existing behavior and data compatibility unless the user explicitly requests a migration or breaking change.
 - Read the relevant files in docs/codex/ before making cross-cutting changes.
@@ -63,3 +64,5 @@
 - docs/codex/firebase-contract.md - observed Firestore contract and safety boundary.
 - docs/codex/verification.md - safe validation commands and expectations.
 - docs/codex/known-issues.md - confirmed findings and current priorities.
+- docs/codex/weekly-planning-protocol-v1.md - evidence, interview, sanity-check, and output contract for next-week planning.
+- docs/codex/bridge-api.md - local Codex read/dry-run/apply workflow for tracker planning.

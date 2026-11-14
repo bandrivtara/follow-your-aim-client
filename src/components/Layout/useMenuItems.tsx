@@ -11,6 +11,10 @@ import {
   HeatMapOutlined,
   CarryOutOutlined,
   InsertRowAboveOutlined,
+  BookOutlined,
+  BarChartOutlined,
+  CodeOutlined,
+  CoffeeOutlined,
 } from "@ant-design/icons";
 import type { MenuProps } from "antd";
 import routes from "../../config/routes";
@@ -110,6 +114,31 @@ const useMenuItems = () => {
       ],
     },
     {
+      key: 6,
+      label: "Огляди",
+      icon: <BookOutlined rev="string" />,
+      children: [
+        {
+          key: 61,
+          label: "Щоденний огляд",
+          onClick: () => navigate(routes.review.daily),
+          icon: <BookOutlined rev="string" />,
+        },
+        {
+          key: 62,
+          label: "Підсумок тижня",
+          onClick: () => navigate(routes.review.weekly),
+          icon: <BarChartOutlined rev="string" />,
+        },
+        {
+          key: 63,
+          label: "Codex-помічник",
+          onClick: () => navigate(routes.review.codex),
+          icon: <CodeOutlined rev="string" />,
+        },
+      ],
+    },
+    {
       key: 7,
       label: "Англійський словник",
       icon: <HeatMapOutlined rev="string" />,
@@ -133,6 +162,12 @@ const useMenuItems = () => {
           icon: <LineChartOutlined rev="string" />,
         },
       ],
+    },
+    {
+      key: 8,
+      label: "Харчування",
+      onClick: () => navigate(routes.nutrition),
+      icon: <CoffeeOutlined rev="string" />,
     },
   ];
 

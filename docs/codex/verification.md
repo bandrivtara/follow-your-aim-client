@@ -1,6 +1,6 @@
 # Verification guide
 
-Last verified: 2026-07-28.
+Last verified: 2026-08-18.
 
 ## Baseline
 
@@ -18,6 +18,7 @@ Run from the repository root:
 - Lint: npx eslint src --ext .ts,.tsx --max-warnings=0
 - Tests: npm test -- --watchAll=false
 - Build: npm run build
+- Bridge pure validation: npm run test:bridge
 
 Use the smallest adequate set:
 
@@ -33,6 +34,7 @@ Use the smallest adequate set:
 - npm run build writes ignored build/ output and should not change tracked source.
 - Do not persist CI=true merely to run tests.
 - Do not test against or mutate live Firebase. Mock the boundary or extract pure logic.
+- A bridge smoke test may use `export-context` or dry-run `apply-plan` only after explicit read-only authorization. Never use `--apply` as a test.
 - Do not run npm install, upgrade packages, or regenerate the lockfile unless requested.
 
 ## Before handoff

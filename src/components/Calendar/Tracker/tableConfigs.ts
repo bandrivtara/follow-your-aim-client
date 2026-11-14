@@ -10,6 +10,7 @@ import RowNameRenderer from "./RowNameRenderer/RowNameRenderer";
 import compareTime from "share/functions/compareTime";
 import { ITasksGroup } from "types/taskGroups";
 import { filterTrackerRows, TrackerCategoryFilter } from "./rowFilters";
+import { isTrackerActivityArchived } from "./archiveVisibility";
 
 export interface IHabitRow {
   habitDetails: IHabitData;
@@ -36,6 +37,7 @@ export const getTrackerDayColumnLayout = (daysCount: number) => {
 const getColumnDefs = (
   currentDate: (Dayjs | null)[],
   calendarMode: ITrackerCalendarState,
+  isMobile = false,
 ): ColDef[] => {
   if (!currentDate[0] || !currentDate[1]) return [];
 
@@ -61,7 +63,7 @@ const getColumnDefs = (
       headerName: "Активність",
       cellRenderer: RowNameRenderer,
       pinned: "left",
-      width: 220,
+      width: isMobile ? 150 : 220,
     },
   ];
 
@@ -90,7 +92,12 @@ const getRows = (
         const normalizedDay = String(Number(day));
 
         for (let id in dayHistory) {
-          if (rowItems && rowItems[id] && !rowItems[id].isHidden) {
+          if (
+            rowItems &&
+            rowItems[id] &&
+            !rowItems[id].isHidden &&
+            !rowItems[id].isArchived
+          ) {
             let existingObject: any = rows.find((row) => row.id === id);
             if (!existingObject) {
               existingObject = {
@@ -108,7 +115,11 @@ const getRows = (
   }
 
   rowsToShow.forEach((habit) => {
-    if (!rows.find((row) => row.id === habit.id) && !habit.isHidden) {
+    if (
+      !rows.find((row) => row.id === habit.id) &&
+      !habit.isHidden &&
+      !isTrackerActivityArchived(habit)
+    ) {
       rows.push({
         id: habit.id,
         details: rowItems[habit.id],

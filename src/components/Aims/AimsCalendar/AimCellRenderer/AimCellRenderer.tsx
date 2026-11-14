@@ -103,6 +103,14 @@ const AimCellRenderer = ({
     setCurrentText(value);
   };
 
+  const progressPercent = Math.max(
+    0,
+    Math.min(100, Math.round(progressData.progress || 0)),
+  );
+  const progressLabel = data
+    ? `${data.title}: виконано ${progressPercent}%`
+    : undefined;
+
   return (
     <StyledAimCellRenderer
       progressBarStyles={progressBarStyles}
@@ -112,6 +120,15 @@ const AimCellRenderer = ({
         className={value ? "aim-progress-bar" : ""}
         onMouseEnter={handleTextOnMouseEnter}
         onMouseLeave={handleTextOnMouseLeave}
+        onFocus={handleTextOnMouseEnter}
+        onBlur={handleTextOnMouseLeave}
+        role={value ? "progressbar" : undefined}
+        aria-label={value ? progressLabel : undefined}
+        aria-valuemin={value ? 0 : undefined}
+        aria-valuemax={value ? 100 : undefined}
+        aria-valuenow={value ? progressPercent : undefined}
+        tabIndex={value ? 0 : -1}
+        title={progressLabel}
       >
         <span className="progress-value" />
         <p>{currentText}</p>

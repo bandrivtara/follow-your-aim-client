@@ -3,6 +3,7 @@
 import { ICellRendererParams } from "ag-grid-community";
 import StyledDayCellRenderer from "./DayCellRenderer.styled";
 import { cellConfigs } from "../cellConfigs";
+import { isNutritionHabitTitle } from "components/Nutrition/nutritionUtils";
 
 const DayCellRenderer = ({ value, data }: ICellRendererParams) => {
   const activityType = value?.type || data?.details?.type;
@@ -13,6 +14,12 @@ const DayCellRenderer = ({ value, data }: ICellRendererParams) => {
       : undefined;
   const currentCellRendererData =
     value && data && rendererConfig?.cellRenderer(value, data);
+  const nutritionCalories = value?.nutritionalData?.calories;
+  const renderedComponent =
+    isNutritionHabitTitle(data?.details?.title) &&
+    Number.isFinite(Number(nutritionCalories))
+      ? `${nutritionCalories} ккал`
+      : currentCellRendererData?.component;
 
   const getProgressColor = () => {
     if (!currentCellRendererData) return "transparent";
@@ -33,7 +40,7 @@ const DayCellRenderer = ({ value, data }: ICellRendererParams) => {
         progressColor={getProgressColor()}
         isInPlan={currentCellRendererData?.isPlanned}
       >
-        {currentCellRendererData?.component}
+        {renderedComponent}
       </StyledDayCellRenderer>
     )
   );

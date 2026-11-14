@@ -81,14 +81,7 @@ const TasksGroupStages = ({ dayForm, form }: IProps) => {
           prevValues !== currentValues
         }
       >
-        <div
-          style={{
-            maxHeight: "400px",
-            overflowY: "auto",
-            overflowX: "hidden",
-            paddingLeft: "4px",
-          }}
-        >
+        <div className="stages-scroll">
           <Form.List name="tasksStages">
             {(fields, { add, remove }) => (
               <>
@@ -155,7 +148,7 @@ const TasksGroupStages = ({ dayForm, form }: IProps) => {
                       </Col>
                     </Row>
                     <Divider style={{ margin: "12px 0" }} />
-                    <Card title="Задання" className="subTasks">
+                    <Card title="Завдання етапу" className="subTasks">
                       <Form.List name={[index, `subTasks`]}>
                         {(fields, { add, remove }) => (
                           <>
@@ -248,7 +241,7 @@ const TasksGroupStages = ({ dayForm, form }: IProps) => {
                               </Fragment>
                             ))}
                             <Form.Item className="add-btn">
-                              <Button onClick={() => add()}>
+                              <Button type="dashed" block onClick={() => add()}>
                                 Додати завдання до Етапу
                               </Button>
                             </Form.Item>
@@ -259,7 +252,9 @@ const TasksGroupStages = ({ dayForm, form }: IProps) => {
                   </Fragment>
                 ))}
                 <Form.Item className="add-btn">
-                  <Button onClick={() => add()}>Додати Етап</Button>
+                  <Button type="dashed" block onClick={() => add()}>
+                    Додати етап
+                  </Button>
                 </Form.Item>
               </>
             )}

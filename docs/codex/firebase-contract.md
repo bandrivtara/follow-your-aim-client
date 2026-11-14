@@ -1,6 +1,6 @@
 # Observed Firebase contract
 
-Last verified from client code: 2026-07-28. This describes the existing integration; it does not authorize schema or rule changes.
+Last verified from client code: 2026-08-18. This describes the existing integration; it does not authorize further schema or rule changes.
 
 ## Safety boundary
 
@@ -26,6 +26,10 @@ Last verified from client code: 2026-07-28. This describes the existing integrat
 | aimsCategories/{categoryId}   | one category per document                    | src/store/services/aimsCategories.ts   |
 | spheres/{sphereId}            | one sphere per document                      | src/store/services/spheres.ts          |
 | history/{monthId}             | month with nested day/activity data and unix | src/store/services/history.ts          |
+| dailyReview/{monthId}         | month with nested day review data and unix   | src/store/services/dailyReviews.ts     |
+| nutritionSettings/main        | calorie targets, meal times, food preferences | src/store/services/nutrition.ts       |
+| nutritionPlan/{weekStart}     | versioned Monday–Sunday plan and recipes     | src/store/services/nutrition.ts       |
+| nutritionDay/{YYYY-MM-DD}     | per-day meal execution, reasons and totals   | src/store/services/nutrition.ts       |
 | english/groups                | map fields keyed by group ID                 | src/store/services/english.ts          |
 | english/words                 | map fields keyed by word ID                  | src/store/services/english.ts          |
 
@@ -39,10 +43,41 @@ List services usually attach Firestore document IDs as id. English differs: IDs 
 - updateHistory accepts id, path, and data and updates the dynamic field path without replacing the month.
 - Activity history can contain type, valueType, isPlanned, status, progress, times, measures, or tasks.
 - New task-list history entries persist the already-supported isPlanned flag so work added during tracking can be distinguished from the daily plan. Legacy task lists without the flag remain treated as planned for compatibility.
+- Dashboard quick completion merges a boolean habit, measured habit, or updated task list back into the same existing day/activity path. Quick task capture appends a pending task to an existing flat task-group activity at that path and marks the activity as planned. Copying yesterday's or the previous same weekday's plan creates current-day activity entries with progress/value/status reset while preserving targets, tasks, times, and IDs.
 - Measure values are nested under activity and measure IDs. Do not flatten or rename them.
 - History is read both by unix range in the RTK Query service and by document ID in src/share/fireBase/getHistoryBetweenDates.ts.
 
 Any date fix must keep both read paths consistent and test first/last-day and cross-month boundaries.
+
+## Daily review contract
+
+- Added with explicit user approval on 2026-08-18; review content remains independent from tracker `history` so reflection fields cannot be mistaken for activity IDs.
+- Collection: `dailyReview`; document ID: `YYYY-MM`; month documents keep `unix` for the same month-range query pattern as history.
+- Day fields use padded `DD` keys. Each value contains `date` (`YYYY-MM-DD`), `mood` (1–5), `energy` (1–5), `answers` keyed by stable question IDs, and `updatedAt` as Unix seconds.
+- A review is complete only when all five stable question IDs contain non-empty answers.
+- Completing a review uses one batched merge: it saves the selected `dailyReview` day and writes the configured `dailyReview` boolean habit as planned, `done`, and `100%` under the matching `history/{YYYY-MM}.{D}.{habitId}` path. Other days and activities are preserved.
+
+## Nutrition contract
+
+- Added with explicit user approval on 2026-11-14. Medical records remain in the separate local Health project and are not copied into Firestore.
+- `nutritionSettings/main` stores the active calorie/macro targets, default meal times, and approved/excluded/candidate product names imported from `fya-nutrition-v1` JSON.
+- `nutritionPlan/{weekStart}` uses a Monday date in `YYYY-MM-DD` as the document ID. It stores the versioned weekly plan, day meals, short recipes, and the matching `weekEnd`.
+- `nutritionDay/{YYYY-MM-DD}` stores only execution for one day: copied planned meals plus status (`pending`, `eaten`, `skipped`), required skip reason, comments, calculated totals, and finalization/sync timestamps.
+- Opening Nutrition on a later day finalizes an existing unfinished previous-day log. It writes only calories/protein/target summary into the existing tracker `history` activity whose title contains `Харчування`; full meals remain in `nutritionDay`.
+- No remote migration, delete, seed, or automatic creation of a tracker habit is implemented. If the tracker habit is absent, the nutrition day is finalized without a history write and the UI reports it.
+- Import accepts only `schemaVersion: fya-nutrition-v1`. It batch-merges settings and the weekly plan; it never overwrites existing daily execution logs.
+
+## Archive fields
+
+- Habits and aims can contain optional `isArchived: true`. Missing or false means active.
+- Archiving updates only that flag. Existing documents and historical tracker records are never deleted; archived items are omitted from active tracker, calendar, and dashboard views and remain available in archive lists.
+
+## Habit life-area metadata
+
+- Habits can contain optional `lifeArea`: `health`, `mental`, `learning`, `workFinance`, `relationships`, `creativity`, or `recovery`.
+- `lifeArea` is independent from `habitsCategoryId`. Existing habit categories continue to represent routine/time groupings and are not renamed or migrated.
+- `complexity` remains an integer from 1 to 10 and is interpreted as the effort required to perform the habit, not its importance.
+- The dashboard life-balance chart uses only non-hidden, non-archived habits with `lifeArea`, comparing the complexity-weighted share of the weekly plan with the complexity-weighted share of actual progress.
 
 ## Relationships
 
@@ -66,3 +101,17 @@ Observed live-data compatibility notes from the read-only audit on 2026-07-28:
 - Mutations invalidate broad domain tags.
 - Errors are generally converted to error.message and logged. Components still need to unwrap mutations or inspect error state.
 - Some files disable TypeScript checking, so runtime Firestore shape is authoritative when it conflicts with an interface.
+
+## Local Codex bridge boundary
+
+- `scripts/fya-codex-bridge.cjs` uses the same public Firebase configuration and deployed rules; it does not introduce Admin SDK credentials or bypass access control.
+- `export-context` reads `habit`, `habitsCategories`, `taskGroup`, `aim`, `history`, and `dailyReview` into an ignored local file.
+- `apply-plan` is dry-run unless `--apply` is supplied. It validates Monday–Sunday boundaries, existing activity and measure IDs, allowed fields, times, and task titles.
+- `apply-habit-metadata` is also dry-run unless `--apply` is supplied. It can update only `lifeArea` and `complexity` for existing non-archived habits, including hidden compatibility habits, whose IDs and titles both match the reviewed document.
+- Applied changes only merge planning data below `history/{YYYY-MM}/{DD}/{activityId}` and keep the existing month `unix` convention. No delete operation is implemented.
+- Because repository-only review cannot verify deployed rules, the bridge must remain a local personal tool and must not be exposed as a public API.
+
+## Personal backup export
+
+- `src/share/backup/firebaseBackup.ts` performs read-only `getDocs` calls for every known application collection, including legacy spheres, the fixed English documents, and all three nutrition collections.
+- The downloaded `follow-your-aim-backup-v1` JSON contains document IDs and raw document data. No restore, migration, delete, or remote write is implemented.

@@ -12,6 +12,7 @@ interface TrackerExportOptions {
   history: Record<string, any>[];
   habits: IHabitData[];
   taskGroups: ITasksGroup[];
+  includePrompt?: boolean;
 }
 
 const statusLabels: Record<string, string> = {
@@ -75,6 +76,7 @@ export const buildTrackerExport = ({
   history,
   habits,
   taskGroups,
+  includePrompt = true,
 }: TrackerExportOptions) => {
   const startDate = dateFrom.startOf("day");
   const endDate = dateTo.endOf("day");
@@ -166,7 +168,15 @@ export const buildTrackerExport = ({
     });
   });
 
-  lines.push("", "# Промпт для AI-аналізу", "", TRACKER_AI_ANALYSIS_PROMPT, "");
+  if (includePrompt) {
+    lines.push(
+      "",
+      "# Промпт для AI-аналізу",
+      "",
+      TRACKER_AI_ANALYSIS_PROMPT,
+      "",
+    );
+  }
   return lines.join("\n");
 };
 
