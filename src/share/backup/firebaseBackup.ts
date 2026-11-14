@@ -10,6 +10,7 @@ const BACKUP_COLLECTIONS = [
   "taskGroup",
   "history",
   "dailyReview",
+  "nutritionWeek",
   "english",
   "spheres",
 ] as const;

@@ -1,61 +1,83 @@
-export interface MacroTargets {
+export interface NutritionTargets {
   calories: number;
   protein: number;
-  fat: number;
-  carbs: number;
-}
-
-export interface NutritionPreferences {
-  targets: MacroTargets;
-  goalNote: string;
-  likedFoods: string[];
-  dislikedFoods: string[];
-  likedMeals: string[];
-  dislikedMeals: string[];
-}
-
-export interface PlannedMeal {
-  name: string;
-  meal: "breakfast" | "lunch" | "dinner" | "other";
-  calories?: number;
-  protein?: number;
   fat?: number;
   carbs?: number;
-  fatSecretFoodId?: string;
-  fatSecretServingId?: string;
-  units?: number;
-}
-
-export interface NutritionPlanDay {
-  date: string;
-  meals: PlannedMeal[];
-}
-
-export interface NutritionDiarySummary extends MacroTargets {
-  date: string;
   fiber?: number;
-  entriesCount: number;
-  syncedAt: string;
+  saturatedFat?: number;
 }
 
-export interface NutritionConnectionStatus {
-  configured: boolean;
-  connected: boolean;
-  accountLabel?: string;
+export type NutritionMealStatus = "pending" | "eaten" | "skipped";
+
+export interface NutritionMeal {
+  id: string;
+  title: string;
+  time: string;
+  calories: number;
+  protein: number;
+  fat?: number;
+  carbs?: number;
+  fiber?: number;
+  description?: string;
+  recipeId?: string;
+  status: NutritionMealStatus;
+  failureReason?: string;
 }
 
-export const EMPTY_TARGETS: MacroTargets = {
-  calories: 0,
-  protein: 0,
-  fat: 0,
-  carbs: 0,
-};
+export interface NutritionDay {
+  date: string;
+  note?: string;
+  meals: NutritionMeal[];
+}
 
-export const DEFAULT_PREFERENCES: NutritionPreferences = {
-  targets: EMPTY_TARGETS,
-  goalNote: "",
-  likedFoods: [],
-  dislikedFoods: [],
-  likedMeals: [],
-  dislikedMeals: [],
-};
+export interface NutritionRecipe {
+  id: string;
+  title: string;
+  portions: number;
+  caloriesPerPortion?: number;
+  activeMinutes?: number;
+  totalMinutes?: number;
+  equipment?: string[];
+  ingredients: string[];
+  steps: string[];
+  storage?: string[];
+  prepNotes?: string[];
+}
+
+export interface NutritionShoppingItem {
+  id: string;
+  name: string;
+  quantity?: number;
+  unit?: string;
+  category?: string;
+  estimatedPrice?: number;
+  checked: boolean;
+}
+
+export interface NutritionShoppingTrip {
+  id: string;
+  title: string;
+  plannedDate?: string;
+  store?: string;
+  items: NutritionShoppingItem[];
+}
+
+export interface NutritionWeek {
+  schemaVersion: "fya-nutrition-v1" | "fya-nutrition-v2";
+  weekStart: string;
+  weekEnd: string;
+  generatedAt: string;
+  importedAt: string;
+  targets: NutritionTargets;
+  approvedProducts: string[];
+  excludedProducts: string[];
+  candidateProducts: string[];
+  days: NutritionDay[];
+  recipes: NutritionRecipe[];
+  shoppingTrips: NutritionShoppingTrip[];
+}
+
+export interface StoredNutritionWeek extends NutritionWeek {
+  id: string;
+  updatedAt: number;
+}

@@ -1,6 +1,6 @@
 # Observed Firebase contract
 
-Last verified from client code: 2026-08-20. This describes the existing integration; it does not authorize further schema or rule changes.
+Last verified from client code: 2026-11-14. This describes the existing integration; it does not authorize further schema or rule changes.
 
 ## Safety boundary
 
@@ -27,6 +27,7 @@ Last verified from client code: 2026-08-20. This describes the existing integrat
 | spheres/{sphereId}            | one sphere per document                      | src/store/services/spheres.ts          |
 | history/{monthId}             | month with nested day/activity data and unix | src/store/services/history.ts          |
 | dailyReview/{monthId}         | month with nested day review data and unix   | src/store/services/dailyReviews.ts     |
+| nutritionWeek/{weekStart}     | one imported Health package per Monday       | src/store/services/nutritionWeeks.ts   |
 | english/groups                | map fields keyed by group ID                 | src/store/services/english.ts          |
 | english/words                 | map fields keyed by word ID                  | src/store/services/english.ts          |
 
@@ -58,6 +59,16 @@ Any date fix must keep both read paths consistent and test first/last-day and cr
 - A current review is complete when its optional `summary` string is non-empty. Legacy reviews remain complete when all five stable question IDs contain non-empty answers; their existing `answers` object is preserved for compatibility.
 - Completing a review uses one batched merge: it saves the selected `dailyReview` day and writes the configured `dailyReview` boolean habit as planned, `done`, and `100%` under the matching `history/{YYYY-MM}.{D}.{habitId}` path. Other days and activities are preserved.
 - The dashboard reads yesterday's final `Фокус:`, `Фокус завтра:`, or `Фокус на завтра:` section from `summary` (case-insensitive, with Markdown label support). Reviews without a matching section fall back to legacy `answers.tomorrow`; this is a read-only extraction, not a migration.
+
+## Nutrition week contract
+
+- Added with explicit user approval on 2026-11-14.
+- Collection: `nutritionWeek`; document ID: Monday `weekStart` in `YYYY-MM-DD`.
+- Each document contains the validated schema version, week boundaries, targets, seven ordered days and meals, recipes, and shopping trips.
+- Meal execution is stored as `pending`, `eaten`, or `skipped`; shopping items store a boolean `checked`.
+- Reimporting the same week preserves execution and shopping progress by stable meal, trip, and item IDs.
+- Medical analyses, diagnoses, medications, and the full Health profile are excluded.
+- Follow Your Aim does not calculate nutritional values and does not call an external nutrition API. The separate Health project owns planning and calculations.
 
 ## Archive fields
 

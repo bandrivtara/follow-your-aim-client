@@ -1,265 +1,663 @@
-import { useEffect, useMemo, useState } from "react";
+import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import dayjs from "dayjs";
+import "dayjs/locale/uk";
 import {
   Alert,
   Button,
   Card,
   CardContent,
+  Checkbox,
   Chip,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Divider,
+  FormControlLabel,
+  IconButton,
   LinearProgress,
   Snackbar,
   Stack,
   Tab,
   Tabs,
-  TextField,
   Typography,
 } from "@mui/material";
 import {
-  AutoAwesomeRounded,
-  CheckCircleRounded,
-  CloudDownloadRounded,
-  ContentCopyRounded,
-  FavoriteRounded,
-  LinkRounded,
+  CalendarMonthRounded,
+  ChevronLeftRounded,
+  ChevronRightRounded,
+  CloudDoneRounded,
+  LocalGroceryStoreRounded,
+  MenuBookRounded,
   RestaurantMenuRounded,
-  SendRounded,
-  SettingsRounded,
+  UploadFileRounded,
 } from "@mui/icons-material";
 import {
-  buildNutritionPrompt,
-  createWeek,
-  parseNutritionPlan,
-  splitList,
-  sumMeals,
-} from "./nutritionLogic";
-import { nutritionApi } from "./nutritionApi";
+  useGetNutritionWeeksQuery,
+  useSaveNutritionWeekMutation,
+} from "store/services/nutritionWeeks";
 import {
-  DEFAULT_PREFERENCES,
-  NutritionConnectionStatus,
-  NutritionDiarySummary,
-  NutritionPlanDay,
-  NutritionPreferences,
+  calculateShoppingProgress,
+  mergeNutritionProgress,
+  parseNutritionPackage,
+  sumNutritionMeals,
+} from "./nutritionLogic";
+import {
+  NutritionMeal,
+  NutritionRecipe,
+  StoredNutritionWeek,
 } from "./nutritionTypes";
 import NutritionLayout from "./NutritionDashboard.styled";
 
-const PREFERENCES_KEY = "fya:nutrition:preferences:v1";
-const PLAN_KEY = "fya:nutrition:plan:v1";
-
-const readStorage = <T,>(key: string, fallback: T): T => {
-  try {
-    const value = localStorage.getItem(key);
-    return value ? (JSON.parse(value) as T) : fallback;
-  } catch {
-    return fallback;
-  }
+const statusLabels: Record<NutritionMeal["status"], string> = {
+  pending: "Очікує",
+  eaten: "З’їв",
+  skipped: "Пропустив",
 };
 
-const formatMacro = (value: number, suffix = "г") =>
-  value ? `${Math.round(value)} ${suffix}` : "—";
-
 const NutritionDashboard = () => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [tab, setTab] = useState(0);
-  const [preferences, setPreferences] = useState<NutritionPreferences>(() =>
-    readStorage(PREFERENCES_KEY, DEFAULT_PREFERENCES),
+  const [selectedWeekId, setSelectedWeekId] = useState("");
+  const [selectedRecipe, setSelectedRecipe] = useState<NutritionRecipe | null>(
+    null,
   );
-  const [week, setWeek] = useState<NutritionPlanDay[]>(() =>
-    readStorage(PLAN_KEY, createWeek()),
-  );
-  const [planJson, setPlanJson] = useState("");
-  const [connection, setConnection] = useState<NutritionConnectionStatus>({
-    configured: nutritionApi.isConfigured,
-    connected: false,
-  });
-  const [diary, setDiary] = useState<NutritionDiarySummary | null>(null);
-  const [busy, setBusy] = useState(false);
+  const [selectedMeal, setSelectedMeal] = useState<NutritionMeal | null>(null);
   const [notice, setNotice] = useState("");
-  const [error, setError] = useState("");
+  const [localError, setLocalError] = useState("");
+  const {
+    data: weeks = [],
+    isLoading,
+    error: loadError,
+  } = useGetNutritionWeeksQuery();
+  const [saveWeek, { isLoading: isSaving }] = useSaveNutritionWeekMutation();
 
   useEffect(() => {
-    if (!nutritionApi.isConfigured) return;
-    nutritionApi
-      .status()
-      .then(setConnection)
-      .catch((caught) => setError(caught.message));
-  }, []);
+    if (!weeks.length || selectedWeekId) return;
+    const today = dayjs().format("YYYY-MM-DD");
+    const current = weeks.find(
+      (week) => week.weekStart <= today && week.weekEnd >= today,
+    );
+    setSelectedWeekId((current || weeks[weeks.length - 1]).id);
+  }, [selectedWeekId, weeks]);
 
-  useEffect(() => {
-    localStorage.setItem(PREFERENCES_KEY, JSON.stringify(preferences));
-  }, [preferences]);
-
-  useEffect(() => {
-    localStorage.setItem(PLAN_KEY, JSON.stringify(week));
-  }, [week]);
-
-  const todayPlan = useMemo(
-    () => week.find((day) => day.date === dayjs().format("YYYY-MM-DD")),
-    [week],
+  const selectedWeek = weeks.find((week) => week.id === selectedWeekId);
+  const selectedWeekIndex = weeks.findIndex(
+    (week) => week.id === selectedWeekId,
   );
-  const todayPlanned = useMemo(
-    () => sumMeals(todayPlan?.meals || []),
-    [todayPlan],
+  const shoppingProgress = useMemo(
+    () => calculateShoppingProgress(selectedWeek?.shoppingTrips || []),
+    [selectedWeek],
   );
-  const prompt = useMemo(
-    () => buildNutritionPrompt(preferences, week),
-    [preferences, week],
+  const weekTotals = useMemo(
+    () =>
+      selectedWeek?.days.reduce(
+        (total, day) => {
+          const macros = sumNutritionMeals(day.meals);
+          return {
+            calories: total.calories + macros.calories,
+            protein: total.protein + macros.protein,
+            meals: total.meals + day.meals.length,
+            eaten:
+              total.eaten +
+              day.meals.filter((meal) => meal.status === "eaten").length,
+          };
+        },
+        { calories: 0, protein: 0, meals: 0, eaten: 0 },
+      ) || { calories: 0, protein: 0, meals: 0, eaten: 0 },
+    [selectedWeek],
   );
 
-  const updateTarget = (key: keyof NutritionPreferences["targets"], value: string) =>
-    setPreferences((current) => ({
-      ...current,
-      targets: { ...current.targets, [key]: Math.max(0, Number(value) || 0) },
-    }));
-
-  const updateList = (
-    key: "likedFoods" | "dislikedFoods" | "likedMeals" | "dislikedMeals",
-    value: string,
-  ) => setPreferences((current) => ({ ...current, [key]: splitList(value) }));
-
-  const copyPrompt = async () => {
-    await navigator.clipboard.writeText(prompt);
-    setNotice("AI-промпт скопійовано.");
-  };
-
-  const importPlan = () => {
+  const persistWeek = async (week: StoredNutritionWeek) => {
     try {
-      const parsed = parseNutritionPlan(planJson, week.map((day) => day.date));
-      setWeek(parsed);
-      setPlanJson("");
-      setNotice("План перевірено та імпортовано.");
-      setError("");
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Не вдалося імпортувати план.");
+      await saveWeek(week).unwrap();
+      setLocalError("");
+    } catch (error) {
+      setLocalError(
+        typeof error === "string"
+          ? error
+          : "Не вдалося зберегти зміни у Firebase.",
+      );
     }
   };
 
-  const syncToday = async () => {
-    setBusy(true);
-    setError("");
+  const importFile = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
     try {
-      setDiary(await nutritionApi.syncDay(dayjs().format("YYYY-MM-DD")));
-      setNotice("Щоденник FatSecret оновлено.");
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Помилка синхронізації.");
-    } finally {
-      setBusy(false);
+      const parsed = parseNutritionPackage(await file.text());
+      const current = weeks.find((week) => week.id === parsed.weekStart);
+      const merged = mergeNutritionProgress(parsed, current);
+      await saveWeek(merged).unwrap();
+      setSelectedWeekId(merged.weekStart);
+      setTab(0);
+      setLocalError("");
+      setNotice("Тижневий пакет із Health імпортовано у Firebase.");
+    } catch (error) {
+      setLocalError(
+        error instanceof Error ? error.message : "Не вдалося імпортувати файл.",
+      );
     }
   };
 
-  const publishPlan = async () => {
-    setBusy(true);
-    setError("");
-    try {
-      const result = await nutritionApi.publishPlan(week);
-      setNotice(`Створено ${result.created}, пропущено ${result.skipped} позицій.`);
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Помилка публікації.");
-    } finally {
-      setBusy(false);
-    }
+  const updateMealStatus = (
+    dayDate: string,
+    mealId: string,
+    status: NutritionMeal["status"],
+  ) => {
+    if (!selectedWeek) return;
+    void persistWeek({
+      ...selectedWeek,
+      days: selectedWeek.days.map((day) =>
+        day.date === dayDate
+          ? {
+              ...day,
+              meals: day.meals.map((meal) =>
+                meal.id === mealId ? { ...meal, status } : meal,
+              ),
+            }
+          : day,
+      ),
+    });
   };
 
-  const actual = diary || {
-    ...todayPlanned,
-    date: dayjs().format("YYYY-MM-DD"),
-    entriesCount: todayPlan?.meals.length || 0,
-    syncedAt: "",
+  const toggleShoppingItem = (tripId: string, itemId: string) => {
+    if (!selectedWeek) return;
+    void persistWeek({
+      ...selectedWeek,
+      shoppingTrips: selectedWeek.shoppingTrips.map((trip) =>
+        trip.id === tripId
+          ? {
+              ...trip,
+              items: trip.items.map((item) =>
+                item.id === itemId ? { ...item, checked: !item.checked } : item,
+              ),
+            }
+          : trip,
+      ),
+    });
   };
+
+  const openMeal = (meal: NutritionMeal) => {
+    const recipe = selectedWeek?.recipes.find(
+      (candidate) => candidate.id === meal.recipeId,
+    );
+    if (recipe) setSelectedRecipe(recipe);
+    else setSelectedMeal(meal);
+  };
+
+  const errorMessage =
+    localError ||
+    (loadError
+      ? typeof loadError === "string"
+        ? loadError
+        : "Не вдалося завантажити харчування з Firebase."
+      : "");
 
   return (
     <NutritionLayout>
-      <header className="nutrition-hero">
+      <header className="nutrition-header">
         <div>
-          <Chip icon={<FavoriteRounded />} label="Nutrition workspace" />
-          <Typography variant="h3" component="h1">Харчування без ручного дублювання</Typography>
-          <Typography color="text.secondary">
-            Плануй тиждень у Follow Your Aim, звіряй КБЖВ і синхронізуй факт із FatSecret.
+          <Typography className="nutrition-kicker">
+            Health → Follow Your Aim
+          </Typography>
+          <Typography className="page-title" component="h1">
+            Харчування
+          </Typography>
+          <Typography className="page-subtitle">
+            Готовий тижневий план, рецепти та закупи з проєкту Health.
           </Typography>
         </div>
-        <Card className="connection-card">
-          <CardContent>
-            <div className="connection-heading">
-              {connection.connected ? <CheckCircleRounded color="success" /> : <LinkRounded color="primary" />}
-              <div>
-                <strong>{connection.connected ? "FatSecret підключено" : "FatSecret не підключено"}</strong>
-                <span>{connection.accountLabel || "OAuth 1.0 · пароль не передається"}</span>
-              </div>
-            </div>
-            {!nutritionApi.isConfigured && (
-              <Alert severity="info">Спочатку треба розгорнути захищений backend і додати його URL.</Alert>
-            )}
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
-              <Button
-                variant="contained"
-                startIcon={<LinkRounded />}
-                disabled={!nutritionApi.isConfigured || connection.connected}
-                onClick={() => window.location.assign(nutritionApi.connectUrl)}
-              >
-                Підключити акаунт
-              </Button>
-              <Button
-                startIcon={busy ? <CircularProgress size={16} /> : <CloudDownloadRounded />}
-                disabled={!connection.connected || busy}
-                onClick={syncToday}
-              >
-                Оновити сьогодні
-              </Button>
-            </Stack>
-          </CardContent>
-        </Card>
+        <div className="nutrition-header-actions">
+          <Chip icon={<CloudDoneRounded />} label="Зберігається у Firebase" />
+          <input
+            ref={fileInputRef}
+            hidden
+            type="file"
+            accept="application/json,.json"
+            onChange={importFile}
+          />
+          <Button
+            variant="contained"
+            startIcon={
+              isSaving ? <CircularProgress size={16} /> : <UploadFileRounded />
+            }
+            disabled={isSaving}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            Імпортувати з Health
+          </Button>
+        </div>
       </header>
 
-      {error && <Alert severity="error" onClose={() => setError("")}>{error}</Alert>}
-
-      <Tabs value={tab} onChange={(_event, value) => setTab(value)} variant="scrollable" scrollButtons="auto">
-        <Tab icon={<RestaurantMenuRounded />} iconPosition="start" label="Дашборд" />
-        <Tab icon={<AutoAwesomeRounded />} iconPosition="start" label="План на тиждень" />
-        <Tab icon={<SettingsRounded />} iconPosition="start" label="Мої налаштування" />
-      </Tabs>
-
-      {tab === 0 && (
-        <section className="dashboard-grid">
-          <Card className="macro-card macro-card--calories"><CardContent><span>Калорії</span><strong>{formatMacro(actual.calories, "ккал")}</strong><small>ціль {formatMacro(preferences.targets.calories, "ккал")}</small><LinearProgress variant="determinate" value={preferences.targets.calories ? Math.min(100, actual.calories / preferences.targets.calories * 100) : 0} /></CardContent></Card>
-          <Card className="macro-card macro-card--protein"><CardContent><span>Білки</span><strong>{formatMacro(actual.protein)}</strong><small>ціль {formatMacro(preferences.targets.protein)}</small><LinearProgress variant="determinate" value={preferences.targets.protein ? Math.min(100, actual.protein / preferences.targets.protein * 100) : 0} /></CardContent></Card>
-          <Card className="macro-card macro-card--fat"><CardContent><span>Жири</span><strong>{formatMacro(actual.fat)}</strong><small>ціль {formatMacro(preferences.targets.fat)}</small><LinearProgress variant="determinate" value={preferences.targets.fat ? Math.min(100, actual.fat / preferences.targets.fat * 100) : 0} /></CardContent></Card>
-          <Card className="macro-card macro-card--carbs"><CardContent><span>Вуглеводи</span><strong>{formatMacro(actual.carbs)}</strong><small>ціль {formatMacro(preferences.targets.carbs)}</small><LinearProgress variant="determinate" value={preferences.targets.carbs ? Math.min(100, actual.carbs / preferences.targets.carbs * 100) : 0} /></CardContent></Card>
-          <Card className="today-meals"><CardContent>
-            <Typography variant="h5">Сьогоднішній план</Typography>
-            <Typography color="text.secondary">{actual.entriesCount} позицій · {diary ? "факт FatSecret" : "локальний план"}</Typography>
-            <Divider />
-            {todayPlan?.meals.length ? todayPlan.meals.map((meal, index) => (
-              <div className="meal-row" key={`${meal.name}-${index}`}><div><strong>{meal.name}</strong><span>{meal.meal}</span></div><b>{formatMacro(meal.calories || 0, "ккал")}</b></div>
-            )) : <Alert severity="info">На сьогодні ще немає плану. Створи його у вкладці «План на тиждень».</Alert>}
-          </CardContent></Card>
-          <Card className="goal-card"><CardContent>
-            <Typography variant="h5">Поточна ціль</Typography>
-            <Typography>{preferences.goalNote || "Опиши мету, темп дефіциту й важливі обмеження в налаштуваннях."}</Typography>
-            <Button onClick={() => setTab(2)}>Налаштувати цілі</Button>
-          </CardContent></Card>
-        </section>
+      {errorMessage && (
+        <Alert severity="error" onClose={() => setLocalError("")}>
+          {errorMessage}
+        </Alert>
       )}
 
-      {tab === 1 && (
-        <section className="planner-section">
-          <div className="section-heading"><div><Typography variant="h5">План на 7 днів</Typography><Typography color="text.secondary">AI готує структурований JSON; ти перевіряєш його перед збереженням і публікацією.</Typography></div><Stack direction={{ xs: "column", sm: "row" }} spacing={1}><Button startIcon={<ContentCopyRounded />} onClick={copyPrompt}>Скопіювати AI-промпт</Button><Button variant="contained" startIcon={<SendRounded />} disabled={!connection.connected || busy} onClick={publishPlan}>Надіслати у FatSecret</Button></Stack></div>
-          <div className="week-grid">
-            {week.map((day) => { const totals = sumMeals(day.meals); return (
-              <Card className="day-card" key={day.date}><CardContent><span className="day-date">{dayjs(day.date).format("ddd, DD.MM")}</span><strong>{formatMacro(totals.calories, "ккал")}</strong><small>Б {Math.round(totals.protein)} · Ж {Math.round(totals.fat)} · В {Math.round(totals.carbs)}</small><Divider />{day.meals.length ? day.meals.map((meal, index) => <div className="compact-meal" key={`${meal.name}-${index}`}><span>{meal.name}</span><small>{meal.calories || 0} ккал</small></div>) : <Typography color="text.secondary">Поки порожньо</Typography>}</CardContent></Card>
-            ); })}
-          </div>
-          <Card className="import-card"><CardContent><Typography variant="h6">Імпорт відповіді AI</Typography><Typography color="text.secondary">Встав JSON із відповіді. Дані перевіряються локально; некоректні дати й макроси не імпортуються.</Typography><TextField multiline minRows={6} fullWidth value={planJson} onChange={(event) => setPlanJson(event.target.value)} placeholder='[{"date":"2026-09-07","meals":[...]}]' /><Button variant="contained" onClick={importPlan} disabled={!planJson.trim()}>Перевірити й імпортувати</Button></CardContent></Card>
-        </section>
+      {isLoading ? (
+        <div className="nutrition-loading">
+          <CircularProgress />
+          <Typography color="text.secondary">Завантажую тижні…</Typography>
+        </div>
+      ) : !selectedWeek ? (
+        <Card className="dashboard-card nutrition-first-import">
+          <CardContent>
+            <UploadFileRounded />
+            <Typography variant="h5">Імпортуй перший план із Health</Typography>
+            <Typography color="text.secondary">
+              Підтримуються пакети fya-nutrition-v1 і fya-nutrition-v2.
+            </Typography>
+            <Button
+              variant="contained"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              Вибрати JSON-файл
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <>
+          <section className="week-toolbar" aria-label="Вибір тижня">
+            <IconButton
+              aria-label="Попередній тиждень"
+              disabled={selectedWeekIndex <= 0}
+              onClick={() => setSelectedWeekId(weeks[selectedWeekIndex - 1].id)}
+            >
+              <ChevronLeftRounded />
+            </IconButton>
+            <div>
+              <Typography variant="h6">
+                {dayjs(selectedWeek.weekStart).locale("uk").format("D MMM")} –{" "}
+                {dayjs(selectedWeek.weekEnd).locale("uk").format("D MMM YYYY")}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                {weekTotals.meals} прийомів · {selectedWeek.recipes.length}{" "}
+                рецептів · {shoppingProgress.total} позицій закупів
+              </Typography>
+            </div>
+            <IconButton
+              aria-label="Наступний тиждень"
+              disabled={selectedWeekIndex >= weeks.length - 1}
+              onClick={() => setSelectedWeekId(weeks[selectedWeekIndex + 1].id)}
+            >
+              <ChevronRightRounded />
+            </IconButton>
+          </section>
+
+          <Tabs
+            className="nutrition-tabs"
+            value={tab}
+            onChange={(_event, value) => setTab(value)}
+            aria-label="Розділи харчування"
+          >
+            <Tab
+              icon={<CalendarMonthRounded />}
+              iconPosition="start"
+              label="План"
+            />
+            <Tab
+              icon={<LocalGroceryStoreRounded />}
+              iconPosition="start"
+              label="Закупи"
+            />
+            <Tab
+              icon={<MenuBookRounded />}
+              iconPosition="start"
+              label="Рецепти"
+            />
+          </Tabs>
+
+          {tab === 0 && (
+            <section
+              className="nutrition-panel planner-section"
+              role="tabpanel"
+            >
+              <div className="macro-grid">
+                {[
+                  ["Калорії / день", selectedWeek.targets.calories, " ккал"],
+                  ["Білок / день", selectedWeek.targets.protein, " г"],
+                  ["Заплановано", weekTotals.meals, " прийомів"],
+                  ["Виконано", weekTotals.eaten, " із " + weekTotals.meals],
+                ].map(([label, value, suffix], index) => (
+                  <Card
+                    className={"metric-card metric-card--" + index}
+                    key={label}
+                  >
+                    <CardContent>
+                      <span>{label}</span>
+                      <strong className="metric-value">
+                        {Math.round(Number(value)) + String(suffix)}
+                      </strong>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+              <div className="week-grid">
+                {selectedWeek.days.map((day) => {
+                  const totals = sumNutritionMeals(day.meals);
+                  const eaten = day.meals.filter(
+                    (meal) => meal.status === "eaten",
+                  ).length;
+                  return (
+                    <Card
+                      className={
+                        "day-card" +
+                        (day.date === dayjs().format("YYYY-MM-DD")
+                          ? " day-card--today"
+                          : "")
+                      }
+                      key={day.date}
+                    >
+                      <CardContent>
+                        <div className="day-heading">
+                          <div>
+                            <span className="day-name">
+                              {dayjs(day.date).locale("uk").format("dddd")}
+                            </span>
+                            <span className="day-date">
+                              {dayjs(day.date).format("DD.MM")}
+                            </span>
+                          </div>
+                          <b>{Math.round(totals.calories)} ккал</b>
+                        </div>
+                        <small>
+                          Б {Math.round(totals.protein)} · Ж{" "}
+                          {totals.fat ? Math.round(totals.fat) : "—"} · В{" "}
+                          {totals.carbs ? Math.round(totals.carbs) : "—"}
+                        </small>
+                        <LinearProgress
+                          variant="determinate"
+                          value={
+                            day.meals.length
+                              ? (eaten / day.meals.length) * 100
+                              : 0
+                          }
+                        />
+                        {day.note && (
+                          <Typography className="day-note" variant="caption">
+                            {day.note}
+                          </Typography>
+                        )}
+                        <Divider />
+                        <div className="day-meals">
+                          {day.meals.map((meal) => (
+                            <article className="planned-meal" key={meal.id}>
+                              <button
+                                type="button"
+                                onClick={() => openMeal(meal)}
+                              >
+                                <span>{meal.time}</span>
+                                <strong>{meal.title}</strong>
+                                <small>
+                                  {meal.calories} ккал · Б {meal.protein} г
+                                </small>
+                              </button>
+                              <select
+                                aria-label={"Статус: " + meal.title}
+                                value={meal.status}
+                                onChange={(event) =>
+                                  updateMealStatus(
+                                    day.date,
+                                    meal.id,
+                                    event.target
+                                      .value as NutritionMeal["status"],
+                                  )
+                                }
+                              >
+                                {Object.entries(statusLabels).map(
+                                  ([value, label]) => (
+                                    <option value={value} key={value}>
+                                      {label}
+                                    </option>
+                                  ),
+                                )}
+                              </select>
+                            </article>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+
+          {tab === 1 && (
+            <section
+              className="nutrition-panel shopping-section"
+              role="tabpanel"
+            >
+              <div className="nutrition-section-heading">
+                <div>
+                  <Typography variant="h5">Закупи на тиждень</Typography>
+                  <Typography color="text.secondary">
+                    {shoppingProgress.checked} із {shoppingProgress.total}{" "}
+                    куплено
+                    {shoppingProgress.estimatedPrice
+                      ? " · орієнтовно " +
+                        shoppingProgress.estimatedPrice.toFixed(0) +
+                        " PLN"
+                      : ""}
+                  </Typography>
+                </div>
+              </div>
+              {selectedWeek.shoppingTrips.length ? (
+                <div className="shopping-grid">
+                  {selectedWeek.shoppingTrips.map((trip) => {
+                    const checked = trip.items.filter(
+                      (item) => item.checked,
+                    ).length;
+                    return (
+                      <Card
+                        className="dashboard-card shopping-card"
+                        key={trip.id}
+                      >
+                        <CardContent>
+                          <div className="card-heading">
+                            <div>
+                              <Typography variant="h6">{trip.title}</Typography>
+                              <Typography
+                                variant="caption"
+                                color="text.secondary"
+                              >
+                                {[trip.plannedDate, trip.store]
+                                  .filter(Boolean)
+                                  .join(" · ")}
+                              </Typography>
+                            </div>
+                            <Chip label={checked + "/" + trip.items.length} />
+                          </div>
+                          <LinearProgress
+                            variant="determinate"
+                            value={
+                              trip.items.length
+                                ? (checked / trip.items.length) * 100
+                                : 0
+                            }
+                          />
+                          <Divider />
+                          <div className="shopping-list">
+                            {trip.items.map((item) => (
+                              <FormControlLabel
+                                key={item.id}
+                                className={
+                                  item.checked
+                                    ? "shopping-item is-checked"
+                                    : "shopping-item"
+                                }
+                                control={
+                                  <Checkbox
+                                    checked={item.checked}
+                                    onChange={() =>
+                                      toggleShoppingItem(trip.id, item.id)
+                                    }
+                                  />
+                                }
+                                label={
+                                  <span>
+                                    <strong>{item.name}</strong>
+                                    <small>
+                                      {[item.quantity, item.unit, item.category]
+                                        .filter(
+                                          (part) =>
+                                            part !== undefined && part !== "",
+                                        )
+                                        .join(" ")}
+                                      {item.estimatedPrice
+                                        ? " · " +
+                                          item.estimatedPrice.toFixed(2) +
+                                          " PLN"
+                                        : ""}
+                                    </small>
+                                  </span>
+                                }
+                              />
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              ) : (
+                <Alert severity="info">
+                  У цьому пакеті ще немає закупів. Додай shoppingTrips у Health
+                  і повторно імпортуй файл.
+                </Alert>
+              )}
+            </section>
+          )}
+
+          {tab === 2 && (
+            <section
+              className="nutrition-panel recipes-section"
+              role="tabpanel"
+            >
+              <div className="nutrition-section-heading">
+                <div>
+                  <Typography variant="h5">Рецепти й підготовка</Typography>
+                  <Typography color="text.secondary">
+                    Інгредієнти, кроки, заготовки та зберігання.
+                  </Typography>
+                </div>
+              </div>
+              <div className="recipes-grid">
+                {selectedWeek.recipes.map((recipe) => (
+                  <Card
+                    className="dashboard-card recipe-card"
+                    key={recipe.id}
+                    onClick={() => setSelectedRecipe(recipe)}
+                  >
+                    <CardContent>
+                      <RestaurantMenuRounded color="primary" />
+                      <Typography variant="h6">{recipe.title}</Typography>
+                      <Typography color="text.secondary">
+                        {recipe.portions} порції
+                        {recipe.caloriesPerPortion
+                          ? " · " + recipe.caloriesPerPortion + " ккал/порція"
+                          : ""}
+                      </Typography>
+                      <Typography className="recipe-preview">
+                        {recipe.ingredients.slice(0, 3).join(" · ")}
+                      </Typography>
+                      <Button size="small">Відкрити рецепт</Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </section>
+          )}
+        </>
       )}
 
-      {tab === 2 && (
-        <section className="settings-grid">
-          <Card><CardContent><Typography variant="h5">Денні цілі КБЖВ</Typography><Alert severity="warning">Дефіцит і макроси введи зі свого перевіреного розрахунку або рекомендації фахівця. Застосунок їх не діагностує.</Alert><div className="targets-grid">{([['calories','Ккал'],['protein','Білки, г'],['fat','Жири, г'],['carbs','Вуглеводи, г']] as const).map(([key, label]) => <TextField key={key} label={label} type="number" value={preferences.targets[key] || ""} onChange={(event) => updateTarget(key, event.target.value)} inputProps={{ min: 0 }} />)}</div><TextField label="Моя актуальна ціль і важливі обмеження" multiline minRows={3} fullWidth value={preferences.goalNote} onChange={(event) => setPreferences((current) => ({ ...current, goalNote: event.target.value }))} /></CardContent></Card>
-          <Card><CardContent><Typography variant="h5">Моя база продуктів і страв</Typography><Typography color="text.secondary">Розділяй комами або новими рядками. Зберігається лише в цьому браузері.</Typography><div className="lists-grid"><TextField label="Продукти, які люблю" multiline minRows={4} value={preferences.likedFoods.join(", ")} onChange={(event) => updateList("likedFoods", event.target.value)} /><TextField label="Продукти, які не люблю" multiline minRows={4} value={preferences.dislikedFoods.join(", ")} onChange={(event) => updateList("dislikedFoods", event.target.value)} /><TextField label="Страви, які люблю" multiline minRows={4} value={preferences.likedMeals.join(", ")} onChange={(event) => updateList("likedMeals", event.target.value)} /><TextField label="Страви, які не люблю" multiline minRows={4} value={preferences.dislikedMeals.join(", ")} onChange={(event) => updateList("dislikedMeals", event.target.value)} /></div></CardContent></Card>
-        </section>
-      )}
+      <Dialog
+        open={Boolean(selectedRecipe || selectedMeal)}
+        onClose={() => {
+          setSelectedRecipe(null);
+          setSelectedMeal(null);
+        }}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>
+          {selectedRecipe?.title || selectedMeal?.title}
+        </DialogTitle>
+        <DialogContent dividers className="recipe-dialog-content">
+          {selectedRecipe ? (
+            <>
+              <Stack direction="row" spacing={1} flexWrap="wrap">
+                <Chip label={selectedRecipe.portions + " порції"} />
+                {selectedRecipe.caloriesPerPortion !== undefined && (
+                  <Chip
+                    label={selectedRecipe.caloriesPerPortion + " ккал/порція"}
+                  />
+                )}
+              </Stack>
+              <Typography variant="h6">Інгредієнти</Typography>
+              <ul>
+                {selectedRecipe.ingredients.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+              <Typography variant="h6">Приготування</Typography>
+              <ol>
+                {selectedRecipe.steps.map((step) => (
+                  <li key={step}>{step}</li>
+                ))}
+              </ol>
+              {selectedRecipe.prepNotes?.length ? (
+                <>
+                  <Typography variant="h6">Заготовки</Typography>
+                  <ul>
+                    {selectedRecipe.prepNotes.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </>
+              ) : null}
+              {selectedRecipe.storage?.length ? (
+                <>
+                  <Typography variant="h6">Зберігання</Typography>
+                  <ul>
+                    {selectedRecipe.storage.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </>
+              ) : null}
+            </>
+          ) : (
+            <>
+              <Typography>{selectedMeal?.description}</Typography>
+              <Typography color="text.secondary">
+                {selectedMeal?.calories} ккал · білок {selectedMeal?.protein} г
+              </Typography>
+            </>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setSelectedRecipe(null);
+              setSelectedMeal(null);
+            }}
+          >
+            Закрити
+          </Button>
+        </DialogActions>
+      </Dialog>
 
-      <Snackbar open={Boolean(notice)} autoHideDuration={3500} onClose={() => setNotice("")} message={notice} />
+      <Snackbar
+        open={Boolean(notice)}
+        autoHideDuration={3500}
+        onClose={() => setNotice("")}
+        message={notice}
+      />
     </NutritionLayout>
   );
 };

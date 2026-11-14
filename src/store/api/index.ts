@@ -28,6 +28,7 @@ export const api = createApi({
     "AimsCategories",
     "English",
     "DailyReview",
+    "NutritionWeek",
   ],
   reducerPath: "splitApi",
   baseQuery: fakeBaseQuery(),

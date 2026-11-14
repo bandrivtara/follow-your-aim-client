@@ -1,6 +1,6 @@
 # Code map
 
-Last verified: 2026-08-18.
+Last verified: 2026-11-14.
 
 | Concern                 | Primary location                                                  | Related locations                                                                        |
 | ----------------------- | ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
@@ -16,7 +16,7 @@ Last verified: 2026-08-18.
 | Daily/weekly reviews    | src/components/Review/                                            | DailyReview, GoalsGratitude, shared AI reflection prompts, dailyReviews service, tracker export, dashboard calculations |
 | Codex helper page       | src/components/Review/CodexGuide/                                 | ready prompts, weekly protocols, local bridge safety flow                                |
 | Career compass          | src/components/Career/                                            | read-only 12-month roadmap, evidence skills, course progress, and linked active aims     |
-| Nutrition workspace     | src/components/Nutrition/                                         | local targets/preferences/weekly plan, AI prompt/import, and FatSecret backend contract; see nutrition-integration.md |
+| Nutrition workspace     | src/components/Nutrition/                                         | Health JSON import, weekly Firebase persistence, meal execution, recipes, and shopping lists; see nutrition-integration.md |
 | Weekly planning export  | src/components/Review/WeeklyReview/weeklyPlanningExport.ts        | weekly planning protocol, aims, four-week tracker/review context                         |
 | Local Codex bridge      | scripts/fya-codex-bridge.cjs                                      | fya-plan-core.cjs, docs/codex/bridge-api.md                                              |
 | Tracker date ranges     | src/components/Calendar/Tracker/calendarRange.ts                  | FiltersBar/, TrackerCalendar.tsx                                                         |

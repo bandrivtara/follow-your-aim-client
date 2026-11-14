@@ -1,49 +1,55 @@
-# Nutrition and FatSecret integration
+# Health nutrition package integration
 
-Last verified: 2026-09-06.
+Last verified: 2026-11-14.
 
-## Product boundary
+## Responsibility boundary
 
-Follow Your Aim owns personal nutrition targets, food/meal preferences, and the reviewed weekly plan. FatSecret remains the source of truth for actual diary entries and its food/serving identifiers. The first client iteration stores preferences and the draft plan in browser `localStorage`; it does not add a Firestore collection or change existing tracker history.
+The separate Health project owns personal and medical context, preferences,
+nutrition calculations, recipes, shopping planning, and weekly analysis.
+Follow Your Aim only validates, imports, stores, and renders an approved weekly
+package. It does not call FatSecret or another external nutrition API.
 
-The React client never receives a FatSecret consumer secret, request-token secret, or access-token secret. A trusted backend is required for account connection and every delegated diary request.
+Medical analyses, diagnoses, medications, and the complete Health profile must
+never be included in the import.
 
-## Why a backend is required
+## Firebase storage
 
-FatSecret account access uses [three-legged OAuth 1.0](https://platform.fatsecret.com/docs/guides/authentication/oauth1/three-legged). The request-token exchange and every delegated call are signed with HMAC-SHA1 using secrets which FatSecret requires the integrator to store securely. OAuth 2.0 supports signed application requests, but not delegated requests for a member diary; FatSecret documents this distinction in its [authentication guide](https://platform.fatsecret.com/docs/guides/authentication).
+- Collection: nutritionWeek.
+- Document ID: the Monday weekStart in YYYY-MM-DD.
+- One document stores one complete weekly package.
+- Import uses setDoc; reimport preserves local meal execution and shopping
+  checkboxes by stable IDs before replacing the document.
+- The collection is included in the full Firebase backup.
 
-The current GitHub Pages deployment is static and cannot safely perform this work. Choose a small backend host (for example an existing private server or a serverless platform with encrypted environment variables) before enabling connection.
+## Supported package versions
 
-## Configuration needed from the owner
+The client accepts fya-nutrition-v1 and fya-nutrition-v2.
 
-1. Create/sign in to a FatSecret Platform developer account and register Follow Your Aim.
-2. Provide the backend environment with `FATSECRET_CONSUMER_KEY` and `FATSECRET_CONSUMER_SECRET`. Never paste either value into React source, a `REACT_APP_*` variable, Firestore, chat, or a commit.
-3. Choose the backend public origin and register its exact OAuth callback, for example `https://api.example.com/nutrition/oauth/callback`.
-4. Set the client build variable `REACT_APP_NUTRITION_API_BASE_URL` to that backend origin. This value is public and must not contain credentials.
-5. Enter verified calorie and macro targets plus preferences in the Nutrition screen. Polish/localized food search is a premium localization feature according to FatSecret's [localization documentation](https://platform.fatsecret.com/docs/guides/localization).
+Required:
 
-## Client/backend contract
+- schemaVersion;
+- settings.calorieTarget and settings.proteinTarget;
+- plan.weekStart, plan.weekEnd, and exactly seven ordered plan.days;
+- every meal has a stable id, title, time, calories, and protein.
 
-All client requests use JSON and `credentials: include`. The backend must restrict CORS to the Follow Your Aim origin, use secure `HttpOnly`/`SameSite` cookies or an equivalent personal authentication boundary, validate dates and numeric ranges, rate-limit writes, and keep an audit/idempotency record.
+Optional:
 
-| Endpoint | Purpose | Response |
-| --- | --- | --- |
-| `GET /nutrition/status` | Safe connection state | `{ configured, connected, accountLabel? }` |
-| `GET /nutrition/oauth/start` | Create request token and redirect to FatSecret | HTTP redirect |
-| `GET /nutrition/oauth/callback` | Verify callback, exchange and store access token | Redirect to `/#/nutrition` |
-| `GET /nutrition/diary?date=YYYY-MM-DD` | Read and aggregate the selected diary day | `{ date, calories, protein, fat, carbs, fiber?, entriesCount, syncedAt }` |
-| `POST /nutrition/plans/publish` | Create only reviewed, unambiguous entries | `{ created, skipped }` |
+- fat, carbs, fiber, and saturated-fat targets;
+- notes and recipe links;
+- recipes with ingredients, steps, prep, storage, time, and equipment;
+- shoppingTrips with stable trip/item IDs, quantities, categories, stores,
+  planned dates, and estimated prices.
 
-FatSecret exposes read/create/edit/delete for diary entries in its [platform resources](https://platform.fatsecret.com/docs/guides). A planned meal name alone is not enough for a safe create call: each entry ultimately needs an exact `food_id`, `serving_id`, units, meal type, and date. The backend must skip ambiguous items and return them for user resolution; it must never silently select the first search result.
+The v2 package adds shoppingTrips and richer recipe metadata. Existing v1
+Health files remain importable.
 
-## Automatic end-of-day sync
+## User-maintained state
 
-The visible “Оновити сьогодні” button is supported by the client contract. A reliable end-of-day job cannot run in a closed browser; it belongs on the backend scheduler. Schedule it in the user's timezone, make diary reads idempotent, and store only the aggregate/history explicitly approved by the owner. Until that persistence decision is made, the scheduled job should remain disabled.
+Follow Your Aim adds:
 
-## Next implementation phase
+- meal status: pending, eaten, or skipped;
+- optional skip reason;
+- shopping-item checked state.
 
-- Deploy and authenticate the backend.
-- Complete one real OAuth connection and read-only diary sync before enabling writes.
-- Add food/serving matching with a preview and explicit confirmation for ambiguous matches.
-- Decide whether approved aggregates and plans should sync between devices in a new Firestore collection; this requires a separately reviewed schema and deployed-rule check.
-- Only then add scheduled sync and edit/delete controls.
+These values belong to Follow Your Aim and survive a repeat import of the same
+week when stable IDs remain unchanged.

@@ -1,6 +1,6 @@
 # Architecture
 
-Last verified: 2026-08-28 on Fixes-to-Main-Release.
+Last verified: 2026-11-14 on Fixes-to-Main-Release.
 
 ## Runtime outline
 
@@ -37,7 +37,7 @@ Typical flow: screen/component -> generated query or mutation hook -> service qu
 - Task groups: reusable task store, optional stages/subtasks, and per-day todo instances in tracker history. The default “Усі завдання” view treats the task-group store/stages as a lightweight pool of unfinished work and does not read the full history collection. Calendar/history rows are loaded only for explicit dated or archive filters. Tracker and dashboard task saves reconcile matching IDs (with a legacy title fallback) back to the existing pool status, while planning continues to write daily copies through the same history paths.
 - Reviews: the daily reflection keeps mood/energy and provides a copyable ChatGPT interview prompt; one compact pasted summary completes the configured daily-review habit, while legacy reviews with five separate answers remain readable and complete. The “Ранковий компас” flow reuses the former “5 цілей і 5 подяк” habit ID and history, stores the pasted result as an optional activity-history note, and completes that habit only after saving. Tracker and weekly exports include these text records. A separate next-week planning export adds four-week context, active aims, unfinished work, future planned activities, and the Weekly Planning Protocol v1 prompt. The Codex helper page explains the safe read-only → dry-run → confirmed apply workflow and provides copyable prompts without reading or writing Firebase itself.
 - Career: a read-only career compass for the current React Tech Lead → AI-native Engineering Lead plan. It combines a fixed 12-month roadmap and evidence-based skill map with existing active aims matched by career category or keywords. Course progress uses a matching aim when available and otherwise shows the explicitly documented starting estimate; it introduces no Firestore collection or write path.
-- Nutrition: a local-first workspace for calorie/macro targets, food and meal preferences, AI-assisted weekly-plan import, and a safe FatSecret integration boundary. Draft preferences and plans stay in browser localStorage. The client can call a separately hosted backend for OAuth status, diary sync, and reviewed-plan publishing when `REACT_APP_NUTRITION_API_BASE_URL` is configured; no OAuth secrets or new Firestore data are stored by the client.
+- Nutrition: a Firebase-backed viewer and tracker for weekly packages produced by the separate Health project. It imports validated `fya-nutrition-v1` or `fya-nutrition-v2` JSON, stores one document per Monday in `nutritionWeek`, and renders the meal calendar, recipes, preparation notes, and shopping trips. Follow Your Aim does not calculate nutrition targets or call an external nutrition API.
 - Life spheres are no longer exposed in navigation, routes, forms, lists, or calendars. Legacy sphere documents, optional sphereId fields, and inert compatibility code remain untouched so existing Firebase data is not migrated or deleted.
 - English: vocabulary groups, words, and word tests. A local read-only prestart/prebuild script reads the separate private `english-learning` repository and publishes only its aggregate active/mastered vocabulary count into a generated snapshot for the matching aim.
 

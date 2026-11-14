@@ -1,80 +1,126 @@
-import dayjs from "dayjs";
 import {
-  buildNutritionPrompt,
-  createWeek,
-  parseNutritionPlan,
-  splitList,
-  sumMeals,
+  calculateShoppingProgress,
+  mergeNutritionProgress,
+  parseNutritionPackage,
+  sumNutritionMeals,
 } from "./nutritionLogic";
-import { DEFAULT_PREFERENCES } from "./nutritionTypes";
+import { StoredNutritionWeek } from "./nutritionTypes";
+
+const makePackage = () =>
+  JSON.stringify({
+    schemaVersion: "fya-nutrition-v2",
+    exportedAt: "2026-11-14T12:00:00.000Z",
+    settings: {
+      calorieTarget: 2000,
+      proteinTarget: 155,
+      fiberTarget: 32,
+    },
+    plan: {
+      weekStart: "2026-11-16",
+      weekEnd: "2026-11-22",
+      generatedAt: "2026-11-14T12:00:00.000Z",
+      days: Array.from({ length: 7 }, (_, index) => ({
+        date: "2026-11-" + String(16 + index).padStart(2, "0"),
+        meals:
+          index === 0
+            ? [
+                {
+                  id: "breakfast",
+                  title: "Сніданок",
+                  time: "09:00",
+                  calories: 430,
+                  protein: 30,
+                  recipeId: "breakfast",
+                },
+              ]
+            : [],
+      })),
+      recipes: [
+        {
+          id: "breakfast",
+          title: "Сніданок",
+          portions: 1,
+          ingredients: ["skyr"],
+          steps: ["Змішати"],
+        },
+      ],
+    },
+    shoppingTrips: [
+      {
+        id: "weekend",
+        title: "Основні закупи",
+        items: [
+          {
+            id: "skyr",
+            name: "Skyr",
+            quantity: 2,
+            unit: "шт",
+            estimatedPrice: 8,
+          },
+        ],
+      },
+    ],
+  });
 
 describe("nutritionLogic", () => {
-  test("creates a Monday to Sunday week", () => {
-    const week = createWeek(dayjs("2026-09-07"));
-    expect(week).toHaveLength(7);
-    expect(week[0].date).toBe("2026-09-07");
-    expect(week[6].date).toBe("2026-09-13");
+  it("parses the Health package into a normalized week", () => {
+    const week = parseNutritionPackage(makePackage());
+    expect(week.weekStart).toBe("2026-11-16");
+    expect(week.days).toHaveLength(7);
+    expect(week.days[0].meals[0]).toMatchObject({
+      id: "2026-11-16-breakfast",
+      status: "pending",
+      calories: 430,
+    });
+    expect(week.recipes).toHaveLength(1);
+    expect(week.shoppingTrips).toHaveLength(1);
   });
 
-  test("normalizes preference lists", () => {
-    expect(splitList("курка, рис\n броколі, ")).toEqual([
-      "курка",
-      "рис",
-      "броколі",
-    ]);
-  });
-
-  test("sums missing macros as zero", () => {
-    expect(
-      sumMeals([
-        { name: "Сніданок", meal: "breakfast", calories: 400, protein: 25 },
-        { name: "Обід", meal: "lunch", calories: 600, fat: 20, carbs: 70 },
-      ]),
-    ).toEqual({ calories: 1000, protein: 25, fat: 20, carbs: 70 });
-  });
-
-  test("validates and orders an imported plan by expected dates", () => {
-    const dates = ["2026-09-07", "2026-09-08"];
-    const plan = parseNutritionPlan(
-      JSON.stringify([
-        {
-          date: "2026-09-08",
-          meals: [
-            {
-              name: "Омлет",
-              meal: "breakfast",
-              calories: 420,
-              protein: 30,
-            },
-          ],
-        },
-      ]),
-      dates,
+  it("rejects a package that is not exactly seven ordered days", () => {
+    const invalid = JSON.parse(makePackage());
+    invalid.plan.days[1].date = "2026-11-30";
+    expect(() => parseNutritionPackage(JSON.stringify(invalid))).toThrow(
+      "Очікувалася дата",
     );
-    expect(plan[0]).toEqual({ date: "2026-09-07", meals: [] });
-    expect(plan[1].meals[0].name).toBe("Омлет");
   });
 
-  test("rejects dates outside the selected week", () => {
-    expect(() =>
-      parseNutritionPlan(
-        '[{"date":"2026-09-20","meals":[]}]',
-        ["2026-09-07"],
+  it("keeps execution and shopping progress on reimport", () => {
+    const incoming = parseNutritionPackage(makePackage());
+    const current: StoredNutritionWeek = {
+      ...incoming,
+      id: incoming.weekStart,
+      updatedAt: 1,
+      days: incoming.days.map((day, index) =>
+        index === 0
+          ? {
+              ...day,
+              meals: day.meals.map((meal) => ({
+                ...meal,
+                status: "eaten" as const,
+              })),
+            }
+          : day,
       ),
-    ).toThrow("не входить");
+      shoppingTrips: incoming.shoppingTrips.map((trip) => ({
+        ...trip,
+        items: trip.items.map((item) => ({ ...item, checked: true })),
+      })),
+    };
+    const merged = mergeNutritionProgress(incoming, current);
+    expect(merged.days[0].meals[0].status).toBe("eaten");
+    expect(merged.shoppingTrips[0].items[0].checked).toBe(true);
   });
 
-  test("includes targets and preferences in the AI prompt", () => {
-    const prompt = buildNutritionPrompt(
-      {
-        ...DEFAULT_PREFERENCES,
-        targets: { calories: 2000, protein: 140, fat: 60, carbs: 220 },
-        likedFoods: ["лосось"],
-      },
-      createWeek(dayjs("2026-09-07")),
-    );
-    expect(prompt).toContain("2000 ккал");
-    expect(prompt).toContain("лосось");
-    expect(prompt).toContain("ЛИШЕ JSON-масив");
+  it("sums meal macros and shopping state", () => {
+    const week = parseNutritionPackage(makePackage());
+    expect(sumNutritionMeals(week.days[0].meals)).toMatchObject({
+      calories: 430,
+      protein: 30,
+    });
+    expect(calculateShoppingProgress(week.shoppingTrips)).toEqual({
+      checked: 0,
+      total: 1,
+      estimatedPrice: 8,
+    });
   });
 });
