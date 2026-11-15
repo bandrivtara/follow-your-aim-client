@@ -47,6 +47,38 @@ const NutritionLayout = styled.main`
     border-radius: 14px;
   }
 
+  .nutrition-guide {
+    margin-bottom: 14px;
+    overflow: hidden;
+    border: 1px solid var(--fya-border);
+    border-radius: 14px !important;
+    background: rgba(255, 255, 255, 0.88);
+    box-shadow: none;
+  }
+
+  .nutrition-guide::before {
+    display: none;
+  }
+
+  .nutrition-guide .MuiAccordionSummary-root {
+    min-height: 48px;
+  }
+
+  .nutrition-guide .MuiAccordionSummary-content {
+    align-items: center;
+    gap: 9px;
+  }
+
+  .nutrition-guide .MuiAccordionSummary-content > svg {
+    color: var(--fya-primary);
+  }
+
+  .nutrition-guide .MuiAccordionDetails-root {
+    padding-top: 0;
+    color: var(--fya-muted);
+    line-height: 1.6;
+  }
+
   .nutrition-tabs {
     min-height: 48px;
     padding: 4px;

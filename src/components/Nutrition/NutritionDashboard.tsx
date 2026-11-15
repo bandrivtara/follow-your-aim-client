@@ -2,6 +2,9 @@ import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import dayjs from "dayjs";
 import "dayjs/locale/uk";
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
   Alert,
   Button,
   Card,
@@ -34,6 +37,8 @@ import {
   MenuBookRounded,
   RestaurantMenuRounded,
   UploadFileRounded,
+  ExpandMoreRounded,
+  HelpOutlineRounded,
 } from "@mui/icons-material";
 import {
   useGetNutritionWeeksQuery,
@@ -270,6 +275,21 @@ const NutritionDashboard = () => {
           </Button>
         </div>
       </header>
+
+      <Accordion className="nutrition-guide" disableGutters>
+        <AccordionSummary expandIcon={<ExpandMoreRounded />}>
+          <HelpOutlineRounded />
+          <Typography fontWeight={800}>Як це працює</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          <Typography variant="body2">
+            <strong>1.</strong> Health формує погоджений план на 14 днів. {" "}
+            <strong>2.</strong> Імпортуй два тижневі JSON. {" "}
+            <strong>3.</strong> Щодня відмічай страви, закупи й заготовки. {" "}
+            <strong>4.</strong> Наприкінці тижня передай фактичний результат у Health для аналізу.
+          </Typography>
+        </AccordionDetails>
+      </Accordion>
 
       {errorMessage && (
         <Alert severity="error" onClose={() => setLocalError("")}>
