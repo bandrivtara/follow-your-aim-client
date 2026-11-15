@@ -44,7 +44,18 @@ export const parseNutritionBundle = (source: string): INutritionImportBundle => 
   if (!Number.isFinite(Number(value.settings.calorieTarget))) {
     throw new Error("settings.calorieTarget має бути числом.");
   }
-  return value as unknown as INutritionImportBundle;
+  const bundle = value as unknown as INutritionImportBundle;
+  return {
+    ...bundle,
+    plan: {
+      ...bundle.plan,
+      household: bundle.household || bundle.plan.household,
+      weeklyEvents: bundle.weeklyEvents || bundle.plan.weeklyEvents,
+      shoppingTrips: bundle.shoppingTrips || bundle.plan.shoppingTrips || [],
+      prepSessions: bundle.prepSessions || bundle.plan.prepSessions || [],
+      freezerBatches: bundle.freezerBatches || bundle.plan.freezerBatches || [],
+    },
+  };
 };
 
 export const getPlanDay = (plan: INutritionWeekPlan | null, date: Dayjs) =>
@@ -84,6 +95,13 @@ export const calculateNutritionTotals = (meals: INutritionMeal[] = []) => {
   return {
     calories: eaten.reduce((sum, meal) => sum + (Number(meal.calories) || 0), 0),
     protein: eaten.reduce((sum, meal) => sum + (Number(meal.protein) || 0), 0),
+    fat: eaten.reduce((sum, meal) => sum + (Number(meal.fat) || 0), 0),
+    carbs: eaten.reduce((sum, meal) => sum + (Number(meal.carbs) || 0), 0),
+    fiber: eaten.reduce((sum, meal) => sum + (Number(meal.fiber) || 0), 0),
+    saturatedFat: eaten.reduce(
+      (sum, meal) => sum + (Number(meal.saturatedFat) || 0),
+      0,
+    ),
     eaten: eaten.length,
     skipped: meals.filter((meal) => meal.status === "skipped").length,
     pending: meals.filter((meal) => !meal.status || meal.status === "pending").length,
@@ -101,22 +119,41 @@ export const buildNutritionAnalysisExport = (options: {
   trainingDays: string[];
 }) => {
   const { plan, logs, trainingDays } = options;
+  const days = plan.days.map((day) => {
+    const log = logs.find((item) => item.date === day.date);
+    const totals = calculateNutritionTotals(log?.meals || []);
+    const plannedTotals = {
+      calories: day.meals.reduce((sum, meal) => sum + (Number(meal.calories) || 0), 0),
+      protein: day.meals.reduce((sum, meal) => sum + (Number(meal.protein) || 0), 0),
+      fat: day.meals.reduce((sum, meal) => sum + (Number(meal.fat) || 0), 0),
+      carbs: day.meals.reduce((sum, meal) => sum + (Number(meal.carbs) || 0), 0),
+    };
+    const loggingStatus = !log
+      ? "missing"
+      : totals.pending > 0
+        ? "partial"
+        : "complete";
+    return {
+      date: day.date,
+      loggingStatus,
+      targetCalories: log?.targetCalories,
+      plannedTotals,
+      actualTotals: totals,
+      meals: log?.meals || day.meals,
+      comment: log?.dailyComment || "",
+    };
+  });
   return {
     schemaVersion: "fya-nutrition-report-v1",
     exportedAt: new Date().toISOString(),
     period: { from: plan.weekStart, to: plan.weekEnd },
     trainingDays,
-    days: plan.days.map((day) => {
-      const log = logs.find((item) => item.date === day.date);
-      const totals = calculateNutritionTotals(log?.meals || []);
-      return {
-        date: day.date,
-        targetCalories: log?.targetCalories,
-        ...totals,
-        meals: log?.meals || day.meals,
-        comment: log?.dailyComment || "",
-      };
-    }),
+    dataCompleteness: {
+      completeDays: days.filter((day) => day.loggingStatus === "complete").length,
+      partialDays: days.filter((day) => day.loggingStatus === "partial").length,
+      missingDays: days.filter((day) => day.loggingStatus === "missing").length,
+    },
+    days,
   };
 };
 

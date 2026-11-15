@@ -61,11 +61,11 @@ Any date fix must keep both read paths consistent and test first/last-day and cr
 
 - Added with explicit user approval on 2026-11-14. Medical records remain in the separate local Health project and are not copied into Firestore.
 - `nutritionSettings/main` stores the active calorie/macro targets, default meal times, and approved/excluded/candidate product names imported from `fya-nutrition-v1` JSON.
-- `nutritionPlan/{weekStart}` uses a Monday date in `YYYY-MM-DD` as the document ID. It stores the versioned weekly plan, day meals, short recipes, and the matching `weekEnd`.
+- `nutritionPlan/{weekStart}` uses a Monday date in `YYYY-MM-DD` as the document ID. It stores the versioned weekly plan, day meals, short recipes, the matching `weekEnd`, and imported operational metadata (`household`, `weeklyEvents`, `shoppingTrips`, `prepSessions`, `freezerBatches`). These fields contain meal logistics only; medical data remains outside Firebase.
 - `nutritionDay/{YYYY-MM-DD}` stores only execution for one day: copied planned meals plus status (`pending`, `eaten`, `skipped`), required skip reason, comments, calculated totals, and finalization/sync timestamps.
-- Opening Nutrition on a later day finalizes an existing unfinished previous-day log. It writes only calories/protein/target summary into the existing tracker `history` activity whose title contains `Харчування`; full meals remain in `nutritionDay`.
+- Opening Nutrition on a later day finalizes a previous-day log only when every planned meal has a status and every skipped meal has a reason. It writes only calories/protein/target summary into the existing tracker `history` activity whose title contains `Харчування`; incomplete days remain drafts and full meals remain in `nutritionDay`.
 - No remote migration, delete, seed, or automatic creation of a tracker habit is implemented. If the tracker habit is absent, the nutrition day is finalized without a history write and the UI reports it.
-- Import accepts `schemaVersion: fya-nutrition-v1` and `fya-nutrition-v2`. Version 2 preserves per-meal `portionDescription`, fats/carbohydrates/fibre, and recipe batch/portion weights while using the same Firestore documents. Import batch-merges settings and the weekly plan; it never overwrites existing daily execution logs.
+- Import accepts `schemaVersion: fya-nutrition-v1` and `fya-nutrition-v2`. Version 2 preserves per-meal `portionDescription`, fats/carbohydrates/fibre, recipe batch/portion weights, and week-level shopping/prep/freezer/household metadata while using the same Firestore documents. Import batch-merges settings and the weekly plan; it never overwrites existing daily execution logs.
 
 ## Archive fields
 

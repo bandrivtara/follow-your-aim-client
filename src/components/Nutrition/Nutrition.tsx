@@ -20,6 +20,7 @@ import ArrowBackOutlined from "@mui/icons-material/ArrowBackOutlined";
 import ArrowForwardOutlined from "@mui/icons-material/ArrowForwardOutlined";
 import CloudUploadOutlined from "@mui/icons-material/CloudUploadOutlined";
 import DeleteOutline from "@mui/icons-material/DeleteOutline";
+import DoneAllOutlined from "@mui/icons-material/DoneAllOutlined";
 import DownloadOutlined from "@mui/icons-material/DownloadOutlined";
 import PrintOutlined from "@mui/icons-material/PrintOutlined";
 import ShareOutlined from "@mui/icons-material/ShareOutlined";
@@ -60,6 +61,7 @@ import {
   printWeeklyNutritionPlan,
 } from "./nutritionUtils";
 import NutritionWeekOverview from "./NutritionWeekOverview";
+import NutritionOperations from "./NutritionOperations";
 
 const mealStatusOptions = [
   { value: "pending", label: "Очікує" },
@@ -198,6 +200,9 @@ const Nutrition = () => {
       ...log,
       consumedCalories: dayTotals.calories,
       consumedProtein: dayTotals.protein,
+      consumedFat: dayTotals.fat,
+      consumedCarbs: dayTotals.carbs,
+      consumedFiber: dayTotals.fiber,
       finalizedAt: finalize ? timestamp : log.finalizedAt,
       syncedToHistoryAt,
     }).unwrap();
@@ -221,6 +226,14 @@ const Nutrition = () => {
         loaded,
         Number(settings.data?.calorieTarget || 2000),
       );
+      const finalizedTotals = calculateNutritionTotals(finalized.meals);
+      if (finalizedTotals.pending > 0 || hasMissingSkipReason(finalized.meals)) {
+        setNotice({
+          type: "info",
+          text: `За ${yesterday.format("DD.MM")} залишилися непозначені прийоми. Відкрий учорашній день і заверши його — неповні дані не підуть у статистику.`,
+        });
+        return;
+      }
       const nutritionHabitFound = await saveWithTrackerSync(finalized, yesterday, true);
       setNotice({
         type: "info",
@@ -285,6 +298,21 @@ const Nutrition = () => {
     );
   };
 
+  const markAllPendingAsEaten = () => {
+    setIsDirty(true);
+    setDraft((current) => current
+      ? {
+          ...current,
+          meals: current.meals.map((meal) =>
+            !meal.status || meal.status === "pending"
+              ? { ...meal, status: "eaten" }
+              : meal,
+          ),
+        }
+      : current,
+    );
+  };
+
   const save = async () => {
     if (!draft) return;
     if (hasMissingSkipReason(draft.meals)) {
@@ -293,14 +321,24 @@ const Nutrition = () => {
     }
     try {
       const isPastDay = selectedDate.isBefore(dayjs(), "day");
-      const synced = isPastDay
+      const canFinalize = totals.pending === 0;
+      const synced = isPastDay && canFinalize
         ? await saveWithTrackerSync(draft, selectedDate, true)
-        : (await saveDay({ ...draft, consumedCalories: totals.calories, consumedProtein: totals.protein }).unwrap(), false);
+        : (await saveDay({
+            ...draft,
+            consumedCalories: totals.calories,
+            consumedProtein: totals.protein,
+            consumedFat: totals.fat,
+            consumedCarbs: totals.carbs,
+            consumedFiber: totals.fiber,
+          }).unwrap(), false);
       setIsDirty(false);
       setNotice({
         type: "success",
         text: synced
           ? "День збережено, а підсумок калорій оновлено у трекері."
+          : isPastDay && !canFinalize
+            ? "Чернетку збережено. Заверши статуси всіх прийомів — лише тоді день потрапить у статистику."
           : "День харчування збережено у Firebase.",
       });
     } catch (error) {
@@ -396,6 +434,8 @@ const Nutrition = () => {
             <Stack direction="row" gap={1} flexWrap="wrap">
               <Chip color="primary" label={`${totals.calories}/${draft?.targetCalories || calorieTarget} ккал`} />
               <Chip label={`${totals.protein} г білка`} />
+              <Chip label={`${totals.fat} г жирів`} />
+              <Chip label={`${totals.carbs} г вуглеводів`} />
               <Chip label={`З'їдено ${totals.eaten}`} />
               <Chip label={`Пропущено ${totals.skipped}`} />
               <Chip
@@ -414,6 +454,12 @@ const Nutrition = () => {
           <strong>Силові цього тижня:</strong> {strengthTrainings.join(" · ")}. Час прийомів їжі береться з імпортованого плану; тренування показані поруч як контекст.
         </Alert>
       )}
+
+      <NutritionOperations
+        plan={plan.data || null}
+        settings={settings.data || null}
+        selectedDate={selectedDate}
+      />
 
       {isLoading ? (
         <Box display="flex" justifyContent="center" py={8}><CircularProgress /></Box>
@@ -470,7 +516,18 @@ const Nutrition = () => {
             </Card>
           ))}
 
-          <Button variant="outlined" startIcon={<AddOutlined />} onClick={addMeal}>Додати прийом їжі</Button>
+          <Stack direction={{ xs: "column", sm: "row" }} gap={1}>
+            <Button
+              variant="contained"
+              color="success"
+              startIcon={<DoneAllOutlined />}
+              disabled={!draft?.meals.some((meal) => !meal.status || meal.status === "pending")}
+              onClick={markAllPendingAsEaten}
+            >
+              Позначити заплановане як з'їдене
+            </Button>
+            <Button variant="outlined" startIcon={<AddOutlined />} onClick={addMeal}>Додати прийом їжі</Button>
+          </Stack>
           <Divider />
           <TextField label="Коментар дня" placeholder="Голод, самопочуття, алкоголь, їжа поза планом, що спрацювало або завадило" value={draft?.dailyComment || ""} onChange={(event) => { setIsDirty(true); setDraft((current) => current ? { ...current, dailyComment: event.target.value } : current); }} fullWidth multiline minRows={3} />
           <Box display="flex" justifyContent="flex-end">

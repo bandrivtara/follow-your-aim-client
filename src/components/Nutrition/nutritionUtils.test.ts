@@ -1,6 +1,7 @@
 import dayjs from "dayjs";
 import {
   buildNutritionDayDraft,
+  buildNutritionAnalysisExport,
   calculateNutritionTotals,
   isNutritionHabitTitle,
   parseNutritionBundle,
@@ -29,6 +30,16 @@ describe("nutrition utilities", () => {
       JSON.stringify({
         schemaVersion: "fya-nutrition-v2",
         settings: { calorieTarget: 2000 },
+        household: {
+          participants: [{ id: "owner", name: "Власник", tracked: true }],
+          defaultSharedMeals: true,
+        },
+        prepSessions: [{
+          id: "prep-1",
+          plannedDate: "2026-11-16",
+          title: "Заготовки",
+          tasks: [],
+        }],
         plan: {
           schemaVersion: "fya-nutrition-v2",
           weekStart: "2026-11-16",
@@ -60,6 +71,8 @@ describe("nutrition utilities", () => {
     );
     expect(bundle.plan.days[0].meals[0].portionDescription).toContain("50 г");
     expect(bundle.plan.recipes[0].batchIngredients).toEqual(["вівсянка 50 г"]);
+    expect(bundle.plan.household?.participants[0].name).toBe("Власник");
+    expect(bundle.plan.prepSessions?.[0].id).toBe("prep-1");
   });
 
   it("preserves meal execution while refreshing the plan", () => {
@@ -85,7 +98,38 @@ describe("nutrition utilities", () => {
         { id: "1", title: "A", time: "09:00", calories: 400, protein: 30, status: "eaten" },
         { id: "2", title: "B", time: "12:00", calories: 200, protein: 20, status: "skipped" },
       ]),
-    ).toMatchObject({ calories: 400, protein: 30, eaten: 1, skipped: 1 });
+    ).toMatchObject({ calories: 400, protein: 30, fat: 0, carbs: 0, eaten: 1, skipped: 1 });
+  });
+
+  it("separates complete, partial and missing days in the analysis export", () => {
+    const report = buildNutritionAnalysisExport({
+      plan: {
+        schemaVersion: "fya-nutrition-v2",
+        weekStart: "2026-11-16",
+        weekEnd: "2026-11-18",
+        recipes: [],
+        days: [
+          { date: "2026-11-16", meals: [{ id: "a", title: "A", time: "09:00", calories: 400 }] },
+          { date: "2026-11-17", meals: [{ id: "b", title: "B", time: "09:00", calories: 400 }] },
+          { date: "2026-11-18", meals: [{ id: "c", title: "C", time: "09:00", calories: 400 }] },
+        ],
+      },
+      logs: [
+        {
+          date: "2026-11-16",
+          targetCalories: 2000,
+          finalizedAt: 1,
+          meals: [{ id: "a", title: "A", time: "09:00", calories: 400, status: "eaten" }],
+        },
+        {
+          date: "2026-11-17",
+          targetCalories: 2000,
+          meals: [{ id: "b", title: "B", time: "09:00", calories: 400, status: "pending" }],
+        },
+      ],
+      trainingDays: [],
+    });
+    expect(report.dataCompleteness).toEqual({ completeDays: 1, partialDays: 1, missingDays: 1 });
   });
 
   it("recognizes the nutrition tracker row", () => {

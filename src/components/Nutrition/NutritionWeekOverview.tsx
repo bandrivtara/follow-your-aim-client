@@ -32,12 +32,14 @@ const NutritionWeekOverview = ({
       hasPlan: Boolean(planDay?.meals.length),
       calories: totals.calories,
       progress: target ? Math.min(115, Math.round((totals.calories / target) * 100)) : 0,
-      completed: totals.pending === 0 && Boolean(log?.meals.length),
+      completed: totals.pending === 0 && Boolean(log?.meals.length) && Boolean(log?.finalizedAt),
+      partial: Boolean(log?.meals.length) && (totals.pending > 0 || !log?.finalizedAt),
     };
   });
   const loggedDays = days.filter((day) => day.log);
-  const average = loggedDays.length
-    ? Math.round(loggedDays.reduce((sum, day) => sum + day.calories, 0) / loggedDays.length)
+  const completeDays = days.filter((day) => day.completed);
+  const average = completeDays.length
+    ? Math.round(completeDays.reduce((sum, day) => sum + day.calories, 0) / completeDays.length)
     : 0;
 
   return (
@@ -47,10 +49,13 @@ const NutritionWeekOverview = ({
           <Box>
             <Typography variant="h6" fontWeight={700}>Тиждень одним поглядом</Typography>
             <Typography variant="body2" color="text.secondary">
-              Середнє за заповнені дні: {average || "—"} ккал
+              Середнє за завершені дні: {average || "—"} ккал
             </Typography>
           </Box>
-          <Chip size="small" label={`${loggedDays.length}/7 днів заповнено`} />
+          <Stack direction="row" gap={0.75} flexWrap="wrap" justifyContent="flex-end">
+            <Chip size="small" color="success" variant="outlined" label={`${completeDays.length}/7 завершено`} />
+            <Chip size="small" label={`${loggedDays.filter((day) => day.partial).length} чернеток`} />
+          </Stack>
         </Stack>
         <Box
           display="grid"
@@ -61,7 +66,7 @@ const NutritionWeekOverview = ({
         >
           {days.map((day) => {
             const selected = day.date.isSame(selectedDate, "day");
-            const color = day.progress > 110 ? "error.main" : day.completed ? "success.main" : "primary.main";
+            const color = day.progress > 110 ? "error.main" : day.completed ? "success.main" : day.partial ? "warning.main" : "primary.main";
             return (
               <ButtonBase
                 key={day.date.format("YYYY-MM-DD")}
@@ -98,7 +103,7 @@ const NutritionWeekOverview = ({
           })}
         </Box>
         <Typography variant="caption" color="text.secondary" display="block" mt={1}>
-          Стовпчик показує частку від цілі. Зелений — день завершено, червоний — понад 110%.
+          Стовпчик показує частку від цілі. Зелений — день завершено, жовтий — чернетка, червоний — понад 110%.
         </Typography>
       </CardContent>
     </Card>

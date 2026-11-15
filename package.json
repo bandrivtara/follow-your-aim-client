@@ -55,6 +55,7 @@
     "test": "react-scripts test",
     "test:bridge": "node scripts/fya-plan-core.test.cjs && node scripts/fya-habit-metadata-core.test.cjs",
     "fya:bridge": "node scripts/fya-codex-bridge.cjs",
+    "health:status": "node scripts/fya-health-link.cjs",
     "eject": "react-scripts eject",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d build"
