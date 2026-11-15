@@ -65,7 +65,7 @@ Any date fix must keep both read paths consistent and test first/last-day and cr
 - `nutritionDay/{YYYY-MM-DD}` stores only execution for one day: copied planned meals plus status (`pending`, `eaten`, `skipped`), required skip reason, comments, calculated totals, and finalization/sync timestamps.
 - Opening Nutrition on a later day finalizes an existing unfinished previous-day log. It writes only calories/protein/target summary into the existing tracker `history` activity whose title contains `Харчування`; full meals remain in `nutritionDay`.
 - No remote migration, delete, seed, or automatic creation of a tracker habit is implemented. If the tracker habit is absent, the nutrition day is finalized without a history write and the UI reports it.
-- Import accepts only `schemaVersion: fya-nutrition-v1`. It batch-merges settings and the weekly plan; it never overwrites existing daily execution logs.
+- Import accepts `schemaVersion: fya-nutrition-v1` and `fya-nutrition-v2`. Version 2 preserves per-meal `portionDescription`, fats/carbohydrates/fibre, and recipe batch/portion weights while using the same Firestore documents. Import batch-merges settings and the weekly plan; it never overwrites existing daily execution logs.
 
 ## Archive fields
 

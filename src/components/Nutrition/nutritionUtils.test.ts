@@ -24,6 +24,44 @@ describe("nutrition utilities", () => {
     expect(bundle.settings.calorieTarget).toBe(2000);
   });
 
+  it("parses v2 meals and preserves portion gram details", () => {
+    const bundle = parseNutritionBundle(
+      JSON.stringify({
+        schemaVersion: "fya-nutrition-v2",
+        settings: { calorieTarget: 2000 },
+        plan: {
+          schemaVersion: "fya-nutrition-v2",
+          weekStart: "2026-11-16",
+          weekEnd: "2026-11-22",
+          days: [{
+            date: "2026-11-16",
+            meals: [{
+              id: "breakfast",
+              title: "Вівсяноблин",
+              time: "09:00",
+              calories: 430,
+              protein: 32,
+              fat: 13,
+              carbs: 48,
+              portionDescription: "Вівсянка 50 г сухої; яйце 50 г.",
+            }],
+          }],
+          recipes: [{
+            id: "oat-pancake",
+            title: "Вівсяноблин",
+            portions: 1,
+            ingredients: ["вівсянка 50 г"],
+            batchIngredients: ["вівсянка 50 г"],
+            portionDescription: "Одна порція.",
+            steps: ["Приготувати."],
+          }],
+        },
+      }),
+    );
+    expect(bundle.plan.days[0].meals[0].portionDescription).toContain("50 г");
+    expect(bundle.plan.recipes[0].batchIngredients).toEqual(["вівсянка 50 г"]);
+  });
+
   it("preserves meal execution while refreshing the plan", () => {
     const draft = buildNutritionDayDraft(
       dayjs("2026-11-16"),

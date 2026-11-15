@@ -1,4 +1,5 @@
 export type NutritionMealStatus = "pending" | "eaten" | "skipped";
+export type NutritionSchemaVersion = "fya-nutrition-v1" | "fya-nutrition-v2";
 
 export interface INutritionMeal {
   id: string;
@@ -6,6 +7,11 @@ export interface INutritionMeal {
   time: string;
   calories: number;
   protein?: number;
+  fat?: number;
+  carbs?: number;
+  fiber?: number;
+  saturatedFat?: number;
+  portionDescription?: string;
   description?: string;
   recipeId?: string;
   status?: NutritionMealStatus;
@@ -20,17 +26,22 @@ export interface INutritionRecipe {
   steps: string[];
   portions?: number;
   caloriesPerPortion?: number;
+  portionDescription?: string;
+  batchIngredients?: string[];
 }
 
 export interface INutritionSettings {
   calorieTarget: number;
   proteinTarget?: number;
+  fatTarget?: number;
+  carbsTarget?: number;
   fiberTarget?: number;
   saturatedFatTarget?: number;
   defaultMealTimes?: string[];
   approvedProducts?: string[];
   excludedProducts?: string[];
   candidateProducts?: string[];
+  weighingRules?: string[];
   updatedAt?: number;
 }
 
@@ -42,7 +53,7 @@ export interface INutritionPlanDay {
 
 export interface INutritionWeekPlan {
   id?: string;
-  schemaVersion: "fya-nutrition-v1";
+  schemaVersion: NutritionSchemaVersion;
   weekStart: string;
   weekEnd: string;
   days: INutritionPlanDay[];
@@ -65,7 +76,7 @@ export interface INutritionDayLog {
 }
 
 export interface INutritionImportBundle {
-  schemaVersion: "fya-nutrition-v1";
+  schemaVersion: NutritionSchemaVersion;
   exportedAt?: string;
   settings: INutritionSettings;
   plan: INutritionWeekPlan;

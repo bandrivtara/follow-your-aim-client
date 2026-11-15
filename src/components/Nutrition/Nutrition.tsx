@@ -24,6 +24,7 @@ import DownloadOutlined from "@mui/icons-material/DownloadOutlined";
 import PrintOutlined from "@mui/icons-material/PrintOutlined";
 import ShareOutlined from "@mui/icons-material/ShareOutlined";
 import SaveOutlined from "@mui/icons-material/SaveOutlined";
+import RestaurantMenuOutlined from "@mui/icons-material/RestaurantMenuOutlined";
 import { DatePicker } from "antd";
 import dayjs, { Dayjs } from "dayjs";
 import "dayjs/locale/uk";
@@ -434,7 +435,33 @@ const Nutrition = () => {
                   </TextField>
                   {meal.id.startsWith("manual-") && <IconButton aria-label="Видалити прийом" color="error" onClick={() => { setIsDirty(true); setDraft((current) => current ? { ...current, meals: current.meals.filter((item) => item.id !== meal.id) } : current); }}><DeleteOutline /></IconButton>}
                 </Stack>
-                {meal.description && <Typography color="text.secondary" mt={1}>{meal.description}</Typography>}
+                {meal.portionDescription && (
+                  <Box
+                    sx={{
+                      mt: 1.5,
+                      p: 1.25,
+                      borderRadius: 2,
+                      border: "1px solid",
+                      borderColor: "divider",
+                      bgcolor: "action.hover",
+                    }}
+                  >
+                    <Stack direction="row" spacing={1} alignItems="flex-start">
+                      <RestaurantMenuOutlined color="primary" fontSize="small" sx={{ mt: 0.2 }} />
+                      <Box>
+                        <Typography variant="caption" color="primary" fontWeight={700}>
+                          ПОРЦІЯ І ГРАМОВКА
+                        </Typography>
+                        <Typography variant="body2" sx={{ mt: 0.25, lineHeight: 1.55 }}>
+                          {meal.portionDescription}
+                        </Typography>
+                      </Box>
+                    </Stack>
+                  </Box>
+                )}
+                {meal.description && (!meal.portionDescription || !meal.description.startsWith(meal.portionDescription)) && (
+                  <Typography color="text.secondary" mt={1}>{meal.description}</Typography>
+                )}
                 {meal.status === "skipped" && (
                   <TextField required error={!meal.skippedReason?.trim()} label="Чому не з'їв?" value={meal.skippedReason || ""} onChange={(event) => updateMeal(meal.id, { skippedReason: event.target.value })} fullWidth multiline minRows={2} sx={{ mt: 1.5 }} />
                 )}

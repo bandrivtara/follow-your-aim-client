@@ -22,15 +22,18 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 
 export const parseNutritionBundle = (source: string): INutritionImportBundle => {
   const value: unknown = JSON.parse(source);
-  if (!isRecord(value) || value.schemaVersion !== "fya-nutrition-v1") {
-    throw new Error("Файл повинен мати schemaVersion fya-nutrition-v1.");
+  if (
+    !isRecord(value) ||
+    !["fya-nutrition-v1", "fya-nutrition-v2"].includes(String(value.schemaVersion))
+  ) {
+    throw new Error("Файл повинен мати schemaVersion fya-nutrition-v1 або fya-nutrition-v2.");
   }
   if (!isRecord(value.settings) || !isRecord(value.plan)) {
     throw new Error("У файлі відсутні settings або plan.");
   }
   const plan = value.plan as unknown as INutritionWeekPlan;
   if (
-    plan.schemaVersion !== "fya-nutrition-v1" ||
+    !["fya-nutrition-v1", "fya-nutrition-v2"].includes(plan.schemaVersion) ||
     !dayjs(plan.weekStart, "YYYY-MM-DD", true).isValid() ||
     !dayjs(plan.weekEnd, "YYYY-MM-DD", true).isValid() ||
     !Array.isArray(plan.days) ||
@@ -143,7 +146,7 @@ export const printWeeklyNutritionPlan = (plan: INutritionWeekPlan) => {
             ? day.meals
                 .map(
                   (meal) =>
-                    `<div class="meal"><strong>${escapeHtml(meal.time)} · ${escapeHtml(meal.title)}</strong> — ${escapeHtml(meal.calories)} ккал${meal.description ? `<br/><span class="meta">${escapeHtml(meal.description)}</span>` : ""}</div>`,
+                    `<div class="meal"><strong>${escapeHtml(meal.time)} · ${escapeHtml(meal.title)}</strong> — ${escapeHtml(meal.calories)} ккал${meal.portionDescription ? `<br/><span class="meta"><strong>Порція:</strong> ${escapeHtml(meal.portionDescription)}</span>` : meal.description ? `<br/><span class="meta">${escapeHtml(meal.description)}</span>` : ""}</div>`,
                 )
                 .join("")
             : "<div>План не заповнений.</div>"
@@ -158,7 +161,7 @@ export const printNutritionRecipes = (recipes: INutritionRecipe[]) => {
     "<h1>Короткі рецепти</h1>",
     ...recipes.map(
       (recipe) =>
-        `<section class="recipe"><h2>${escapeHtml(recipe.title)}</h2><div class="meta">${recipe.portions ? `${escapeHtml(recipe.portions)} порц.` : ""}${recipe.caloriesPerPortion ? ` · ${escapeHtml(recipe.caloriesPerPortion)} ккал/порц.` : ""}</div><h3>Інгредієнти</h3><ul>${recipe.ingredients.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul><h3>Як готувати</h3><ol>${recipe.steps.map((step) => `<li>${escapeHtml(step)}</li>`).join("")}</ol></section>`,
+        `<section class="recipe"><h2>${escapeHtml(recipe.title)}</h2><div class="meta">${recipe.portions ? `${escapeHtml(recipe.portions)} порц.` : ""}${recipe.caloriesPerPortion ? ` · ${escapeHtml(recipe.caloriesPerPortion)} ккал/порц.` : ""}</div>${recipe.portionDescription ? `<p><strong>Одна порція:</strong> ${escapeHtml(recipe.portionDescription)}</p>` : ""}<h3>${recipe.batchIngredients?.length ? "На всю партію" : "Інгредієнти"}</h3><ul>${(recipe.batchIngredients?.length ? recipe.batchIngredients : recipe.ingredients).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul><h3>Як готувати</h3><ol>${recipe.steps.map((step) => `<li>${escapeHtml(step)}</li>`).join("")}</ol></section>`,
     ),
   ].join("");
   printDocument("Короткі рецепти", body);
