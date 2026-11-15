@@ -31,6 +31,7 @@ const makePackage = () =>
                   time: "09:00",
                   calories: 430,
                   protein: 30,
+                  portionDescription: "Skyr 200 г, ягоди 100 г",
                   recipeId: "breakfast",
                 },
               ]
@@ -110,6 +111,7 @@ describe("nutritionLogic", () => {
       id: "2026-11-16-breakfast",
       status: "pending",
       calories: 430,
+      portionDescription: "Skyr 200 г, ягоди 100 г",
     });
     expect(week.recipes).toHaveLength(1);
     expect(week.shoppingTrips).toHaveLength(1);

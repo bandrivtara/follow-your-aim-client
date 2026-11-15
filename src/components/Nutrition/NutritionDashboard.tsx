@@ -223,8 +223,8 @@ const NutritionDashboard = () => {
     const recipe = selectedWeek?.recipes.find(
       (candidate) => candidate.id === meal.recipeId,
     );
-    if (recipe) setSelectedRecipe(recipe);
-    else setSelectedMeal(meal);
+    setSelectedMeal(meal);
+    setSelectedRecipe(recipe || null);
   };
 
   const errorMessage =
@@ -455,6 +455,11 @@ const NutritionDashboard = () => {
                                 <small>
                                   {meal.calories} ккал · Б {meal.protein} г
                                 </small>
+                                {meal.portionDescription ? (
+                                  <small className="meal-portion">
+                                    {meal.portionDescription}
+                                  </small>
+                                ) : null}
                               </button>
                               <select
                                 className={
@@ -876,6 +881,17 @@ const NutritionDashboard = () => {
         <DialogContent dividers className="recipe-dialog-content">
           {selectedRecipe ? (
             <>
+              {selectedMeal?.portionDescription ? (
+                <div className="portion-detail">
+                  <RestaurantMenuRounded color="primary" />
+                  <div>
+                    <strong>Порція і грамовка</strong>
+                    <Typography variant="body2">
+                      {selectedMeal.portionDescription}
+                    </Typography>
+                  </div>
+                </div>
+              ) : null}
               <Stack direction="row" spacing={1} flexWrap="wrap">
                 <Chip label={selectedRecipe.portions + " порції"} />
                 {selectedRecipe.caloriesPerPortion !== undefined && (
@@ -919,7 +935,24 @@ const NutritionDashboard = () => {
             </>
           ) : (
             <>
-              <Typography>{selectedMeal?.description}</Typography>
+              {selectedMeal?.portionDescription ? (
+                <div className="portion-detail">
+                  <RestaurantMenuRounded color="primary" />
+                  <div>
+                    <strong>Порція і грамовка</strong>
+                    <Typography variant="body2">
+                      {selectedMeal.portionDescription}
+                    </Typography>
+                  </div>
+                </div>
+              ) : null}
+              {selectedMeal?.description &&
+              (!selectedMeal.portionDescription ||
+                !selectedMeal.description.startsWith(
+                  selectedMeal.portionDescription,
+                )) ? (
+                <Typography>{selectedMeal.description}</Typography>
+              ) : null}
               <Typography color="text.secondary">
                 {selectedMeal?.calories} ккал · білок {selectedMeal?.protein} г
               </Typography>

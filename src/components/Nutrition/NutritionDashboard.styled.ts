@@ -545,7 +545,7 @@ const NutritionLayout = styled.main`
 
   .planned-meal button > span {
     display: grid;
-    grid-row: 1 / 3;
+    grid-row: 1 / 4;
     width: 52px;
     min-height: 38px;
     place-items: center;
@@ -563,6 +563,15 @@ const NutritionLayout = styled.main`
 
   .planned-meal button > strong {
     line-height: 1.3;
+  }
+
+  .planned-meal button > .meal-portion {
+    display: -webkit-box;
+    overflow: hidden;
+    color: #5965e8;
+    line-height: 1.35;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
   }
 
   .planned-meal select {
@@ -679,6 +688,34 @@ const NutritionLayout = styled.main`
     gap: 7px;
     padding-left: 22px;
     margin: 0;
+  }
+
+  .portion-detail {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px;
+    border: 1px solid #dfe3ff;
+    border-radius: 12px;
+    color: var(--fya-ink);
+    background: #f5f6ff;
+  }
+
+  .portion-detail > svg {
+    flex: 0 0 auto;
+    margin-top: 1px;
+  }
+
+  .portion-detail > div {
+    display: grid;
+    gap: 3px;
+  }
+
+  .portion-detail strong {
+    color: var(--fya-primary-dark);
+    font-size: 0.76rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
   }
 
   .prep-grid,

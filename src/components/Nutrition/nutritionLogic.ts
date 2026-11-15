@@ -76,6 +76,7 @@ const parseMeal = (
     fat: value.fat === undefined ? undefined : asNumber(value.fat),
     carbs: value.carbs === undefined ? undefined : asNumber(value.carbs),
     fiber: value.fiber === undefined ? undefined : asNumber(value.fiber),
+    portionDescription: asString(value.portionDescription) || undefined,
     description: asString(value.description) || undefined,
     recipeId: asString(value.recipeId) || undefined,
     status,

@@ -18,6 +18,7 @@ export interface NutritionMeal {
   fat?: number;
   carbs?: number;
   fiber?: number;
+  portionDescription?: string;
   description?: string;
   recipeId?: string;
   status: NutritionMealStatus;
