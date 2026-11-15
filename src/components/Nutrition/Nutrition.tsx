@@ -1,6 +1,9 @@
 import { ChangeEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
   Box,
   Button,
   Card,
@@ -21,6 +24,8 @@ import ArrowForwardOutlined from "@mui/icons-material/ArrowForwardOutlined";
 import CloudUploadOutlined from "@mui/icons-material/CloudUploadOutlined";
 import DeleteOutline from "@mui/icons-material/DeleteOutline";
 import DoneAllOutlined from "@mui/icons-material/DoneAllOutlined";
+import ExpandMoreOutlined from "@mui/icons-material/ExpandMoreOutlined";
+import HelpOutlineOutlined from "@mui/icons-material/HelpOutlineOutlined";
 import DownloadOutlined from "@mui/icons-material/DownloadOutlined";
 import PrintOutlined from "@mui/icons-material/PrintOutlined";
 import ShareOutlined from "@mui/icons-material/ShareOutlined";
@@ -407,6 +412,21 @@ const Nutrition = () => {
       </Stack>
 
       {notice && <Alert severity={notice.type} onClose={() => setNotice(null)} sx={{ mb: 2 }}>{notice.text}</Alert>}
+      <Accordion sx={{ mb: 2 }}>
+        <AccordionSummary expandIcon={<ExpandMoreOutlined />}>
+          <HelpOutlineOutlined color="primary" sx={{ mr: 1 }} />
+          <Typography fontWeight={700}>Як це працює</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          <Stack spacing={0.75}>
+            <Typography variant="body2"><strong>1.</strong> Health формує погоджений план на 14 днів для тебе й Каті.</Typography>
+            <Typography variant="body2"><strong>2.</strong> Імпортуй два тижневі JSON кнопкою «Імпорт JSON».</Typography>
+            <Typography variant="body2"><strong>3.</strong> Щодня позначай, що з’їв або пропустив; для змін додай короткий коментар.</Typography>
+            <Typography variant="body2"><strong>4.</strong> У «Організації харчування» перевіряй закупи, prep і розморожування.</Typography>
+            <Typography variant="body2"><strong>5.</strong> Наприкінці тижня завантаж «JSON для аналізу» й передай його в Health.</Typography>
+          </Stack>
+        </AccordionDetails>
+      </Accordion>
       {hasLoadError && (
         <Alert severity="error" sx={{ mb: 2 }}>
           Не вдалося завантажити частину даних. Перевір підключення та права Firebase, потім онови сторінку.
